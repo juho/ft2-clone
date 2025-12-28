@@ -155,6 +155,9 @@ jobs:
 
       - name: Update existing release
         if: steps.check_release.outputs.exists == 'true'
+        env:
+          COMMIT_SHA: ${{ github.sha }}
+          BRANCH_NAME: ${{ github.ref_name }}
         run: |
           gh release upload "v${VERSION}" \
             FT2-Plugin-${VERSION}-VST3-macOS.zip \
@@ -163,12 +166,11 @@ jobs:
             FT2-Plugin-${VERSION}-LV2-Linux.zip \
             FT2-Plugin-${VERSION}-VST3-Windows.zip \
             --clobber
-          gh release edit "v${VERSION}" \
-            --notes "FT2 Plugin v${VERSION}
+          gh release edit "v${VERSION}" --notes "FT2 Plugin v${VERSION}
 
-Updated: $(date -u '+%Y-%m-%d %H:%M UTC')
-Commit: ${{ github.sha }}
-Branch: ${{ github.ref_name }}"
+          Updated: $(date -u '+%Y-%m-%d %H:%M UTC')
+          Commit: ${COMMIT_SHA}
+          Branch: ${BRANCH_NAME}"
 
       - name: Create new release
         if: steps.check_release.outputs.exists == 'false'
