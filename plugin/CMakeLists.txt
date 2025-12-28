@@ -95,6 +95,7 @@ target_include_directories(ft2_core PUBLIC
 set_target_properties(ft2_core PROPERTIES
     C_STANDARD 11
     C_STANDARD_REQUIRED ON
+    POSITION_INDEPENDENT_CODE ON
 )
 
 # Link the plugin

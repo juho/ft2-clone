@@ -2,11 +2,19 @@
 
 This is a fork of [8bitbubsy's standalone ft2-clone](https://github.com/8bitbubsy/ft2-clone), including *a full rewrite* of the code to a multi-instance aware VST3/AU/LV2 plugin by [Blamstrain/TPOLM](https://blamstrain.com) with DAW sync capabilities.
 
-**Consider the plugin ALPHA software.** I've tried to match standalone behavior as closely as possible. As it's a rewrite, there are still bugs and some divergence from the standalone version, however there should be no show-stopping crash bugs at this stage. If you find any issues **IN THE PLUGIN**, please report them with thorough reproduction steps.
+**Consider the plugin ALPHA software. Do not use this for real songs just yet- it will get there soon.** I've uploaded this so that you can try it out and give feedback. If you find any issues, please report them with thorough reproduction steps.
 
-**Standalone builds are not a concern in this repository.**
+I've tried to match standalone behavior as closely as possible. As it's a rewrite, there are still bugs and some divergence, however there should be no show-stopping crash bugs at this stage.
 
-All credit goes to [8bitbubsy](https://16-bits.org) for his tireless work on the port from original, on which the plugin is based on. The plugin version is in its own folder so further updates from the standalone version can be pulled in, compared and integrated.
+**Standalone builds are not a concern in this repository.** If you're looking for the standalone version, you can find it [here](https://github.com/8bitbubsy/ft2-clone). Standalone code is kept around so that we can compare and integrate changes to the plugin from the standalone version.
+
+All credit goes to [8bitbubsy](https://16-bits.org) for his tireless work on the port from original, on which the plugin is based on.
+
+## Current limitations
+
+- **FT2 state is not saved with your DAW project** - WIP. This means you WILL lose your work if you don't save/load it manually.
+- No multi-output support (yet)
+- No MIDI support (yet)
 
 ## Changes from standalone version
 
