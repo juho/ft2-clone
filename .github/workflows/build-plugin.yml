@@ -1,0 +1,190 @@
+name: Build Plugin
+
+on:
+  push:
+    branches: [master, juce]
+    paths:
+      - 'plugin/**'
+      - 'src/**'
+      - 'JUCE'
+  pull_request:
+    branches: [master]
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get version from CMakeLists.txt
+        id: get_version
+        run: |
+          VERSION=$(grep -oP 'project\(FT2Plugin VERSION \K[0-9]+\.[0-9]+\.[0-9]+' plugin/CMakeLists.txt)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+  build-macos:
+    needs: version
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Configure CMake
+        run: cmake -B plugin/build -S plugin -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build plugin/build --config Release --parallel
+
+      - name: Upload VST3
+        uses: actions/upload-artifact@v4
+        with:
+          name: FT2-Plugin-${{ needs.version.outputs.version }}-VST3-macOS
+          path: plugin/build/FT2Plugin_artefacts/Release/VST3/*.vst3
+
+      - name: Upload AU
+        uses: actions/upload-artifact@v4
+        with:
+          name: FT2-Plugin-${{ needs.version.outputs.version }}-AU-macOS
+          path: plugin/build/FT2Plugin_artefacts/Release/AU/*.component
+
+  build-linux:
+    needs: version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libasound2-dev \
+            libcurl4-openssl-dev \
+            libfreetype6-dev \
+            libwebkit2gtk-4.1-dev \
+            libx11-dev \
+            libxcomposite-dev \
+            libxcursor-dev \
+            libxext-dev \
+            libxinerama-dev \
+            libxrandr-dev \
+            libxrender-dev \
+            libgl1-mesa-dev
+
+      - name: Configure CMake
+        run: cmake -B plugin/build -S plugin -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build plugin/build --config Release --parallel
+
+      - name: Upload VST3
+        uses: actions/upload-artifact@v4
+        with:
+          name: FT2-Plugin-${{ needs.version.outputs.version }}-VST3-Linux
+          path: plugin/build/FT2Plugin_artefacts/Release/VST3/*.vst3
+
+      - name: Upload LV2
+        uses: actions/upload-artifact@v4
+        with:
+          name: FT2-Plugin-${{ needs.version.outputs.version }}-LV2-Linux
+          path: plugin/build/FT2Plugin_artefacts/Release/LV2/*.lv2
+
+  build-windows:
+    needs: version
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Configure CMake
+        run: cmake -B plugin/build -S plugin -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build plugin/build --config Release --parallel
+
+      - name: Upload VST3
+        uses: actions/upload-artifact@v4
+        with:
+          name: FT2-Plugin-${{ needs.version.outputs.version }}-VST3-Windows
+          path: plugin/build/FT2Plugin_artefacts/Release/VST3/*.vst3
+
+  release:
+    needs: [version, build-macos, build-linux, build-windows]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    permissions:
+      contents: write
+    env:
+      VERSION: ${{ needs.version.outputs.version }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check if release exists
+        id: check_release
+        run: |
+          if gh release view "v${VERSION}" &>/dev/null; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Zip artifacts
+        run: |
+          cd artifacts
+          zip -r ../FT2-Plugin-${VERSION}-VST3-macOS.zip FT2-Plugin-${VERSION}-VST3-macOS
+          zip -r ../FT2-Plugin-${VERSION}-AU-macOS.zip FT2-Plugin-${VERSION}-AU-macOS
+          zip -r ../FT2-Plugin-${VERSION}-VST3-Linux.zip FT2-Plugin-${VERSION}-VST3-Linux
+          zip -r ../FT2-Plugin-${VERSION}-LV2-Linux.zip FT2-Plugin-${VERSION}-LV2-Linux
+          zip -r ../FT2-Plugin-${VERSION}-VST3-Windows.zip FT2-Plugin-${VERSION}-VST3-Windows
+
+      - name: Update existing release
+        if: steps.check_release.outputs.exists == 'true'
+        run: |
+          gh release upload "v${VERSION}" \
+            FT2-Plugin-${VERSION}-VST3-macOS.zip \
+            FT2-Plugin-${VERSION}-AU-macOS.zip \
+            FT2-Plugin-${VERSION}-VST3-Linux.zip \
+            FT2-Plugin-${VERSION}-LV2-Linux.zip \
+            FT2-Plugin-${VERSION}-VST3-Windows.zip \
+            --clobber
+          gh release edit "v${VERSION}" \
+            --notes "FT2 Plugin v${VERSION}
+
+Updated: $(date -u '+%Y-%m-%d %H:%M UTC')
+Commit: ${{ github.sha }}
+Branch: ${{ github.ref_name }}"
+
+      - name: Create new release
+        if: steps.check_release.outputs.exists == 'false'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.version.outputs.version }}
+          name: FT2 Plugin v${{ needs.version.outputs.version }}
+          body: |
+            FT2 Plugin v${{ needs.version.outputs.version }}
+            
+            Released: ${{ github.event.head_commit.timestamp }}
+            Commit: ${{ github.sha }}
+            Branch: ${{ github.ref_name }}
+          files: |
+            FT2-Plugin-${{ needs.version.outputs.version }}-VST3-macOS.zip
+            FT2-Plugin-${{ needs.version.outputs.version }}-AU-macOS.zip
+            FT2-Plugin-${{ needs.version.outputs.version }}-VST3-Linux.zip
+            FT2-Plugin-${{ needs.version.outputs.version }}-LV2-Linux.zip
+            FT2-Plugin-${{ needs.version.outputs.version }}-VST3-Windows.zip

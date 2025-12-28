@@ -67,12 +67,12 @@ set(PLUGIN_SOURCES
 
 # Create the plugin
 juce_add_plugin(FT2Plugin
-    COMPANY_NAME "FT2Clone"
-    PLUGIN_MANUFACTURER_CODE FT2C
+    COMPANY_NAME "Blamstrain"
+    PLUGIN_MANUFACTURER_CODE Blam
     PLUGIN_CODE Ft2P
     FORMATS VST3 AU LV2
-    PRODUCT_NAME "FT2 Clone"
-    BUNDLE_ID "com.ft2clone.plugin"
+    PRODUCT_NAME "Fasttracker II"
+    BUNDLE_ID "com.blamstrain.ft2plugin"
     IS_SYNTH TRUE
     NEEDS_MIDI_INPUT TRUE
     NEEDS_MIDI_OUTPUT FALSE
@@ -81,7 +81,7 @@ juce_add_plugin(FT2Plugin
     COPY_PLUGIN_AFTER_BUILD TRUE
     VST3_CATEGORIES "Instrument" "Synth"
     AU_MAIN_TYPE "kAudioUnitType_MusicDevice"
-    LV2URI "urn:ft2clone:plugin"
+    LV2URI "urn:blamstrain:ft2plugin"
 )
 
 # Add FT2 core as a static library to interface C code with C++
