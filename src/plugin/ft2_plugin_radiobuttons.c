@@ -445,11 +445,10 @@ void testRadioButtonMouseRelease(struct ft2_instance_t *inst, struct ft2_video_t
 	if (mouseX >= rb->x && mouseX < rb->x + rb->clickAreaWidth &&
 	    mouseY >= rb->y && mouseY < rb->y + RADIOBUTTON_H + 1)
 	{
-		rb->state = RADIOBUTTON_UNCHECKED;
-		drawRadioButton(video, bmp, lastRadioButtonID);
-
 		if (rb->callbackFunc != NULL)
 			rb->callbackFunc(inst);
+		else
+			checkRadioButton(video, bmp, lastRadioButtonID);
 	}
 }
 
