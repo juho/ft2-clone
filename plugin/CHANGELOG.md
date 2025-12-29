@@ -5,6 +5,7 @@
 - Fix: Implement instrument/sample clearing (with numpad period key).
 - Feat: Handle mouse wheel in help/disk operations screens.
 - Version in "About" now comes from CMake.
+- Fix: Show "Not enough memory!" dialog when trim calculation fails.
 
 ## 1.0.3 (Dec 29, 2025)
 
