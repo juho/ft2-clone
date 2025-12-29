@@ -2,6 +2,7 @@
 
 extern "C" {
 #include "ft2_plugin_diskop.h"
+#include "ft2_plugin_loader.h"
 #include "ft2_plugin_timemap.h"
 }
 

@@ -861,7 +861,7 @@ static int detect_module_format(const uint8_t *data, uint32_t dataSize)
 	return FORMAT_UNKNOWN;
 }
 
-bool ft2_load_module_from_memory(ft2_instance_t *inst, const uint8_t *data, uint32_t dataSize)
+bool ft2_load_module(ft2_instance_t *inst, const uint8_t *data, uint32_t dataSize)
 {
 	if (inst == NULL || data == NULL || dataSize == 0)
 		return false;

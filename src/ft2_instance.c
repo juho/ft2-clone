@@ -1132,7 +1132,7 @@ void ft2_instance_render_multiout(ft2_instance_t *inst, float *mainOutL, float *
 bool ft2_instance_load_xm(ft2_instance_t *inst, const uint8_t *data, uint32_t dataSize)
 {
 	/* Use the new generic loader that supports XM, MOD, and S3M */
-	return ft2_load_module_from_memory(inst, data, dataSize);
+	return ft2_load_module(inst, data, dataSize);
 }
 
 void ft2_instance_set_interpolation(ft2_instance_t *inst, uint8_t type)

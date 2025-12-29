@@ -412,7 +412,7 @@ void FT2PluginProcessor::setStateInformation(const void* data, int sizeInBytes)
     // Module data
     if (moduleSize > 0 && remaining >= static_cast<int>(moduleSize))
     {
-        ft2_load_module_from_memory(instance, ptr, moduleSize);
+        ft2_load_module(instance, ptr, moduleSize);
         
         // Restore editor state
         instance->editor.curInstr = curInstr;

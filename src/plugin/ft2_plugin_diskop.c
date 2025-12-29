@@ -976,28 +976,7 @@ ft2_file_format ft2_detect_format_by_header(const uint8_t *data, uint32_t dataSi
 	return FT2_FORMAT_UNKNOWN;
 }
 
-bool ft2_load_module(ft2_instance_t *inst, const uint8_t *data, uint32_t dataSize)
-{
-	if (inst == NULL || data == NULL || dataSize == 0)
-		return false;
-
-	ft2_file_format format = ft2_detect_format_by_header(data, dataSize);
-
-	switch (format)
-	{
-		case FT2_FORMAT_XM:
-			return ft2_load_xm_from_memory(inst, data, dataSize);
-
-		case FT2_FORMAT_MOD:
-			return load_mod_from_memory(inst, data, dataSize);
-
-		case FT2_FORMAT_S3M:
-			return load_s3m_from_memory(inst, data, dataSize);
-
-		default:
-			return false;
-	}
-}
+/* ft2_load_module moved to ft2_plugin_loader.c - use ft2_load_module() from ft2_plugin_loader.h */
 
 /**
  * Helper: Count used samples in an instrument (ported from getUsedSamples).

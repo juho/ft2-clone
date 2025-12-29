@@ -110,7 +110,7 @@ ft2_file_format ft2_detect_format_by_header(const uint8_t *data, uint32_t dataSi
  * @param dataSize Size of data.
  * @return true on success, false on failure.
  */
-bool ft2_load_module(ft2_instance_t *inst, const uint8_t *data, uint32_t dataSize);
+/* ft2_load_module moved to ft2_plugin_loader.h */
 
 /**
  * @brief Save module to memory buffer.
