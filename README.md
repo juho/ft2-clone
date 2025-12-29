@@ -1,5 +1,7 @@
 # ft2-plugin
 
+<img width="4112" height="2658" alt="image_2025-12-29_01-04-36" src="https://github.com/user-attachments/assets/572e056a-48d6-42e2-b7dc-0b37e6ab08e2" />
+
 This is a fork of [8bitbubsy's standalone ft2-clone](https://github.com/8bitbubsy/ft2-clone), including *a full rewrite* of the code to a multi-instance aware VST3/AU/LV2 plugin by [Blamstrain/TPOLM](https://blamstrain.com) with DAW sync capabilities.
 
 **Consider the plugin ALPHA software. Do not use this for real songs just yet- it will get there soon.** I've uploaded this so that you can try it out and give feedback. If you find any issues, please report them with thorough reproduction steps.
