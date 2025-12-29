@@ -75,6 +75,7 @@ void ft2_config_init(ft2_plugin_config_t *config)
 	config->syncPositionFromDAW = true;
 	config->allowFxxSpeedChanges = true;
 	config->savedSpeed = 6;  /* Default speed */
+	config->savedBpm = 125;  /* Default BPM */
 
 	/* Palette */
 	config->palettePreset = PAL_ARCTIC;
@@ -1105,9 +1106,27 @@ void cbSyncBpmFromDAW(ft2_instance_t *inst)
 
 	inst->config.syncBpmFromDAW = !inst->config.syncBpmFromDAW;
 
-	/* If BPM sync is disabled, also disable position sync (it depends on BPM sync) */
-	if (!inst->config.syncBpmFromDAW && inst->config.syncPositionFromDAW)
-		inst->config.syncPositionFromDAW = false;
+	if (inst->config.syncBpmFromDAW)
+	{
+		/* Enabling sync: save current BPM (DAW will control it now) */
+		inst->config.savedBpm = inst->replayer.song.BPM;
+	}
+	else
+	{
+		/* Disabling sync: restore saved BPM */
+		if (inst->config.savedBpm > 0)
+		{
+			inst->replayer.song.BPM = inst->config.savedBpm;
+			ft2_set_bpm(inst, inst->config.savedBpm);
+		}
+
+		/* Also disable position sync (it depends on BPM sync) */
+		if (inst->config.syncPositionFromDAW)
+			inst->config.syncPositionFromDAW = false;
+	}
+
+	/* Invalidate timemap since BPM handling changes affect timing */
+	ft2_timemap_invalidate(inst);
 
 	/* Trigger full redraw to update BPM buttons and display */
 	inst->uiState.needsFullRedraw = true;

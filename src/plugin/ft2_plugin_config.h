@@ -122,6 +122,7 @@ typedef struct ft2_plugin_config_t
 	bool syncPositionFromDAW;   /* Sync position from DAW (seek follows DAW playhead) */
 	bool allowFxxSpeedChanges;  /* Allow Fxx speed effects (param < 0x20). Default: false */
 	uint16_t savedSpeed;        /* Saved speed when Fxx changes disabled, restored when enabled */
+	uint16_t savedBpm;          /* Saved BPM when DAW sync enabled, restored when disabled */
 
 	/* Palette */
 	uint8_t palettePreset;

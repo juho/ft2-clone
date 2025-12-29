@@ -22,6 +22,7 @@
 #include "ft2_plugin_mem_reader.h"
 #include "ft2_plugin_load_mod.h"
 #include "ft2_plugin_load_s3m.h"
+#include "ft2_plugin_timemap.h"
 
 /* Sample flags */
 #define SAMPLE_16BIT 16
@@ -858,19 +859,44 @@ bool ft2_load_module_from_memory(ft2_instance_t *inst, const uint8_t *data, uint
 		return false;
 
 	int format = detect_module_format(data, dataSize);
+	bool loaded = false;
 
 	switch (format)
 	{
 		case FORMAT_XM:
-			return ft2_load_xm_from_memory(inst, data, dataSize);
+			loaded = ft2_load_xm_from_memory(inst, data, dataSize);
+			break;
 
 		case FORMAT_MOD:
-			return load_mod_from_memory(inst, data, dataSize);
+			loaded = load_mod_from_memory(inst, data, dataSize);
+			break;
 
 		case FORMAT_S3M:
-			return load_s3m_from_memory(inst, data, dataSize);
+			loaded = load_s3m_from_memory(inst, data, dataSize);
+			break;
 
 		default:
 			return false;
 	}
+
+	if (loaded)
+	{
+		/* Apply speed config: if Fxx changes disabled, lock to 6 */
+		if (!inst->config.allowFxxSpeedChanges)
+		{
+			inst->config.savedSpeed = inst->replayer.song.speed;
+			inst->replayer.song.speed = 6;
+		}
+
+		/* Apply BPM config: if BPM sync enabled, save module BPM for later restore */
+		if (inst->config.syncBpmFromDAW)
+		{
+			inst->config.savedBpm = inst->replayer.song.BPM;
+		}
+
+		/* Invalidate timemap for rebuild with correct settings */
+		ft2_timemap_invalidate(inst);
+	}
+
+	return loaded;
 }
