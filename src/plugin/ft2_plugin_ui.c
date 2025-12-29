@@ -39,6 +39,7 @@
 #include "ft2_plugin_pushbuttons.h"
 #include "ft2_plugin_palette.h"
 #include "ft2_plugin_diskop.h"
+#include "ft2_plugin_help.h"
 #include "ft2_plugin_trim.h"
 #include "ft2_plugin_nibbles.h"
 #include "ft2_instance.h"
@@ -721,6 +722,47 @@ void ft2_ui_mouse_wheel(ft2_ui_t *ui, void *inst, int x, int y, int delta)
 	/* Top screen (y < 173) */
 	if (y < 173)
 	{
+		/* Help screen - 2x scroll speed */
+		if (ft2inst->uiState.helpScreenShown)
+		{
+			ft2_video_t *video = &ui->video;
+			const ft2_bmp_t *bmp = ui->bmpLoaded ? &ui->bmp : NULL;
+			if (directionUp)
+			{
+				helpScrollUp(ft2inst, video, bmp);
+				helpScrollUp(ft2inst, video, bmp);
+			}
+			else
+			{
+				helpScrollDown(ft2inst, video, bmp);
+				helpScrollDown(ft2inst, video, bmp);
+			}
+			return;
+		}
+
+		/* Disk op - 3x scroll speed when in file list area */
+		if (ft2inst->uiState.diskOpShown && x <= 355)
+		{
+			if (directionUp)
+			{
+				pbDiskOpListUp(ft2inst);
+				pbDiskOpListUp(ft2inst);
+				pbDiskOpListUp(ft2inst);
+			}
+			else
+			{
+				pbDiskOpListDown(ft2inst);
+				pbDiskOpListDown(ft2inst);
+				pbDiskOpListDown(ft2inst);
+			}
+			return;
+		}
+
+		/* Skip other controls when overlay screens shown */
+		if (ft2inst->uiState.aboutScreenShown || ft2inst->uiState.configScreenShown ||
+		    ft2inst->uiState.nibblesShown || ft2inst->uiState.diskOpShown)
+			return;
+
 		/* Position editor area */
 		if (x <= 111 && y <= 76)
 		{

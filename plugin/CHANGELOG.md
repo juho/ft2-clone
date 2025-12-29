@@ -3,6 +3,7 @@
 ## 1.0.4 (Dec 29, 2025)
 
 - Fix: Implement instrument/sample clearing (with numpad period key).
+- Version in "About" now comes from CMake.
 
 ## 1.0.3 (Dec 29, 2025)
 

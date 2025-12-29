@@ -105,16 +105,6 @@ void ft2_widgets_handle_held_down(ft2_widgets_t *widgets, struct ft2_instance_t 
 	struct ft2_video_t *video, const struct ft2_bmp_t *bmp);
 
 /**
- * Handle mouse wheel event.
- * @param widgets Widget state container
- * @param inst FT2 instance
- * @param delta Wheel delta (positive = up, negative = down)
- * @param x Mouse X coordinate
- * @param y Mouse Y coordinate
- */
-void ft2_widgets_mouse_wheel(ft2_widgets_t *widgets, struct ft2_instance_t *inst, int delta, int x, int y);
-
-/**
  * Handle key press.
  * @param widgets Widget state container
  * @param key Key code
