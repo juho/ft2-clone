@@ -4,15 +4,25 @@
 
 This is a fork of [8bitbubsy's standalone ft2-clone](https://github.com/8bitbubsy/ft2-clone), including *a full rewrite* of the code to a multi-instance aware VST3/AU/LV2 plugin by [Blamstrain/TPOLM](https://blamstrain.com) with DAW sync capabilities.
 
-**Consider the plugin ALPHA software.** If you find any issues, please report them with thorough reproduction steps. I've tried to match standalone behavior as closely as possible. As it's a rewrite, there are still bugs and some divergence, however there should be no show-stopping crash bugs at this stage.
-
 **Standalone builds are not a concern in this repository.** If you're looking for the standalone version, you can find it [here](https://github.com/8bitbubsy/ft2-clone). Standalone code is kept around so that we can compare and integrate changes to the plugin from the standalone version.
 
 All credit goes to [8bitbubsy](https://16-bits.org) for his tireless work on the port from original, on which the plugin is based on.
 
-## Current limitations
+## Plugin-specific features
 
-- No sampling in the sample editor (may get removed entirely, you can just drag and drop WAV samples)
+- DAW sync capabilities (sync BPM, transport and position from DAW host)
+- Module state saves with the plugin in your DAW session (no need to save/load modules manually)
+- Multi-instance support, including per-instance config
+- Multi-output support (can map any of the 32 channels to 15 busses plus a main mix)
+- Drag and drop modules or samples to the plugin
+
+### Under active development!
+
+Note that there are lots of updates coming at a rapid pace right now, and I am taking input for reasonable feature requests and of course want to fix any bugs. If there is a newer version than the one you have already downloaded (look at the "About" screen for your plugin's version), issues might have been fixed already. [Please check the changelog for changes.](https://github.com/juho/ft2-plugin/blob/master/plugin/CHANGELOG.md)
+
+## Download
+
+Download the latest version from the [releases page](https://github.com/juho/ft2-plugin/releases).
 
 ### Mac users
 
@@ -20,15 +30,12 @@ The plugins aren't signed, so you need to either "Allow anyway" or run `sudo xat
 
 ## Changes from standalone version
 
-- General: Compiles as VST2/VST3/AU/LV2 plugin using JUCE framework.
+- General: Compiles as VST3/AU/LV2 plugin using JUCE framework.
 - General: Only XM, MOD and S3M modules are supported.
 - General: Some config settings do not make sense in a plugin, so they have been disabled.
-- General: Supports multiple outputs coming into the DAW.
 - Graphics: Uses OpenGL instead of SDL.
 - Disk op: WAV save option is removed (if you need to save a WAV, use the standalone version or render offline with your DAW).
 - Disk op: Rename and delete disk operation buttons are removed.
-- Config: Settings for DAW transport, BPM and position sync have been added.
-- Config: Reset config resets to factory defaults. Load and save config saves to user's home directory. Instances have their own config which can override any of the settings.
 
 ## License
 
