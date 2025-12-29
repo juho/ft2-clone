@@ -459,12 +459,12 @@ typedef struct pushButton_t
 	const uint8_t *bitmapPressed;
 } pushButton_t;
 
-extern pushButton_t pushButtons[NUM_PUSHBUTTONS];
+extern const pushButton_t pushButtonsTemplate[NUM_PUSHBUTTONS];
 
 /**
  * Initialize push buttons array (constant data only).
  */
-void initPushButtons(void);
+void initPushButtons(struct ft2_widgets_t *widgets);
 
 /**
  * Draw a push button using per-instance state.

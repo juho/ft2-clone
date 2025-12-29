@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <string.h>
 #include "ft2_plugin_video.h"
 #include "ft2_plugin_bmp.h"
 #include "ft2_plugin_widgets.h"
@@ -74,6 +75,10 @@ void ft2_widgets_init(ft2_widgets_t *widgets)
 	if (widgets == NULL)
 		return;
 
+	/* Copy widget definitions from templates to per-instance arrays */
+	memcpy(widgets->pushButtons, pushButtonsTemplate, sizeof(pushButtonsTemplate));
+	memcpy(widgets->scrollBars, scrollBarsTemplate, sizeof(scrollBarsTemplate));
+
 	/* Initialize per-instance widget visibility/state arrays */
 	for (int i = 0; i < NUM_PUSHBUTTONS; i++)
 	{
@@ -105,13 +110,13 @@ void ft2_widgets_init(ft2_widgets_t *widgets)
 	}
 
 	/* Initialize all widget subsystems (callbacks and constant data only) */
-	initPushButtons();
+	initPushButtons(widgets);
 	initScrollBars(widgets);
 	initCheckBoxes();
 	initRadioButtons();
 
-	/* Initialize callbacks */
-	initCallbacks();
+	/* Initialize callbacks (operates on per-instance widget arrays) */
+	initCallbacks(widgets);
 
 	/* Initialize help system (parses help data) */
 	initFTHelp();

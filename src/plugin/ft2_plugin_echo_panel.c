@@ -95,7 +95,7 @@ static void setupWidgets(void)
 	scrollBar_t *s;
 	
 	/* "Create" pushbutton */
-	p = &pushButtons[PB_RES_1];
+	p = &widgets->pushButtons[PB_RES_1];
 	memset(p, 0, sizeof(pushButton_t));
 	p->caption = "Create";
 	p->x = 345;
@@ -106,7 +106,7 @@ static void setupWidgets(void)
 	widgets->pushButtonVisible[PB_RES_1] = true;
 	
 	/* "Exit" pushbutton */
-	p = &pushButtons[PB_RES_2];
+	p = &widgets->pushButtons[PB_RES_2];
 	memset(p, 0, sizeof(pushButton_t));
 	p->caption = "Exit";
 	p->x = 402;
@@ -117,7 +117,7 @@ static void setupWidgets(void)
 	widgets->pushButtonVisible[PB_RES_2] = true;
 	
 	/* Echo num left arrow */
-	p = &pushButtons[PB_RES_3];
+	p = &widgets->pushButtons[PB_RES_3];
 	memset(p, 0, sizeof(pushButton_t));
 	p->caption = ARROW_LEFT_STRING;
 	p->x = 345;
@@ -130,7 +130,7 @@ static void setupWidgets(void)
 	widgets->pushButtonVisible[PB_RES_3] = true;
 	
 	/* Echo num right arrow */
-	p = &pushButtons[PB_RES_4];
+	p = &widgets->pushButtons[PB_RES_4];
 	memset(p, 0, sizeof(pushButton_t));
 	p->caption = ARROW_RIGHT_STRING;
 	p->x = 432;
@@ -143,7 +143,7 @@ static void setupWidgets(void)
 	widgets->pushButtonVisible[PB_RES_4] = true;
 	
 	/* Distance left arrow */
-	p = &pushButtons[PB_RES_5];
+	p = &widgets->pushButtons[PB_RES_5];
 	memset(p, 0, sizeof(pushButton_t));
 	p->caption = ARROW_LEFT_STRING;
 	p->x = 345;
@@ -156,7 +156,7 @@ static void setupWidgets(void)
 	widgets->pushButtonVisible[PB_RES_5] = true;
 	
 	/* Distance right arrow */
-	p = &pushButtons[PB_RES_6];
+	p = &widgets->pushButtons[PB_RES_6];
 	memset(p, 0, sizeof(pushButton_t));
 	p->caption = ARROW_RIGHT_STRING;
 	p->x = 432;
@@ -169,7 +169,7 @@ static void setupWidgets(void)
 	widgets->pushButtonVisible[PB_RES_6] = true;
 	
 	/* Volume change left arrow */
-	p = &pushButtons[PB_RES_7];
+	p = &widgets->pushButtons[PB_RES_7];
 	memset(p, 0, sizeof(pushButton_t));
 	p->caption = ARROW_LEFT_STRING;
 	p->x = 345;
@@ -182,7 +182,7 @@ static void setupWidgets(void)
 	widgets->pushButtonVisible[PB_RES_7] = true;
 	
 	/* Volume change right arrow */
-	p = &pushButtons[PB_RES_8];
+	p = &widgets->pushButtons[PB_RES_8];
 	memset(p, 0, sizeof(pushButton_t));
 	p->caption = ARROW_RIGHT_STRING;
 	p->x = 432;
@@ -195,7 +195,7 @@ static void setupWidgets(void)
 	widgets->pushButtonVisible[PB_RES_8] = true;
 	
 	/* Echo num scrollbar */
-	s = &scrollBars[SB_RES_1];
+	s = &widgets->scrollBars[SB_RES_1];
 	memset(s, 0, sizeof(scrollBar_t));
 	s->x = 368;
 	s->y = 224;
@@ -208,7 +208,7 @@ static void setupWidgets(void)
 	setScrollBarPos(inst, widgets, NULL, SB_RES_1, (uint32_t)state.echoNum, false);
 	
 	/* Distance scrollbar */
-	s = &scrollBars[SB_RES_2];
+	s = &widgets->scrollBars[SB_RES_2];
 	memset(s, 0, sizeof(scrollBar_t));
 	s->x = 368;
 	s->y = 238;
@@ -221,7 +221,7 @@ static void setupWidgets(void)
 	setScrollBarPos(inst, widgets, NULL, SB_RES_2, (uint32_t)state.echoDistance, false);
 	
 	/* Volume change scrollbar */
-	s = &scrollBars[SB_RES_3];
+	s = &widgets->scrollBars[SB_RES_3];
 	memset(s, 0, sizeof(scrollBar_t));
 	s->x = 368;
 	s->y = 252;

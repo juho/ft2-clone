@@ -24,8 +24,8 @@
 /* Track where user clicked on the thumb for smooth dragging */
 static int32_t lastMouseX, lastMouseY, scrollBias;
 
-/* Constant scrollbar definitions (position, size, type, callback) */
-scrollBar_t scrollBars[NUM_SCROLLBARS] =
+/* Constant scrollbar definitions (position, size, type, callback) - template for per-instance copy */
+const scrollBar_t scrollBarsTemplate[NUM_SCROLLBARS] =
 {
 	/* Reserved scrollbars */
 	{ 0 }, { 0 }, { 0 },
@@ -94,7 +94,7 @@ static void setScrollBarThumbCoords(ft2_widgets_t *widgets, uint16_t scrollBarID
 	if (widgets == NULL || scrollBarID >= NUM_SCROLLBARS)
 		return;
 
-	scrollBar_t *sb = &scrollBars[scrollBarID];
+	scrollBar_t *sb = &widgets->scrollBars[scrollBarID];
 	ft2_scrollbar_state_t *state = &widgets->scrollBarState[scrollBarID];
 
 	if (state->page == 0)
@@ -216,12 +216,12 @@ static void setScrollBarThumbCoords(ft2_widgets_t *widgets, uint16_t scrollBarID
 void initScrollBars(ft2_widgets_t *widgets)
 {
 	/* Set up callbacks in the constant definition array */
-	scrollBars[SB_AMP_SCROLL].callbackFunc = sbAmpPos;
-	scrollBars[SB_MASTERVOL_SCROLL].callbackFunc = sbMasterVolPos;
-	scrollBars[SB_PAL_R].callbackFunc = sbPalRPos;
-	scrollBars[SB_PAL_G].callbackFunc = sbPalGPos;
-	scrollBars[SB_PAL_B].callbackFunc = sbPalBPos;
-	scrollBars[SB_PAL_CONTRAST].callbackFunc = sbPalContrastPos;
+	widgets->scrollBars[SB_AMP_SCROLL].callbackFunc = sbAmpPos;
+	widgets->scrollBars[SB_MASTERVOL_SCROLL].callbackFunc = sbMasterVolPos;
+	widgets->scrollBars[SB_PAL_R].callbackFunc = sbPalRPos;
+	widgets->scrollBars[SB_PAL_G].callbackFunc = sbPalGPos;
+	widgets->scrollBars[SB_PAL_B].callbackFunc = sbPalBPos;
+	widgets->scrollBars[SB_PAL_CONTRAST].callbackFunc = sbPalContrastPos;
 
 	/* Initialize per-instance state if widgets provided */
 	if (widgets == NULL)
@@ -306,7 +306,7 @@ void drawScrollBar(ft2_widgets_t *widgets, struct ft2_video_t *video, uint16_t s
 	if (widgets == NULL || scrollBarID >= NUM_SCROLLBARS)
 		return;
 
-	scrollBar_t *sb = &scrollBars[scrollBarID];
+	scrollBar_t *sb = &widgets->scrollBars[scrollBarID];
 	ft2_scrollbar_state_t *state = &widgets->scrollBarState[scrollBarID];
 
 	if (!state->visible)
@@ -375,7 +375,7 @@ void setScrollBarPos(struct ft2_instance_t *inst, ft2_widgets_t *widgets, struct
 	if (widgets == NULL || scrollBarID >= NUM_SCROLLBARS)
 		return;
 
-	scrollBar_t *sb = &scrollBars[scrollBarID];
+	scrollBar_t *sb = &widgets->scrollBars[scrollBarID];
 	ft2_scrollbar_state_t *state = &widgets->scrollBarState[scrollBarID];
 
 	if (state->page == 0)
@@ -481,7 +481,7 @@ void scrollBarScrollUp(struct ft2_instance_t *inst, ft2_widgets_t *widgets, stru
 	if (widgets == NULL || scrollBarID >= NUM_SCROLLBARS)
 		return;
 
-	scrollBar_t *sb = &scrollBars[scrollBarID];
+	scrollBar_t *sb = &widgets->scrollBars[scrollBarID];
 	ft2_scrollbar_state_t *state = &widgets->scrollBarState[scrollBarID];
 
 	if (state->page == 0 || state->end == 0)
@@ -509,7 +509,7 @@ void scrollBarScrollDown(struct ft2_instance_t *inst, ft2_widgets_t *widgets, st
 	if (widgets == NULL || scrollBarID >= NUM_SCROLLBARS)
 		return;
 
-	scrollBar_t *sb = &scrollBars[scrollBarID];
+	scrollBar_t *sb = &widgets->scrollBars[scrollBarID];
 	ft2_scrollbar_state_t *state = &widgets->scrollBarState[scrollBarID];
 
 	if (state->page == 0 || state->end == 0)
@@ -575,7 +575,7 @@ int16_t testScrollBarMouseDown(ft2_widgets_t *widgets, struct ft2_instance_t *in
 
 	for (uint16_t i = start; i < end; i++)
 	{
-		scrollBar_t *sb = &scrollBars[i];
+		scrollBar_t *sb = &widgets->scrollBars[i];
 		ft2_scrollbar_state_t *state = &widgets->scrollBarState[i];
 
 		if (!state->visible)
@@ -696,7 +696,7 @@ void handleScrollBarWhileMouseDown(ft2_widgets_t *widgets, struct ft2_instance_t
 	if (widgets == NULL || scrollBarID < 0 || scrollBarID >= NUM_SCROLLBARS)
 		return;
 
-	scrollBar_t *sb = &scrollBars[scrollBarID];
+	scrollBar_t *sb = &widgets->scrollBars[scrollBarID];
 	ft2_scrollbar_state_t *state = &widgets->scrollBarState[scrollBarID];
 
 	if (!state->visible)

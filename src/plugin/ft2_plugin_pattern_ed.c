@@ -2446,56 +2446,58 @@ static const uint16_t iSwitchExtX[4] = { 221, 262, 303, 344 };
 
 void updatePatternEditorGUI(ft2_instance_t *inst)
 {
-	if (inst == NULL)
+	if (inst == NULL || inst->ui == NULL)
 		return;
+
+	ft2_widgets_t *widgets = &((ft2_ui_t *)inst->ui)->widgets;
 
 	if (inst->uiState.extendedPatternEditor)
 	{
 		/* Extended pattern editor mode */
 
 		/* Scrollbar height */
-		scrollBars[SB_POS_ED].h = 23;
+		widgets->scrollBars[SB_POS_ED].h = 23;
 
 		/* Position editor buttons */
-		pushButtons[PB_POSED_POS_DOWN].y = 38;
-		pushButtons[PB_POSED_PATT_UP].y = 20;
-		pushButtons[PB_POSED_PATT_DOWN].y = 20;
-		pushButtons[PB_POSED_DEL].y = 35;
+		widgets->pushButtons[PB_POSED_POS_DOWN].y = 38;
+		widgets->pushButtons[PB_POSED_PATT_UP].y = 20;
+		widgets->pushButtons[PB_POSED_PATT_DOWN].y = 20;
+		widgets->pushButtons[PB_POSED_DEL].y = 35;
 
 		/* Swap bank button - repositioned for extended mode */
-		pushButtons[PB_SWAP_BANK].caption = "Swap B.";
-		pushButtons[PB_SWAP_BANK].caption2 = NULL;
-		pushButtons[PB_SWAP_BANK].x = 162;
-		pushButtons[PB_SWAP_BANK].y = 35;
-		pushButtons[PB_SWAP_BANK].w = 53;
-		pushButtons[PB_SWAP_BANK].h = 16;
+		widgets->pushButtons[PB_SWAP_BANK].caption = "Swap B.";
+		widgets->pushButtons[PB_SWAP_BANK].caption2 = NULL;
+		widgets->pushButtons[PB_SWAP_BANK].x = 162;
+		widgets->pushButtons[PB_SWAP_BANK].y = 35;
+		widgets->pushButtons[PB_SWAP_BANK].w = 53;
+		widgets->pushButtons[PB_SWAP_BANK].h = 16;
 
 		/* Song length/repeat buttons */
-		pushButtons[PB_POSED_LEN_UP].x = 180;
-		pushButtons[PB_POSED_LEN_UP].y = 3;
-		pushButtons[PB_POSED_LEN_DOWN].x = 197;
-		pushButtons[PB_POSED_LEN_DOWN].y = 3;
-		pushButtons[PB_POSED_REP_UP].x = 180;
-		pushButtons[PB_POSED_REP_UP].y = 17;
-		pushButtons[PB_POSED_REP_DOWN].x = 197;
-		pushButtons[PB_POSED_REP_DOWN].y = 17;
+		widgets->pushButtons[PB_POSED_LEN_UP].x = 180;
+		widgets->pushButtons[PB_POSED_LEN_UP].y = 3;
+		widgets->pushButtons[PB_POSED_LEN_DOWN].x = 197;
+		widgets->pushButtons[PB_POSED_LEN_DOWN].y = 3;
+		widgets->pushButtons[PB_POSED_REP_UP].x = 180;
+		widgets->pushButtons[PB_POSED_REP_UP].y = 17;
+		widgets->pushButtons[PB_POSED_REP_DOWN].x = 197;
+		widgets->pushButtons[PB_POSED_REP_DOWN].y = 17;
 
 		/* Pattern number/length buttons */
-		pushButtons[PB_PATT_UP].x = 267;
-		pushButtons[PB_PATT_UP].y = 37;
-		pushButtons[PB_PATT_DOWN].x = 284;
-		pushButtons[PB_PATT_DOWN].y = 37;
-		pushButtons[PB_PATTLEN_UP].x = 348;
-		pushButtons[PB_PATTLEN_UP].y = 37;
-		pushButtons[PB_PATTLEN_DOWN].x = 365;
-		pushButtons[PB_PATTLEN_DOWN].y = 37;
+		widgets->pushButtons[PB_PATT_UP].x = 267;
+		widgets->pushButtons[PB_PATT_UP].y = 37;
+		widgets->pushButtons[PB_PATT_DOWN].x = 284;
+		widgets->pushButtons[PB_PATT_DOWN].y = 37;
+		widgets->pushButtons[PB_PATTLEN_UP].x = 348;
+		widgets->pushButtons[PB_PATTLEN_UP].y = 37;
+		widgets->pushButtons[PB_PATTLEN_DOWN].x = 365;
+		widgets->pushButtons[PB_PATTLEN_DOWN].y = 37;
 
 		/* Instrument switcher buttons - two column layout */
 		for (int i = 0; i < 16; i++)
 		{
-			pushButtons[PB_RANGE1 + i].w = iSwitchExtW[i & 3];
-			pushButtons[PB_RANGE1 + i].x = iSwitchExtX[i & 3];
-			pushButtons[PB_RANGE1 + i].y = iSwitchExtY[i & 7];
+			widgets->pushButtons[PB_RANGE1 + i].w = iSwitchExtW[i & 3];
+			widgets->pushButtons[PB_RANGE1 + i].x = iSwitchExtX[i & 3];
+			widgets->pushButtons[PB_RANGE1 + i].y = iSwitchExtY[i & 7];
 		}
 	}
 	else
@@ -2503,48 +2505,48 @@ void updatePatternEditorGUI(ft2_instance_t *inst)
 		/* Normal pattern editor mode */
 
 		/* Scrollbar height */
-		scrollBars[SB_POS_ED].h = 21;
+		widgets->scrollBars[SB_POS_ED].h = 21;
 
 		/* Position editor buttons */
-		pushButtons[PB_POSED_POS_DOWN].y = 36;
-		pushButtons[PB_POSED_PATT_UP].y = 19;
-		pushButtons[PB_POSED_PATT_DOWN].y = 19;
-		pushButtons[PB_POSED_DEL].y = 33;
+		widgets->pushButtons[PB_POSED_POS_DOWN].y = 36;
+		widgets->pushButtons[PB_POSED_PATT_UP].y = 19;
+		widgets->pushButtons[PB_POSED_PATT_DOWN].y = 19;
+		widgets->pushButtons[PB_POSED_DEL].y = 33;
 
 		/* Swap bank button - normal position */
-		pushButtons[PB_SWAP_BANK].caption = "Swap";
-		pushButtons[PB_SWAP_BANK].caption2 = "Bank";
-		pushButtons[PB_SWAP_BANK].x = 590;
-		pushButtons[PB_SWAP_BANK].y = 144;
-		pushButtons[PB_SWAP_BANK].w = 39;
-		pushButtons[PB_SWAP_BANK].h = 27;
+		widgets->pushButtons[PB_SWAP_BANK].caption = "Swap";
+		widgets->pushButtons[PB_SWAP_BANK].caption2 = "Bank";
+		widgets->pushButtons[PB_SWAP_BANK].x = 590;
+		widgets->pushButtons[PB_SWAP_BANK].y = 144;
+		widgets->pushButtons[PB_SWAP_BANK].w = 39;
+		widgets->pushButtons[PB_SWAP_BANK].h = 27;
 
 		/* Song length/repeat buttons */
-		pushButtons[PB_POSED_LEN_UP].x = 74;
-		pushButtons[PB_POSED_LEN_UP].y = 50;
-		pushButtons[PB_POSED_LEN_DOWN].x = 91;
-		pushButtons[PB_POSED_LEN_DOWN].y = 50;
-		pushButtons[PB_POSED_REP_UP].x = 74;
-		pushButtons[PB_POSED_REP_UP].y = 62;
-		pushButtons[PB_POSED_REP_DOWN].x = 91;
-		pushButtons[PB_POSED_REP_DOWN].y = 62;
+		widgets->pushButtons[PB_POSED_LEN_UP].x = 74;
+		widgets->pushButtons[PB_POSED_LEN_UP].y = 50;
+		widgets->pushButtons[PB_POSED_LEN_DOWN].x = 91;
+		widgets->pushButtons[PB_POSED_LEN_DOWN].y = 50;
+		widgets->pushButtons[PB_POSED_REP_UP].x = 74;
+		widgets->pushButtons[PB_POSED_REP_UP].y = 62;
+		widgets->pushButtons[PB_POSED_REP_DOWN].x = 91;
+		widgets->pushButtons[PB_POSED_REP_DOWN].y = 62;
 
 		/* Pattern number/length buttons */
-		pushButtons[PB_PATT_UP].x = 253;
-		pushButtons[PB_PATT_UP].y = 34;
-		pushButtons[PB_PATT_DOWN].x = 270;
-		pushButtons[PB_PATT_DOWN].y = 34;
-		pushButtons[PB_PATTLEN_UP].x = 253;
-		pushButtons[PB_PATTLEN_UP].y = 48;
-		pushButtons[PB_PATTLEN_DOWN].x = 270;
-		pushButtons[PB_PATTLEN_DOWN].y = 48;
+		widgets->pushButtons[PB_PATT_UP].x = 253;
+		widgets->pushButtons[PB_PATT_UP].y = 34;
+		widgets->pushButtons[PB_PATT_DOWN].x = 270;
+		widgets->pushButtons[PB_PATT_DOWN].y = 34;
+		widgets->pushButtons[PB_PATTLEN_UP].x = 253;
+		widgets->pushButtons[PB_PATTLEN_UP].y = 48;
+		widgets->pushButtons[PB_PATTLEN_DOWN].x = 270;
+		widgets->pushButtons[PB_PATTLEN_DOWN].y = 48;
 
 		/* Instrument switcher buttons - single column */
 		for (int i = 0; i < 16; i++)
 		{
-			pushButtons[PB_RANGE1 + i].w = 39;
-			pushButtons[PB_RANGE1 + i].x = 590;
-			pushButtons[PB_RANGE1 + i].y = iSwitchY[i & 7];
+			widgets->pushButtons[PB_RANGE1 + i].w = 39;
+			widgets->pushButtons[PB_RANGE1 + i].x = 590;
+			widgets->pushButtons[PB_RANGE1 + i].y = iSwitchY[i & 7];
 		}
 	}
 }

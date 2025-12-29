@@ -16,12 +16,13 @@ extern "C" {
 #endif
 
 struct ft2_instance_t;
+struct ft2_widgets_t;
 
 /**
  * Initialize all callback pointers in the pushButtons, scrollBars, etc. arrays.
  * Must be called after the widget arrays are initialized.
  */
-void initCallbacks(void);
+void initCallbacks(struct ft2_widgets_t *widgets);
 
 /* ========== POSITION EDITOR CALLBACKS ========== */
 void pbPosEdPosUp(struct ft2_instance_t *inst);

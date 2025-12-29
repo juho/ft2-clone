@@ -65,7 +65,7 @@ static void setupWidgets(void)
 	scrollBar_t *s;
 	
 	/* "Mix" pushbutton */
-	p = &pushButtons[PB_RES_1];
+	p = &widgets->pushButtons[PB_RES_1];
 	memset(p, 0, sizeof(pushButton_t));
 	p->caption = "Mix";
 	p->x = 197;
@@ -76,7 +76,7 @@ static void setupWidgets(void)
 	widgets->pushButtonVisible[PB_RES_1] = true;
 	
 	/* "Exit" pushbutton */
-	p = &pushButtons[PB_RES_2];
+	p = &widgets->pushButtons[PB_RES_2];
 	memset(p, 0, sizeof(pushButton_t));
 	p->caption = "Exit";
 	p->x = 361;
@@ -87,7 +87,7 @@ static void setupWidgets(void)
 	widgets->pushButtonVisible[PB_RES_2] = true;
 	
 	/* Balance left arrow */
-	p = &pushButtons[PB_RES_3];
+	p = &widgets->pushButtons[PB_RES_3];
 	memset(p, 0, sizeof(pushButton_t));
 	p->caption = ARROW_LEFT_STRING;
 	p->x = 322;
@@ -100,7 +100,7 @@ static void setupWidgets(void)
 	widgets->pushButtonVisible[PB_RES_3] = true;
 	
 	/* Balance right arrow */
-	p = &pushButtons[PB_RES_4];
+	p = &widgets->pushButtons[PB_RES_4];
 	memset(p, 0, sizeof(pushButton_t));
 	p->caption = ARROW_RIGHT_STRING;
 	p->x = 411;
@@ -113,7 +113,7 @@ static void setupWidgets(void)
 	widgets->pushButtonVisible[PB_RES_4] = true;
 	
 	/* Balance scrollbar */
-	s = &scrollBars[SB_RES_1];
+	s = &widgets->scrollBars[SB_RES_1];
 	memset(s, 0, sizeof(scrollBar_t));
 	s->x = 345;
 	s->y = 244;

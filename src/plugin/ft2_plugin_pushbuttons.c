@@ -17,7 +17,7 @@
 
 #define BUTTON_GFX_BMP_WIDTH 90
 
-pushButton_t pushButtons[NUM_PUSHBUTTONS] =
+const pushButton_t pushButtonsTemplate[NUM_PUSHBUTTONS] =
 {
 	/* Reserved pushbuttons */
 	{ 0 }, { 0 }, { 0 }, { 0 }, { 0 }, { 0 }, { 0 }, { 0 },
@@ -404,21 +404,24 @@ pushButton_t pushButtons[NUM_PUSHBUTTONS] =
 	{ 492, 142, 16, 11, 1, 4, ARROW_UP_STRING, NULL, NULL, NULL }, { 508, 142, 16, 11, 1, 4, ARROW_DOWN_STRING, NULL, NULL, NULL }
 };
 
-void initPushButtons(void)
+void initPushButtons(struct ft2_widgets_t *widgets)
 {
-	/* Initialize constant data only (visibility/state now per-instance in ft2_widgets_t) */
+	if (widgets == NULL)
+		return;
+
+	/* Initialize per-instance button properties */
 	for (int i = 0; i < NUM_PUSHBUTTONS; i++)
 	{
 		/* Logo and badge buttons use bitmap graphics */
 		if (i == PB_LOGO || i == PB_BADGE)
 		{
-			pushButtons[i].bitmapFlag = true;
+			widgets->pushButtons[i].bitmapFlag = true;
 		}
 		else
 		{
-			pushButtons[i].bitmapFlag = false;
-			pushButtons[i].bitmapUnpressed = NULL;
-			pushButtons[i].bitmapPressed = NULL;
+			widgets->pushButtons[i].bitmapFlag = false;
+			widgets->pushButtons[i].bitmapUnpressed = NULL;
+			widgets->pushButtons[i].bitmapPressed = NULL;
 		}
 	}
 }
@@ -431,7 +434,7 @@ void drawPushButton(struct ft2_widgets_t *widgets, struct ft2_video_t *video, co
 	if (!widgets->pushButtonVisible[pushButtonID])
 		return;
 
-	pushButton_t *b = &pushButtons[pushButtonID];
+	pushButton_t *b = &widgets->pushButtons[pushButtonID];
 	uint8_t state = widgets->pushButtonState[pushButtonID];
 	uint16_t x = b->x;
 	uint16_t y = b->y;
@@ -588,7 +591,7 @@ int16_t testPushButtonMouseDown(struct ft2_widgets_t *widgets, struct ft2_instan
 		if (!widgets->pushButtonVisible[i])
 			continue;
 
-		pushButton_t *pb = &pushButtons[i];
+		pushButton_t *pb = &widgets->pushButtons[i];
 		if (mouseX >= pb->x && mouseX < pb->x + pb->w &&
 		    mouseY >= pb->y && mouseY < pb->y + pb->h)
 		{
@@ -614,7 +617,7 @@ int16_t testPushButtonMouseRelease(struct ft2_widgets_t *widgets, struct ft2_ins
 	if (!widgets->pushButtonVisible[lastButtonID])
 		return -1;
 
-	pushButton_t *pb = &pushButtons[lastButtonID];
+	pushButton_t *pb = &widgets->pushButtons[lastButtonID];
 	widgets->pushButtonState[lastButtonID] = PUSHBUTTON_UNPRESSED;
 	drawPushButton(widgets, video, bmp, lastButtonID);
 
@@ -640,7 +643,7 @@ void handlePushButtonWhileMouseDown(struct ft2_widgets_t *widgets, struct ft2_in
 	if (!widgets->pushButtonVisible[buttonID])
 		return;
 
-	pushButton_t *pb = &pushButtons[buttonID];
+	pushButton_t *pb = &widgets->pushButtons[buttonID];
 
 	/* Check if mouse is still over the button */
 	bool mouseOverButton = (mouseX >= pb->x && mouseX < pb->x + pb->w &&
@@ -687,17 +690,17 @@ void changeLogoType(ft2_widgets_t *widgets, const struct ft2_bmp_t *bmp, uint8_t
 	if (bmp == NULL || bmp->ft2LogoBadges == NULL)
 		return;
 
-	pushButtons[PB_LOGO].bitmapFlag = true;
+	widgets->pushButtons[PB_LOGO].bitmapFlag = true;
 
 	if (logoType == 0)
 	{
-		pushButtons[PB_LOGO].bitmapUnpressed = &bmp->ft2LogoBadges[(154 * 32) * 0];
-		pushButtons[PB_LOGO].bitmapPressed = &bmp->ft2LogoBadges[(154 * 32) * 1];
+		widgets->pushButtons[PB_LOGO].bitmapUnpressed = &bmp->ft2LogoBadges[(154 * 32) * 0];
+		widgets->pushButtons[PB_LOGO].bitmapPressed = &bmp->ft2LogoBadges[(154 * 32) * 1];
 	}
 	else
 	{
-		pushButtons[PB_LOGO].bitmapUnpressed = &bmp->ft2LogoBadges[(154 * 32) * 2];
-		pushButtons[PB_LOGO].bitmapPressed = &bmp->ft2LogoBadges[(154 * 32) * 3];
+		widgets->pushButtons[PB_LOGO].bitmapUnpressed = &bmp->ft2LogoBadges[(154 * 32) * 2];
+		widgets->pushButtons[PB_LOGO].bitmapPressed = &bmp->ft2LogoBadges[(154 * 32) * 3];
 	}
 
 	if (widgets != NULL)
@@ -712,20 +715,20 @@ void changeBadgeType(ft2_widgets_t *widgets, const struct ft2_bmp_t *bmp, uint8_
 	if (bmp == NULL || bmp->ft2ByBadges == NULL)
 		return;
 
-	pushButtons[PB_BADGE].bitmapFlag = true;
+	widgets->pushButtons[PB_BADGE].bitmapFlag = true;
 
 	/* Each badge is 25x32 pixels, 4 frames total:
 	 * Frame 0: type 0 unpressed, Frame 1: type 0 pressed
 	 * Frame 2: type 1 unpressed, Frame 3: type 1 pressed */
 	if (badgeType == 0)
 	{
-		pushButtons[PB_BADGE].bitmapUnpressed = &bmp->ft2ByBadges[(25 * 32) * 0];
-		pushButtons[PB_BADGE].bitmapPressed = &bmp->ft2ByBadges[(25 * 32) * 1];
+		widgets->pushButtons[PB_BADGE].bitmapUnpressed = &bmp->ft2ByBadges[(25 * 32) * 0];
+		widgets->pushButtons[PB_BADGE].bitmapPressed = &bmp->ft2ByBadges[(25 * 32) * 1];
 	}
 	else
 	{
-		pushButtons[PB_BADGE].bitmapUnpressed = &bmp->ft2ByBadges[(25 * 32) * 2];
-		pushButtons[PB_BADGE].bitmapPressed = &bmp->ft2ByBadges[(25 * 32) * 3];
+		widgets->pushButtons[PB_BADGE].bitmapUnpressed = &bmp->ft2ByBadges[(25 * 32) * 2];
+		widgets->pushButtons[PB_BADGE].bitmapPressed = &bmp->ft2ByBadges[(25 * 32) * 3];
 	}
 
 	if (widgets != NULL)

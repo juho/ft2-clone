@@ -39,16 +39,20 @@ typedef struct ft2_scrollbar_state_t
 } ft2_scrollbar_state_t;
 
 /**
- * Widget state container with per-instance visibility and state.
- * Static global arrays (pushButtons[], checkBoxes[], radioButtons[], scrollBars[])
- * contain CONSTANT data (position, size, callbacks).
- * This struct stores MUTABLE per-instance state (visibility, pressed, checked).
+ * Widget state container with per-instance widget definitions and state.
+ * Template arrays (pushButtonsTemplate[], scrollBarsTemplate[]) contain
+ * read-only default definitions. Per-instance copies enable independent
+ * widget positions for extended mode and modal panels.
  */
 typedef struct ft2_widgets_t
 {
 	int mouseX, mouseY;
 	bool mouseDown;
 	int activeButton;
+
+	/* Per-instance widget definitions (copied from templates at init) */
+	pushButton_t pushButtons[NUM_PUSHBUTTONS];
+	scrollBar_t scrollBars[NUM_SCROLLBARS];
 
 	/* Per-instance push button state */
 	bool pushButtonVisible[NUM_PUSHBUTTONS];

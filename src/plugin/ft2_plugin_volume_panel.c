@@ -73,7 +73,7 @@ static void setupWidgets(void)
 	scrollBar_t *s;
 	
 	/* "Apply" pushbutton */
-	p = &pushButtons[PB_RES_1];
+	p = &widgets->pushButtons[PB_RES_1];
 	memset(p, 0, sizeof(pushButton_t));
 	p->caption = "Apply";
 	p->x = 171;
@@ -84,7 +84,7 @@ static void setupWidgets(void)
 	widgets->pushButtonVisible[PB_RES_1] = true;
 	
 	/* "Get maximum scale" pushbutton */
-	p = &pushButtons[PB_RES_2];
+	p = &widgets->pushButtons[PB_RES_2];
 	memset(p, 0, sizeof(pushButton_t));
 	p->caption = "Get maximum scale";
 	p->x = 245;
@@ -95,7 +95,7 @@ static void setupWidgets(void)
 	widgets->pushButtonVisible[PB_RES_2] = true;
 	
 	/* "Exit" pushbutton */
-	p = &pushButtons[PB_RES_3];
+	p = &widgets->pushButtons[PB_RES_3];
 	memset(p, 0, sizeof(pushButton_t));
 	p->caption = "Exit";
 	p->x = 389;
@@ -106,7 +106,7 @@ static void setupWidgets(void)
 	widgets->pushButtonVisible[PB_RES_3] = true;
 	
 	/* Start volume left arrow */
-	p = &pushButtons[PB_RES_4];
+	p = &widgets->pushButtons[PB_RES_4];
 	memset(p, 0, sizeof(pushButton_t));
 	p->caption = ARROW_LEFT_STRING;
 	p->x = 292;
@@ -119,7 +119,7 @@ static void setupWidgets(void)
 	widgets->pushButtonVisible[PB_RES_4] = true;
 	
 	/* Start volume right arrow */
-	p = &pushButtons[PB_RES_5];
+	p = &widgets->pushButtons[PB_RES_5];
 	memset(p, 0, sizeof(pushButton_t));
 	p->caption = ARROW_RIGHT_STRING;
 	p->x = 439;
@@ -132,7 +132,7 @@ static void setupWidgets(void)
 	widgets->pushButtonVisible[PB_RES_5] = true;
 	
 	/* End volume left arrow */
-	p = &pushButtons[PB_RES_6];
+	p = &widgets->pushButtons[PB_RES_6];
 	memset(p, 0, sizeof(pushButton_t));
 	p->caption = ARROW_LEFT_STRING;
 	p->x = 292;
@@ -145,7 +145,7 @@ static void setupWidgets(void)
 	widgets->pushButtonVisible[PB_RES_6] = true;
 	
 	/* End volume right arrow */
-	p = &pushButtons[PB_RES_7];
+	p = &widgets->pushButtons[PB_RES_7];
 	memset(p, 0, sizeof(pushButton_t));
 	p->caption = ARROW_RIGHT_STRING;
 	p->x = 439;
@@ -158,7 +158,7 @@ static void setupWidgets(void)
 	widgets->pushButtonVisible[PB_RES_7] = true;
 	
 	/* Start volume scrollbar */
-	s = &scrollBars[SB_RES_1];
+	s = &widgets->scrollBars[SB_RES_1];
 	memset(s, 0, sizeof(scrollBar_t));
 	s->x = 315;
 	s->y = 234;
@@ -171,7 +171,7 @@ static void setupWidgets(void)
 	setScrollBarPos(inst, widgets, NULL, SB_RES_1, (uint32_t)(state.startVol + 200), false);
 	
 	/* End volume scrollbar */
-	s = &scrollBars[SB_RES_2];
+	s = &widgets->scrollBars[SB_RES_2];
 	memset(s, 0, sizeof(scrollBar_t));
 	s->x = 315;
 	s->y = 248;

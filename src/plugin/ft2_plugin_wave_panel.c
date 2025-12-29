@@ -261,7 +261,7 @@ static void setupWidgets(void)
 	pushButton_t *p;
 	
 	/* OK button */
-	p = &pushButtons[PB_RES_1];
+	p = &widgets->pushButtons[PB_RES_1];
 	memset(p, 0, sizeof(pushButton_t));
 	p->caption = "OK";
 	p->x = 246;
@@ -272,7 +272,7 @@ static void setupWidgets(void)
 	widgets->pushButtonVisible[PB_RES_1] = true;
 	
 	/* Cancel button */
-	p = &pushButtons[PB_RES_2];
+	p = &widgets->pushButtons[PB_RES_2];
 	memset(p, 0, sizeof(pushButton_t));
 	p->caption = "Cancel";
 	p->x = 346;

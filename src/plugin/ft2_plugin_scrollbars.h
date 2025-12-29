@@ -96,7 +96,7 @@ typedef struct scrollBar_t
 	sbCallback_t callbackFunc;
 } scrollBar_t;
 
-extern scrollBar_t scrollBars[NUM_SCROLLBARS];
+extern const scrollBar_t scrollBarsTemplate[NUM_SCROLLBARS];
 
 /**
  * Initialize scrollbar definitions.
