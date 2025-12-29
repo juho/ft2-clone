@@ -233,6 +233,12 @@ typedef struct ft2_audio_state_t
 
 	float *fMixBufferL, *fMixBufferR;
 	float fQuickVolRampSamplesMul, fSamplesPerTickIntMul;
+
+	/* Per-channel mix buffers for multi-output support */
+	float *fChannelBufferL[FT2_MAX_CHANNELS];
+	float *fChannelBufferR[FT2_MAX_CHANNELS];
+	bool multiOutEnabled;
+	uint32_t multiOutBufferSize;
 } ft2_audio_state_t;
 
 /**
@@ -698,6 +704,25 @@ void ft2_instance_render(ft2_instance_t *instance, float *outputL, float *output
  * @param numSamples Number of samples to render.
  */
 void ft2_mix_voices_only(ft2_instance_t *instance, float *outputL, float *outputR, uint32_t numSamples);
+
+/**
+ * @brief Render audio with multi-output support (per-channel buffers).
+ * @param instance The instance.
+ * @param mainOutL Main mix left channel output buffer.
+ * @param mainOutR Main mix right channel output buffer.
+ * @param numSamples Number of samples to render.
+ * @note Per-channel outputs are stored in instance->audio.fChannelBufferL/R
+ */
+void ft2_instance_render_multiout(ft2_instance_t *instance, float *mainOutL, float *mainOutR, uint32_t numSamples);
+
+/**
+ * @brief Enable/disable multi-output mode and allocate buffers.
+ * @param instance The instance.
+ * @param enabled true to enable multi-output, false to disable.
+ * @param bufferSize Size of per-channel buffers (in samples).
+ * @return true on success, false on allocation failure.
+ */
+bool ft2_instance_set_multiout(ft2_instance_t *instance, bool enabled, uint32_t bufferSize);
 
 /**
  * @brief Gets the current playback position.

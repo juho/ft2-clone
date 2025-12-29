@@ -11,6 +11,7 @@
 #include "ft2_plugin_loader.h"
 #include "ft2_plugin_interpolation.h"
 #include "ft2_plugin_nibbles.h"
+#include "ft2_plugin_config.h"
 
 #define INITIAL_DITHER_SEED 0x12345000
 #define DEFAULT_SAMPLE_RATE 48000
@@ -323,6 +324,15 @@ void ft2_instance_destroy(ft2_instance_t *inst)
 
 	if (inst->audio.fMixBufferR != NULL)
 		free(inst->audio.fMixBufferR);
+
+	/* Free per-channel multi-out buffers */
+	for (int i = 0; i < FT2_MAX_CHANNELS; i++)
+	{
+		if (inst->audio.fChannelBufferL[i] != NULL)
+			free(inst->audio.fChannelBufferL[i]);
+		if (inst->audio.fChannelBufferR[i] != NULL)
+			free(inst->audio.fChannelBufferR[i]);
+	}
 
 	/* Free diskop file list */
 	if (inst->diskop.entries != NULL)
@@ -946,6 +956,176 @@ void ft2_mix_voices_only(ft2_instance_t *inst, float *outputL, float *outputR, u
 		outPos += samplesToMix;
 		samplesLeft -= samplesToMix;
 		inst->audio.tickSampleCounter -= samplesToMix;
+	}
+}
+
+bool ft2_instance_set_multiout(ft2_instance_t *inst, bool enabled, uint32_t bufferSize)
+{
+	if (inst == NULL)
+		return false;
+
+	if (!enabled)
+	{
+		/* Free existing buffers */
+		for (int i = 0; i < FT2_MAX_CHANNELS; i++)
+		{
+			if (inst->audio.fChannelBufferL[i] != NULL)
+			{
+				free(inst->audio.fChannelBufferL[i]);
+				inst->audio.fChannelBufferL[i] = NULL;
+			}
+			if (inst->audio.fChannelBufferR[i] != NULL)
+			{
+				free(inst->audio.fChannelBufferR[i]);
+				inst->audio.fChannelBufferR[i] = NULL;
+			}
+		}
+		inst->audio.multiOutEnabled = false;
+		inst->audio.multiOutBufferSize = 0;
+		return true;
+	}
+
+	/* Check if we need to reallocate */
+	if (inst->audio.multiOutEnabled && inst->audio.multiOutBufferSize >= bufferSize)
+		return true; /* Already have sufficient buffers */
+
+	/* Free old buffers if size changed */
+	if (inst->audio.multiOutEnabled)
+		ft2_instance_set_multiout(inst, false, 0);
+
+	/* Allocate new buffers */
+	for (int i = 0; i < FT2_MAX_CHANNELS; i++)
+	{
+		inst->audio.fChannelBufferL[i] = (float *)calloc(bufferSize, sizeof(float));
+		inst->audio.fChannelBufferR[i] = (float *)calloc(bufferSize, sizeof(float));
+
+		if (inst->audio.fChannelBufferL[i] == NULL || inst->audio.fChannelBufferR[i] == NULL)
+		{
+			/* Allocation failed, free everything */
+			ft2_instance_set_multiout(inst, false, 0);
+			return false;
+		}
+	}
+
+	inst->audio.multiOutEnabled = true;
+	inst->audio.multiOutBufferSize = bufferSize;
+	return true;
+}
+
+void ft2_instance_render_multiout(ft2_instance_t *inst, float *mainOutL, float *mainOutR, uint32_t numSamples)
+{
+	if (inst == NULL || numSamples == 0)
+		return;
+
+	if (!inst->audio.multiOutEnabled || numSamples > inst->audio.multiOutBufferSize)
+	{
+		/* Fall back to regular render */
+		ft2_instance_render(inst, mainOutL, mainOutR, numSamples);
+		return;
+	}
+
+	uint32_t samplesLeft = numSamples;
+	uint32_t outPos = 0;
+
+	/* Clear only the 16 output buffers (routing maps 32 channels -> 16 outputs) */
+	for (int out = 0; out < FT2_NUM_OUTPUTS; out++)
+	{
+		memset(inst->audio.fChannelBufferL[out], 0, numSamples * sizeof(float));
+		memset(inst->audio.fChannelBufferR[out], 0, numSamples * sizeof(float));
+	}
+
+	while (samplesLeft > 0)
+	{
+		if (inst->audio.tickSampleCounter == 0)
+		{
+			inst->audio.tickSampleCounter = inst->audio.samplesPerTickInt;
+			inst->audio.tickSampleCounterFrac += inst->audio.samplesPerTickFrac;
+			if (inst->audio.tickSampleCounterFrac >= (1ULL << 32))
+			{
+				inst->audio.tickSampleCounterFrac &= 0xFFFFFFFF;
+				inst->audio.tickSampleCounter++;
+			}
+
+			if (inst->audio.volumeRampingFlag)
+				ft2_reset_ramp_volumes(inst);
+
+			ft2_replayer_tick(inst);
+			ft2_update_voices(inst);
+		}
+
+		uint32_t samplesToMix = samplesLeft;
+		if (samplesToMix > inst->audio.tickSampleCounter)
+			samplesToMix = inst->audio.tickSampleCounter;
+
+		uint32_t maxChunk = inst->audio.samplesPerTickIntTab[FT2_MAX_BPM - FT2_MIN_BPM];
+		if (samplesToMix > maxChunk)
+			samplesToMix = maxChunk;
+
+		/* Mix each voice to its channel's buffer */
+		ft2_mix_voices_multiout(inst, outPos, samplesToMix);
+
+		outPos += samplesToMix;
+		samplesLeft -= samplesToMix;
+		inst->audio.tickSampleCounter -= samplesToMix;
+	}
+
+	/* Sum output buffers into main output, respecting channelToMain routing */
+	const float mul = inst->fAudioNormalizeMul;
+
+	/* Track which output buses should be included in main mix */
+	bool outputToMain[FT2_NUM_OUTPUTS] = {false};
+	for (int32_t ch = 0; ch < inst->replayer.song.numChannels && ch < FT2_MAX_CHANNELS; ch++)
+	{
+		if (inst->config.channelToMain[ch])
+		{
+			int outIdx = inst->config.channelRouting[ch];
+			if (outIdx >= FT2_NUM_OUTPUTS)
+				outIdx = ch % FT2_NUM_OUTPUTS;
+			outputToMain[outIdx] = true;
+		}
+	}
+
+	/* Sum selected output buffers to main with amplitude scaling */
+	for (uint32_t i = 0; i < numSamples; i++)
+	{
+		float sumL = 0.0f, sumR = 0.0f;
+		for (int out = 0; out < FT2_NUM_OUTPUTS; out++)
+		{
+			if (outputToMain[out])
+			{
+				sumL += inst->audio.fChannelBufferL[out][i];
+				sumR += inst->audio.fChannelBufferR[out][i];
+			}
+		}
+
+		if (mainOutL != NULL)
+		{
+			float out = sumL * mul;
+			if (out < -1.0f) out = -1.0f;
+			else if (out > 1.0f) out = 1.0f;
+			mainOutL[i] = out;
+		}
+		if (mainOutR != NULL)
+		{
+			float out = sumR * mul;
+			if (out < -1.0f) out = -1.0f;
+			else if (out > 1.0f) out = 1.0f;
+			mainOutR[i] = out;
+		}
+	}
+
+	/* Apply amplitude scaling to the 16 output buffers */
+	for (int out = 0; out < FT2_NUM_OUTPUTS; out++)
+	{
+		for (uint32_t i = 0; i < numSamples; i++)
+		{
+			float outL = inst->audio.fChannelBufferL[out][i] * mul;
+			float outR = inst->audio.fChannelBufferR[out][i] * mul;
+			if (outL < -1.0f) outL = -1.0f; else if (outL > 1.0f) outL = 1.0f;
+			if (outR < -1.0f) outR = -1.0f; else if (outR > 1.0f) outR = 1.0f;
+			inst->audio.fChannelBufferL[out][i] = outL;
+			inst->audio.fChannelBufferR[out][i] = outR;
+		}
 	}
 }
 

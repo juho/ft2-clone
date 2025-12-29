@@ -35,6 +35,15 @@ void ft2_update_voices(ft2_instance_t *inst);
 void ft2_mix_voices(ft2_instance_t *inst, int32_t bufferPos, int32_t samplesToMix);
 
 /**
+ * @brief Mix all active voices to per-channel buffers (multi-out mode).
+ * @param inst The FT2 instance.
+ * @param bufferPos Position offset in output buffers.
+ * @param samplesToMix Number of samples to mix.
+ * @note Requires multiOutEnabled=true and allocated channel buffers.
+ */
+void ft2_mix_voices_multiout(ft2_instance_t *inst, int32_t bufferPos, int32_t samplesToMix);
+
+/**
  * @brief Sets the BPM for the instance.
  * @param inst The instance.
  * @param bpm The BPM value (32-255).

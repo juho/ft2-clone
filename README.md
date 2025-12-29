@@ -12,16 +12,17 @@ All credit goes to [8bitbubsy](https://16-bits.org) for his tireless work on the
 
 ## Current limitations
 
-- No multi-output support (yet)
 - No MIDI support (yet)
+- No sampling in the sample editor (may get removed entirely, you can just drag and drop WAV samples)
 
 ## Changes from standalone version
 
 - General: Compiles as VST2/VST3/AU/LV2 plugin using JUCE framework.
 - General: Only XM, MOD and S3M modules are supported.
 - General: Some config settings do not make sense in a plugin, so they have been disabled.
+- General: Supports multiple outputs coming into the DAW.
 - Graphics: Uses OpenGL instead of SDL.
-- Disk op: WAV save option is removed (if you need to save a WAV, use the standalone version).
+- Disk op: WAV save option is removed (if you need to save a WAV, use the standalone version or render offline with your DAW).
 - Disk op: Rename and delete disk operation buttons are removed.
 - Config: Settings for DAW transport, BPM and position sync have been added.
 - Config: Reset config resets to factory defaults. Load and save config saves to user's home directory. Instances have their own config which can override any of the settings.

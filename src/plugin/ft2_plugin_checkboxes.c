@@ -116,7 +116,45 @@ checkBox_t checkBoxes[NUM_CHECKBOXES] =
 
 	/* WAV renderer */
 	/*x,  y,   w,   h,  callback */
-	{ 62, 157, 159, 24, NULL }
+	{ 62, 157, 159, 24, NULL },
+
+	/* I/O Routing - "To Main" checkboxes (32 channels) */
+	/* Column 1 (Ch 1-11) at x=208, y=43+11*row */
+	/*x,   y,   w,   h,  callback */
+	{ 208,  43, 13, 12, NULL },  /* Ch1 */
+	{ 208,  54, 13, 12, NULL },  /* Ch2 */
+	{ 208,  65, 13, 12, NULL },  /* Ch3 */
+	{ 208,  76, 13, 12, NULL },  /* Ch4 */
+	{ 208,  87, 13, 12, NULL },  /* Ch5 */
+	{ 208,  98, 13, 12, NULL },  /* Ch6 */
+	{ 208, 109, 13, 12, NULL },  /* Ch7 */
+	{ 208, 120, 13, 12, NULL },  /* Ch8 */
+	{ 208, 131, 13, 12, NULL },  /* Ch9 */
+	{ 208, 142, 13, 12, NULL },  /* Ch10 */
+	{ 208, 153, 13, 12, NULL },  /* Ch11 */
+	/* Column 2 (Ch 12-22) at x=368, y=43+11*row */
+	{ 368,  43, 13, 12, NULL },  /* Ch12 */
+	{ 368,  54, 13, 12, NULL },  /* Ch13 */
+	{ 368,  65, 13, 12, NULL },  /* Ch14 */
+	{ 368,  76, 13, 12, NULL },  /* Ch15 */
+	{ 368,  87, 13, 12, NULL },  /* Ch16 */
+	{ 368,  98, 13, 12, NULL },  /* Ch17 */
+	{ 368, 109, 13, 12, NULL },  /* Ch18 */
+	{ 368, 120, 13, 12, NULL },  /* Ch19 */
+	{ 368, 131, 13, 12, NULL },  /* Ch20 */
+	{ 368, 142, 13, 12, NULL },  /* Ch21 */
+	{ 368, 153, 13, 12, NULL },  /* Ch22 */
+	/* Column 3 (Ch 23-32) at x=528, y=43+11*row */
+	{ 528,  43, 13, 12, NULL },  /* Ch23 */
+	{ 528,  54, 13, 12, NULL },  /* Ch24 */
+	{ 528,  65, 13, 12, NULL },  /* Ch25 */
+	{ 528,  76, 13, 12, NULL },  /* Ch26 */
+	{ 528,  87, 13, 12, NULL },  /* Ch27 */
+	{ 528,  98, 13, 12, NULL },  /* Ch28 */
+	{ 528, 109, 13, 12, NULL },  /* Ch29 */
+	{ 528, 120, 13, 12, NULL },  /* Ch30 */
+	{ 528, 131, 13, 12, NULL },  /* Ch31 */
+	{ 528, 142, 13, 12, NULL }   /* Ch32 */
 };
 
 void initCheckBoxes(void)
@@ -157,6 +195,10 @@ void initCheckBoxes(void)
 	checkBoxes[CB_CONF_SYNC_TRANSPORT].callbackFunc = cbSyncTransportFromDAW;
 	checkBoxes[CB_CONF_SYNC_POSITION].callbackFunc = cbSyncPositionFromDAW;
 	checkBoxes[CB_CONF_ALLOW_FXX_SPEED].callbackFunc = cbAllowFxxSpeedChanges;
+
+	/* I/O Routing "To Main" checkboxes */
+	for (int i = 0; i < 32; i++)
+		checkBoxes[CB_CONF_ROUTING_CH1_TOMAIN + i].callbackFunc = cbRoutingToMain;
 }
 
 void drawCheckBox(struct ft2_video_t *video, const struct ft2_bmp_t *bmp, uint16_t checkBoxID)

@@ -56,6 +56,7 @@ radioButton_t radioButtons[NUM_RADIOBUTTONS] =
 	{ 5, 34, 57, RB_GROUP_CONFIG_SELECT, NULL },
 	{ 5, 50, 97, RB_GROUP_CONFIG_SELECT, NULL },
 	{ 5, 66, 72, RB_GROUP_CONFIG_SELECT, NULL },
+	{ 5, 82, 80, RB_GROUP_CONFIG_SELECT, NULL },
 
 	/* Config audio buffer size */
 	/*x,   y,  w,   group,                           callback */
@@ -212,6 +213,7 @@ void initRadioButtons(void)
 	radioButtons[RB_CONFIG_AUDIO].callbackFunc = rbConfigAudio;
 	radioButtons[RB_CONFIG_LAYOUT].callbackFunc = rbConfigLayout;
 	radioButtons[RB_CONFIG_MISC].callbackFunc = rbConfigMiscellaneous;
+	radioButtons[RB_CONFIG_IO_ROUTING].callbackFunc = rbConfigIORouting;
 
 	/* Wire up interpolation callbacks */
 	radioButtons[RB_CONFIG_AUDIO_INTRP_NONE].callbackFunc = rbConfigIntrpNone;

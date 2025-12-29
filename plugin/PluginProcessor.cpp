@@ -10,8 +10,16 @@ extern "C" {
 }
 
 FT2PluginProcessor::FT2PluginProcessor()
-    : AudioProcessor(BusesProperties()
-                         .withOutput("Output", juce::AudioChannelSet::stereo(), true))
+    : AudioProcessor([]()
+        {
+            BusesProperties props;
+            props = props.withOutput("Main", juce::AudioChannelSet::stereo(), true);
+            // 15 output buses (30 channels) + Main (2 channels) = 32 channels (Ableton's limit)
+            // Tracker channels are routed to outputs via config (default: wrap around)
+            for (int i = 1; i <= FT2_NUM_OUTPUTS; ++i)
+                props = props.withOutput("Out " + juce::String(i), juce::AudioChannelSet::stereo(), true);
+            return props;
+        }())
 {
     // Create instance immediately with a default sample rate
     // It will be updated in prepareToPlay when we know the actual rate
@@ -108,8 +116,17 @@ void FT2PluginProcessor::releaseResources()
 
 bool FT2PluginProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const
 {
+    // Main output (bus 0) must be stereo
     if (layouts.getMainOutputChannelSet() != juce::AudioChannelSet::stereo())
         return false;
+
+    // Channel outputs (bus 1-32) can be stereo or disabled
+    for (int i = 1; i < layouts.outputBuses.size(); ++i)
+    {
+        const auto& bus = layouts.outputBuses[i];
+        if (!bus.isDisabled() && bus != juce::AudioChannelSet::stereo())
+            return false;
+    }
 
     return true;
 }
@@ -240,23 +257,64 @@ void FT2PluginProcessor::processBlock(juce::AudioBuffer<float>& buffer,
         }
     }
 
-    float* leftChannel = numChannels > 0 ? buffer.getWritePointer(0) : nullptr;
-    float* rightChannel = numChannels > 1 ? buffer.getWritePointer(1) : nullptr;
+    /* Check if we have more than stereo output (indicates multi-out is active) */
+    const int totalChannels = buffer.getNumChannels();
+    const bool hasMultiOut = (totalChannels > 2);
 
-    /* Always render audio - this handles both playback and jam/preview mode.
-     * When songPlaying is false, this will still mix any triggered voices
-     * (from keyboard input / jamming), allowing note preview to work. */
-    if (instance->replayer.songPlaying)
+    /* Main output pointers (bus 0 = channels 0-1) */
+    float* mainL = buffer.getWritePointer(0);
+    float* mainR = totalChannels > 1 ? buffer.getWritePointer(1) : nullptr;
+
+    if (hasMultiOut)
     {
-        /* Full playback render - advances replayer tick */
-    ft2_instance_render(instance, leftChannel, rightChannel, 
-                        static_cast<uint32_t>(numSamples));
+        /* Ensure multi-out buffers are allocated */
+        if (!instance->audio.multiOutEnabled || 
+            instance->audio.multiOutBufferSize < static_cast<uint32_t>(numSamples))
+        {
+            ft2_instance_set_multiout(instance, true, static_cast<uint32_t>(numSamples));
+        }
+
+        /* Render with per-channel outputs */
+        if (instance->replayer.songPlaying)
+            ft2_instance_render_multiout(instance, mainL, mainR, static_cast<uint32_t>(numSamples));
+        else
+            ft2_mix_voices_only(instance, mainL, mainR, static_cast<uint32_t>(numSamples));
+
+        /* Copy 16 output buffers to enabled DAW output buses
+         * (Tracker channels are already routed to these 16 buffers via config) */
+        int bufferChannelOffset = 2; // Start after Main (channels 0-1)
+        for (int out = 0; out < 16; ++out)
+        {
+            const int busIdx = out + 1; // Bus 0=Main, Bus 1=Out1, Bus 2=Out2, etc.
+            auto* bus = getBus(false, busIdx);
+            
+            if (bus == nullptr || !bus->isEnabled())
+                continue; // Skip disabled buses
+            
+            /* This bus is enabled - copy its data to the buffer */
+            if (bufferChannelOffset + 1 < totalChannels)
+            {
+                float* outL = buffer.getWritePointer(bufferChannelOffset);
+                float* outR = buffer.getWritePointer(bufferChannelOffset + 1);
+
+                if (outL != nullptr && instance->audio.fChannelBufferL[out] != nullptr)
+                    std::memcpy(outL, instance->audio.fChannelBufferL[out], 
+                                static_cast<size_t>(numSamples) * sizeof(float));
+                if (outR != nullptr && instance->audio.fChannelBufferR[out] != nullptr)
+                    std::memcpy(outR, instance->audio.fChannelBufferR[out], 
+                                static_cast<size_t>(numSamples) * sizeof(float));
+            }
+            
+            bufferChannelOffset += 2; // Move to next stereo pair
+        }
     }
     else
     {
-        /* Jam mode - just mix active voices without advancing the replayer */
-        ft2_mix_voices_only(instance, leftChannel, rightChannel,
-                            static_cast<uint32_t>(numSamples));
+        /* Standard stereo render (more efficient when multi-out not used) */
+        if (instance->replayer.songPlaying)
+            ft2_instance_render(instance, mainL, mainR, static_cast<uint32_t>(numSamples));
+        else
+            ft2_mix_voices_only(instance, mainL, mainR, static_cast<uint32_t>(numSamples));
     }
 }
 
@@ -579,6 +637,24 @@ void FT2PluginProcessor::saveGlobalConfig()
     props->setValue("config_id_FastLogo", cfg.id_FastLogo);
     props->setValue("config_id_TritonProd", cfg.id_TritonProd);
     
+    // Channel output routing (32 values as comma-separated string)
+    juce::String routingStr;
+    for (int i = 0; i < 32; ++i)
+    {
+        if (i > 0) routingStr += ",";
+        routingStr += juce::String(cfg.channelRouting[i]);
+    }
+    props->setValue("config_channelRouting", routingStr);
+    
+    // Channel to main flags (32 values as comma-separated string)
+    juce::String toMainStr;
+    for (int i = 0; i < 32; ++i)
+    {
+        if (i > 0) toMainStr += ",";
+        toMainStr += cfg.channelToMain[i] ? "1" : "0";
+    }
+    props->setValue("config_channelToMain", toMainStr);
+    
     props->saveIfNeeded();
 }
 
@@ -656,6 +732,26 @@ void FT2PluginProcessor::loadGlobalConfig()
     // Logo/Badge settings
     cfg.id_FastLogo = props->getBoolValue("config_id_FastLogo", cfg.id_FastLogo);
     cfg.id_TritonProd = props->getBoolValue("config_id_TritonProd", cfg.id_TritonProd);
+    
+    // Channel output routing
+    juce::String routingStr = props->getValue("config_channelRouting", "");
+    if (routingStr.isNotEmpty())
+    {
+        juce::StringArray tokens;
+        tokens.addTokens(routingStr, ",", "");
+        for (int i = 0; i < 32 && i < tokens.size(); ++i)
+            cfg.channelRouting[i] = static_cast<uint8_t>(tokens[i].getIntValue() % FT2_NUM_OUTPUTS);
+    }
+    
+    // Channel to main flags
+    juce::String toMainStr = props->getValue("config_channelToMain", "");
+    if (toMainStr.isNotEmpty())
+    {
+        juce::StringArray tokens;
+        tokens.addTokens(toMainStr, ",", "");
+        for (int i = 0; i < 32 && i < tokens.size(); ++i)
+            cfg.channelToMain[i] = (tokens[i].getIntValue() != 0);
+    }
     
     // Apply the loaded config
     ft2_config_apply(instance, &cfg);

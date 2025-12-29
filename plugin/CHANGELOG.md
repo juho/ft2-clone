@@ -1,5 +1,9 @@
 # Changelog for Fasttracker II Plugin
 
+## 1.0.7 (Dec 29, 2025)
+
+- Feat: Support multiple outputs coming into the DAW.
+
 ## 1.0.6 (Dec 29, 2025)
 
 - Feat: Persists module state.

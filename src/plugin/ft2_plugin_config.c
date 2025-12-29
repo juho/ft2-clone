@@ -143,6 +143,13 @@ void ft2_config_init(ft2_plugin_config_t *config)
 		config->stdVibSweep[i] = 0;
 		config->stdVibType[i] = 0;
 	}
+
+	/* Default channel routing: wrap around (Ch 1->Out1, ..., Ch15->Out15, Ch16->Out1, ...) */
+	for (int i = 0; i < 32; i++)
+	{
+		config->channelRouting[i] = i % FT2_NUM_OUTPUTS;
+		config->channelToMain[i] = true;  /* All channels go to main by default */
+	}
 }
 
 void ft2_config_apply(ft2_instance_t *inst, ft2_plugin_config_t *config)
@@ -189,6 +196,7 @@ static void setConfigRadioButtonStates(ft2_plugin_config_t *config)
 		case CONFIG_SCREEN_AUDIO:         tmpID = RB_CONFIG_AUDIO; break;
 		case CONFIG_SCREEN_LAYOUT:        tmpID = RB_CONFIG_LAYOUT; break;
 		case CONFIG_SCREEN_MISCELLANEOUS: tmpID = RB_CONFIG_MISC; break;
+		case CONFIG_SCREEN_IO_ROUTING:    tmpID = RB_CONFIG_IO_ROUTING; break;
 	}
 	radioButtons[tmpID].state = RADIOBUTTON_CHECKED;
 }
@@ -327,6 +335,14 @@ void hideConfigScreen(ft2_instance_t *inst)
 	hideCheckBox(CB_CONF_PIXELFILTER);
 	hidePushButton(PB_CONFIG_QUANTIZE_UP);
 	hidePushButton(PB_CONFIG_QUANTIZE_DOWN);
+
+	/* CONFIG I/O ROUTING */
+	for (int i = 0; i < 32; i++)
+	{
+		hidePushButton(PB_CONFIG_ROUTING_CH1_UP + (i * 2));
+		hidePushButton(PB_CONFIG_ROUTING_CH1_DOWN + (i * 2));
+		hideCheckBox(CB_CONF_ROUTING_CH1_TOMAIN + i);
+	}
 
 	inst->uiState.configScreenShown = false;
 }
@@ -681,6 +697,58 @@ static void showConfigMiscellaneous(ft2_instance_t *inst, ft2_video_t *video, co
 	charOutShadow(video, bmp, 547, 160, PAL_DSKTOP2, PAL_DSKTOP2, '%');
 }
 
+static void showConfigIORouting(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t *bmp)
+{
+	if (inst == NULL || video == NULL)
+		return;
+
+	ft2_plugin_config_t *cfg = &inst->config;
+
+	/* Draw main content framework */
+	drawFramework(video, 110, 0, 522, 173, FRAMEWORK_TYPE1);
+
+	/* Title */
+	textOutShadow(video, bmp, 116, 4, PAL_FORGRND, PAL_DSKTOP2, "Channel Output Routing:");
+	textOutShadow(video, bmp, 116, 16, PAL_FORGRND, PAL_DSKTOP2, "Map each tracker channel (1-32) to an output bus (1-15) and/or to the main mix.");
+
+	/* Column headers - "Ch" aligned with channel numbers, "Out" and "M" (Main) headers */
+	textOutShadow(video, bmp, 120, 32, PAL_FORGRND, PAL_DSKTOP2, "Ch");
+	textOutShadow(video, bmp, 152, 32, PAL_FORGRND, PAL_DSKTOP2, "Out");
+	textOutShadow(video, bmp, 210, 32, PAL_FORGRND, PAL_DSKTOP2, "Main");
+	textOutShadow(video, bmp, 280, 32, PAL_FORGRND, PAL_DSKTOP2, "Ch");
+	textOutShadow(video, bmp, 312, 32, PAL_FORGRND, PAL_DSKTOP2, "Out");
+	textOutShadow(video, bmp, 370, 32, PAL_FORGRND, PAL_DSKTOP2, "Main");
+	textOutShadow(video, bmp, 440, 32, PAL_FORGRND, PAL_DSKTOP2, "Ch");
+	textOutShadow(video, bmp, 472, 32, PAL_FORGRND, PAL_DSKTOP2, "Out");
+	textOutShadow(video, bmp, 530, 32, PAL_FORGRND, PAL_DSKTOP2, "Main");
+
+	/* Draw 32 channel routing assignments in 3 columns */
+	char buf[16];
+	for (int i = 0; i < 32; i++)
+	{
+		int col = i / 11;  /* 0, 1, 2 */
+		int row = i % 11;
+		int baseX = 120 + col * 160;
+		int baseY = 43 + row * 11;  /* 1px higher than before */
+
+		/* Channel number */
+		sprintf(buf, "%2d:", i + 1);
+		textOutShadow(video, bmp, baseX, baseY, PAL_FORGRND, PAL_DSKTOP2, buf);
+
+		/* Output assignment (1-15) */
+		sprintf(buf, "%2d", cfg->channelRouting[i] + 1);
+		textOutShadow(video, bmp, baseX + 32, baseY, PAL_FORGRND, PAL_DSKTOP2, buf);
+
+		/* Show up/down buttons */
+		showPushButton(video, bmp, PB_CONFIG_ROUTING_CH1_UP + (i * 2));
+		showPushButton(video, bmp, PB_CONFIG_ROUTING_CH1_DOWN + (i * 2));
+
+		/* Show "to main" checkbox */
+		checkBoxes[CB_CONF_ROUTING_CH1_TOMAIN + i].checked = cfg->channelToMain[i];
+		showCheckBox(video, bmp, CB_CONF_ROUTING_CH1_TOMAIN + i);
+	}
+}
+
 /* ============ MAIN DRAW FUNCTION ============ */
 
 void drawConfigScreen(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t *bmp)
@@ -710,6 +778,7 @@ void drawConfigScreen(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t 
 	textOutShadow(video, bmp, 21, 35, PAL_FORGRND, PAL_DSKTOP2, "Layout");
 	textOutShadow(video, bmp, 21, 51, PAL_FORGRND, PAL_DSKTOP2, "Miscellaneous");
 	textOutShadow(video, bmp, 21, 67, PAL_DSKTOP2, PAL_DSKTOP2, "MIDI input");
+	textOutShadow(video, bmp, 21, 83, PAL_FORGRND, PAL_DSKTOP2, "I/O Routing");
 
 	/* Draw current tab content */
 	switch (inst->config.currConfigScreen)
@@ -722,6 +791,9 @@ void drawConfigScreen(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t 
 			break;
 		case CONFIG_SCREEN_MISCELLANEOUS:
 			showConfigMiscellaneous(inst, video, bmp);
+			break;
+		case CONFIG_SCREEN_IO_ROUTING:
+			showConfigIORouting(inst, video, bmp);
 			break;
 		default:
 			showConfigAudio(inst, video, bmp);
@@ -757,6 +829,16 @@ void rbConfigMiscellaneous(ft2_instance_t *inst)
 		return;
 	hideConfigScreen(inst);
 	inst->config.currConfigScreen = CONFIG_SCREEN_MISCELLANEOUS;
+	showConfigScreen(inst);
+	inst->uiState.needsFullRedraw = true;
+}
+
+void rbConfigIORouting(ft2_instance_t *inst)
+{
+	if (inst == NULL)
+		return;
+	hideConfigScreen(inst);
+	inst->config.currConfigScreen = CONFIG_SCREEN_IO_ROUTING;
 	showConfigScreen(inst);
 	inst->uiState.needsFullRedraw = true;
 }
@@ -1359,5 +1441,86 @@ void pbConfigSave(ft2_instance_t *inst)
 		ft2_dialog_show_yesno_cb(&ui->dialog,
 			"System request", "Overwrite global config?",
 			inst, onSaveGlobalConfigResult, NULL);
+	}
+}
+
+/* ============ CHANNEL OUTPUT ROUTING CALLBACKS ============ */
+
+static void routingUp(ft2_instance_t *inst, int channel)
+{
+	if (inst == NULL || channel < 0 || channel >= 32)
+		return;
+
+	if (inst->config.channelRouting[channel] < FT2_NUM_OUTPUTS - 1)
+		inst->config.channelRouting[channel]++;
+	else
+		inst->config.channelRouting[channel] = 0;
+
+	inst->uiState.needsFullRedraw = true;
+}
+
+static void routingDown(ft2_instance_t *inst, int channel)
+{
+	if (inst == NULL || channel < 0 || channel >= 32)
+		return;
+
+	if (inst->config.channelRouting[channel] > 0)
+		inst->config.channelRouting[channel]--;
+	else
+		inst->config.channelRouting[channel] = FT2_NUM_OUTPUTS - 1;
+
+	inst->uiState.needsFullRedraw = true;
+}
+
+/* Generate callbacks for all 32 channels */
+#define ROUTING_CALLBACK(n) \
+	void pbRoutingCh##n##Up(ft2_instance_t *inst) { routingUp(inst, n - 1); } \
+	void pbRoutingCh##n##Down(ft2_instance_t *inst) { routingDown(inst, n - 1); }
+
+ROUTING_CALLBACK(1)
+ROUTING_CALLBACK(2)
+ROUTING_CALLBACK(3)
+ROUTING_CALLBACK(4)
+ROUTING_CALLBACK(5)
+ROUTING_CALLBACK(6)
+ROUTING_CALLBACK(7)
+ROUTING_CALLBACK(8)
+ROUTING_CALLBACK(9)
+ROUTING_CALLBACK(10)
+ROUTING_CALLBACK(11)
+ROUTING_CALLBACK(12)
+ROUTING_CALLBACK(13)
+ROUTING_CALLBACK(14)
+ROUTING_CALLBACK(15)
+ROUTING_CALLBACK(16)
+ROUTING_CALLBACK(17)
+ROUTING_CALLBACK(18)
+ROUTING_CALLBACK(19)
+ROUTING_CALLBACK(20)
+ROUTING_CALLBACK(21)
+ROUTING_CALLBACK(22)
+ROUTING_CALLBACK(23)
+ROUTING_CALLBACK(24)
+ROUTING_CALLBACK(25)
+ROUTING_CALLBACK(26)
+ROUTING_CALLBACK(27)
+ROUTING_CALLBACK(28)
+ROUTING_CALLBACK(29)
+ROUTING_CALLBACK(30)
+ROUTING_CALLBACK(31)
+ROUTING_CALLBACK(32)
+
+/* Callback for "to main" checkboxes - syncs checkbox state to config */
+void cbRoutingToMain(ft2_instance_t *inst)
+{
+	if (inst == NULL)
+		return;
+
+	/* Sync all 32 checkbox states to config */
+	for (int i = 0; i < 32; i++)
+	{
+		uint16_t cbId = CB_CONF_ROUTING_CH1_TOMAIN + i;
+		if (checkBoxes[cbId].visible)
+			inst->config.channelToMain[i] = checkBoxes[cbId].checked;
 	}
 }

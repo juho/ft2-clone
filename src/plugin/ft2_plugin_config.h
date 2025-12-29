@@ -16,12 +16,16 @@ struct ft2_video_t;
 struct ft2_bmp_t;
 struct ft2_instance_t;
 
+/* Number of output buses for multi-out routing (15 + Main = 32 channels, Ableton's limit) */
+#define FT2_NUM_OUTPUTS 15
+
 /* Config screen tabs (matches standalone order) */
 enum
 {
 	CONFIG_SCREEN_AUDIO = 0,
 	CONFIG_SCREEN_LAYOUT = 1,
 	CONFIG_SCREEN_MISCELLANEOUS = 2,
+	CONFIG_SCREEN_IO_ROUTING = 3,
 	CONFIG_SCREEN_COUNT
 };
 
@@ -127,6 +131,10 @@ typedef struct ft2_plugin_config_t
 	/* Palette */
 	uint8_t palettePreset;
 
+	/* Channel output routing (0-14 maps to Out 1-15) */
+	uint8_t channelRouting[32];
+	bool channelToMain[32];  /* Whether each channel mixes to main output */
+
 	/* Logo/Badge settings */
 	bool id_FastLogo;    /* Toggle between FT2 logo styles */
 	bool id_TritonProd;  /* Toggle between badge styles */
@@ -171,6 +179,7 @@ void drawConfigScreen(struct ft2_instance_t *inst, struct ft2_video_t *video, co
 void rbConfigAudio(struct ft2_instance_t *inst);
 void rbConfigLayout(struct ft2_instance_t *inst);
 void rbConfigMiscellaneous(struct ft2_instance_t *inst);
+void rbConfigIORouting(struct ft2_instance_t *inst);
 
 /* Audio config callbacks */
 void rbConfigIntrpNone(struct ft2_instance_t *inst);
@@ -230,10 +239,79 @@ void cbSyncTransportFromDAW(struct ft2_instance_t *inst);
 void cbSyncPositionFromDAW(struct ft2_instance_t *inst);
 void cbAllowFxxSpeedChanges(struct ft2_instance_t *inst);
 
+/* I/O Routing checkbox callback (updates channelToMain based on checkbox state) */
+void cbRoutingToMain(struct ft2_instance_t *inst);
+
 /* Config button callbacks */
 void pbConfigReset(struct ft2_instance_t *inst);
 void pbConfigLoad(struct ft2_instance_t *inst);
 void pbConfigSave(struct ft2_instance_t *inst);
+
+/* Channel output routing callbacks */
+void pbRoutingCh1Up(struct ft2_instance_t *inst);
+void pbRoutingCh1Down(struct ft2_instance_t *inst);
+void pbRoutingCh2Up(struct ft2_instance_t *inst);
+void pbRoutingCh2Down(struct ft2_instance_t *inst);
+void pbRoutingCh3Up(struct ft2_instance_t *inst);
+void pbRoutingCh3Down(struct ft2_instance_t *inst);
+void pbRoutingCh4Up(struct ft2_instance_t *inst);
+void pbRoutingCh4Down(struct ft2_instance_t *inst);
+void pbRoutingCh5Up(struct ft2_instance_t *inst);
+void pbRoutingCh5Down(struct ft2_instance_t *inst);
+void pbRoutingCh6Up(struct ft2_instance_t *inst);
+void pbRoutingCh6Down(struct ft2_instance_t *inst);
+void pbRoutingCh7Up(struct ft2_instance_t *inst);
+void pbRoutingCh7Down(struct ft2_instance_t *inst);
+void pbRoutingCh8Up(struct ft2_instance_t *inst);
+void pbRoutingCh8Down(struct ft2_instance_t *inst);
+void pbRoutingCh9Up(struct ft2_instance_t *inst);
+void pbRoutingCh9Down(struct ft2_instance_t *inst);
+void pbRoutingCh10Up(struct ft2_instance_t *inst);
+void pbRoutingCh10Down(struct ft2_instance_t *inst);
+void pbRoutingCh11Up(struct ft2_instance_t *inst);
+void pbRoutingCh11Down(struct ft2_instance_t *inst);
+void pbRoutingCh12Up(struct ft2_instance_t *inst);
+void pbRoutingCh12Down(struct ft2_instance_t *inst);
+void pbRoutingCh13Up(struct ft2_instance_t *inst);
+void pbRoutingCh13Down(struct ft2_instance_t *inst);
+void pbRoutingCh14Up(struct ft2_instance_t *inst);
+void pbRoutingCh14Down(struct ft2_instance_t *inst);
+void pbRoutingCh15Up(struct ft2_instance_t *inst);
+void pbRoutingCh15Down(struct ft2_instance_t *inst);
+void pbRoutingCh16Up(struct ft2_instance_t *inst);
+void pbRoutingCh16Down(struct ft2_instance_t *inst);
+void pbRoutingCh17Up(struct ft2_instance_t *inst);
+void pbRoutingCh17Down(struct ft2_instance_t *inst);
+void pbRoutingCh18Up(struct ft2_instance_t *inst);
+void pbRoutingCh18Down(struct ft2_instance_t *inst);
+void pbRoutingCh19Up(struct ft2_instance_t *inst);
+void pbRoutingCh19Down(struct ft2_instance_t *inst);
+void pbRoutingCh20Up(struct ft2_instance_t *inst);
+void pbRoutingCh20Down(struct ft2_instance_t *inst);
+void pbRoutingCh21Up(struct ft2_instance_t *inst);
+void pbRoutingCh21Down(struct ft2_instance_t *inst);
+void pbRoutingCh22Up(struct ft2_instance_t *inst);
+void pbRoutingCh22Down(struct ft2_instance_t *inst);
+void pbRoutingCh23Up(struct ft2_instance_t *inst);
+void pbRoutingCh23Down(struct ft2_instance_t *inst);
+void pbRoutingCh24Up(struct ft2_instance_t *inst);
+void pbRoutingCh24Down(struct ft2_instance_t *inst);
+void pbRoutingCh25Up(struct ft2_instance_t *inst);
+void pbRoutingCh25Down(struct ft2_instance_t *inst);
+void pbRoutingCh26Up(struct ft2_instance_t *inst);
+void pbRoutingCh26Down(struct ft2_instance_t *inst);
+void pbRoutingCh27Up(struct ft2_instance_t *inst);
+void pbRoutingCh27Down(struct ft2_instance_t *inst);
+void pbRoutingCh28Up(struct ft2_instance_t *inst);
+void pbRoutingCh28Down(struct ft2_instance_t *inst);
+void pbRoutingCh29Up(struct ft2_instance_t *inst);
+void pbRoutingCh29Down(struct ft2_instance_t *inst);
+void pbRoutingCh30Up(struct ft2_instance_t *inst);
+void pbRoutingCh30Down(struct ft2_instance_t *inst);
+void pbRoutingCh31Up(struct ft2_instance_t *inst);
+void pbRoutingCh31Down(struct ft2_instance_t *inst);
+void pbRoutingCh32Up(struct ft2_instance_t *inst);
+void pbRoutingCh32Down(struct ft2_instance_t *inst);
 
 #ifdef __cplusplus
 }

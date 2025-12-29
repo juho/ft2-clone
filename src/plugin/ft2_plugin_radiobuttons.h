@@ -86,6 +86,7 @@ enum
 	RB_CONFIG_LAYOUT,
 	RB_CONFIG_MISC,
 	RB_CONFIG_MIDI,
+	RB_CONFIG_IO_ROUTING,
 
 	/* Config audio buffer size */
 	RB_CONFIG_AUDIO_BUFF_SMALL,

@@ -14,6 +14,7 @@
 #include "ft2_plugin_replayer.h"
 #include "ft2_plugin_interpolation.h"
 #include "ft2_plugin_scopes.h"
+#include "ft2_plugin_config.h"
 
 /* Period lookup tables from ft2_tables_plugin.c */
 extern const uint16_t linearPeriodLUT[1936];
@@ -2808,6 +2809,110 @@ void ft2_mix_voices(ft2_instance_t *inst, int32_t bufferPos, int32_t samplesToMi
 				break;
 		}
 	}
+}
+
+void ft2_mix_voices_multiout(ft2_instance_t *inst, int32_t bufferPos, int32_t samplesToMix)
+{
+	if (inst == NULL || samplesToMix <= 0 || !inst->audio.multiOutEnabled)
+		return;
+
+	/* Save original mix buffer pointers */
+	float *origMixL = inst->audio.fMixBufferL;
+	float *origMixR = inst->audio.fMixBufferR;
+
+	/* Mix each channel's voices to routed output buffer */
+	for (int32_t ch = 0; ch < inst->replayer.song.numChannels && ch < FT2_MAX_CHANNELS; ch++)
+	{
+		/* Route to configured output (0-15 -> Out 1-16) */
+		int outIdx = inst->config.channelRouting[ch];
+		if (outIdx >= FT2_NUM_OUTPUTS)
+			outIdx = ch % FT2_NUM_OUTPUTS; /* Fallback for invalid config */
+
+		/* Point mix buffers to routed output buffer at the correct offset */
+		inst->audio.fMixBufferL = inst->audio.fChannelBufferL[outIdx] + bufferPos;
+		inst->audio.fMixBufferR = inst->audio.fChannelBufferR[outIdx] + bufferPos;
+
+		/* Mix main voice for this channel */
+		ft2_voice_t *v = &inst->voice[ch];
+		if (v->active)
+		{
+			const bool volRampFlag = (v->volumeRampLength > 0);
+			if (volRampFlag || v->fCurrVolumeL != 0.0f || v->fCurrVolumeR != 0.0f)
+			{
+				const bool is16Bit = (v->base16 != NULL && v->base8 == NULL);
+
+				switch (v->loopType)
+				{
+					case FT2_LOOP_OFF:
+						if (is16Bit)
+							mixVoice16BitNoLoop(inst, v, samplesToMix);
+						else
+							mixVoice8BitNoLoop(inst, v, samplesToMix);
+						break;
+
+					case FT2_LOOP_FWD:
+						if (is16Bit)
+							mixVoice16BitLoop(inst, v, samplesToMix);
+						else
+							mixVoice8BitLoop(inst, v, samplesToMix);
+						break;
+
+					case FT2_LOOP_BIDI:
+						if (is16Bit)
+							mixVoice16BitBidi(inst, v, samplesToMix);
+						else
+							mixVoice8BitBidi(inst, v, samplesToMix);
+						break;
+				}
+			}
+			else
+			{
+				silenceMixRoutine(v, samplesToMix);
+			}
+		}
+
+		/* Mix fadeout voice for this channel */
+		ft2_voice_t *fadeV = &inst->voice[FT2_MAX_CHANNELS + ch];
+		if (fadeV->active)
+		{
+			if (fadeV->volumeRampLength == 0)
+			{
+				fadeV->active = false;
+			}
+			else
+			{
+				const bool is16Bit = (fadeV->base16 != NULL && fadeV->base8 == NULL);
+
+				switch (fadeV->loopType)
+				{
+					case FT2_LOOP_OFF:
+						if (is16Bit)
+							mixVoice16BitNoLoop(inst, fadeV, samplesToMix);
+						else
+							mixVoice8BitNoLoop(inst, fadeV, samplesToMix);
+						break;
+
+					case FT2_LOOP_FWD:
+						if (is16Bit)
+							mixVoice16BitLoop(inst, fadeV, samplesToMix);
+						else
+							mixVoice8BitLoop(inst, fadeV, samplesToMix);
+						break;
+
+					case FT2_LOOP_BIDI:
+						if (is16Bit)
+							mixVoice16BitBidi(inst, fadeV, samplesToMix);
+						else
+							mixVoice8BitBidi(inst, fadeV, samplesToMix);
+						break;
+				}
+			}
+		}
+	}
+
+	/* Restore original mix buffer pointers */
+	inst->audio.fMixBufferL = origMixL;
+	inst->audio.fMixBufferR = origMixR;
 }
 
 /* -------------------------------------------------------------------------
