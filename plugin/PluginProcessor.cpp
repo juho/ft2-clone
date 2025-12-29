@@ -58,7 +58,7 @@ bool FT2PluginProcessor::acceptsMidi() const
 
 bool FT2PluginProcessor::producesMidi() const
 {
-    return false;
+    return true;
 }
 
 bool FT2PluginProcessor::isMidiEffect() const
@@ -132,7 +132,7 @@ bool FT2PluginProcessor::isBusesLayoutSupported(const BusesLayout& layouts) cons
 }
 
 void FT2PluginProcessor::processBlock(juce::AudioBuffer<float>& buffer,
-                                       juce::MidiBuffer&)
+                                       juce::MidiBuffer& midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;
 
@@ -146,6 +146,13 @@ void FT2PluginProcessor::processBlock(juce::AudioBuffer<float>& buffer,
 
     if (instance == nullptr)
         return;
+
+    /* Process MIDI input messages */
+    if (instance->config.midiEnabled)
+    {
+        for (const auto metadata : midiMessages)
+            processMidiInput(metadata.getMessage());
+    }
 
     /* DAW Transport Sync - read settings from instance config */
     if (instance->config.syncTransportFromDAW)
@@ -315,6 +322,34 @@ void FT2PluginProcessor::processBlock(juce::AudioBuffer<float>& buffer,
             ft2_instance_render(instance, mainL, mainR, static_cast<uint32_t>(numSamples));
         else
             ft2_mix_voices_only(instance, mainL, mainR, static_cast<uint32_t>(numSamples));
+    }
+
+    /* Process MIDI output queue - convert FT2 events to JUCE MidiBuffer */
+    ft2_midi_event_t midiEvent;
+    while (ft2_midi_queue_pop(instance, &midiEvent))
+    {
+        int samplePos = juce::jlimit(0, numSamples - 1, midiEvent.samplePos);
+        
+        switch (midiEvent.type)
+        {
+            case FT2_MIDI_NOTE_ON:
+                midiMessages.addEvent(
+                    juce::MidiMessage::noteOn(midiEvent.channel + 1, midiEvent.note, midiEvent.velocity),
+                    samplePos);
+                break;
+                
+            case FT2_MIDI_NOTE_OFF:
+                midiMessages.addEvent(
+                    juce::MidiMessage::noteOff(midiEvent.channel + 1, midiEvent.note),
+                    samplePos);
+                break;
+                
+            case FT2_MIDI_PROGRAM_CHANGE:
+                midiMessages.addEvent(
+                    juce::MidiMessage::programChange(midiEvent.channel + 1, midiEvent.program),
+                    samplePos);
+                break;
+        }
     }
 }
 
@@ -789,6 +824,94 @@ void FT2PluginProcessor::pollConfigRequests()
     {
         instance->uiState.requestSaveGlobalConfig = false;
         saveGlobalConfig();
+    }
+}
+
+int8_t FT2PluginProcessor::allocateMidiChannel()
+{
+    if (instance == nullptr)
+        return -1;
+    
+    const int numChannels = instance->replayer.song.numChannels;
+    if (numChannels <= 0)
+        return 0;
+    
+    /* Round-robin allocation */
+    int8_t channel = nextMidiChannel;
+    nextMidiChannel = (nextMidiChannel + 1) % numChannels;
+    return channel;
+}
+
+void FT2PluginProcessor::releaseMidiChannel(int8_t channel)
+{
+    /* Nothing special needed for round-robin - just release the note */
+    (void)channel;
+}
+
+void FT2PluginProcessor::processMidiInput(const juce::MidiMessage& msg)
+{
+    if (instance == nullptr)
+        return;
+    
+    const auto& cfg = instance->config;
+    
+    /* Check MIDI channel filter */
+    if (!cfg.midiAllChannels)
+    {
+        int msgChannel = msg.getChannel();  /* 1-16 */
+        if (msgChannel != cfg.midiChannel)
+            return;
+    }
+    
+    if (msg.isNoteOn())
+    {
+        int midiNote = msg.getNoteNumber();
+        int velocity = msg.getVelocity();
+        
+        /* Convert MIDI note to FT2 note: MIDI 60 = C4, FT2 48 = C-4 */
+        /* So: ft2Note = midiNote - 12 (MIDI 60 -> FT2 48) */
+        /* But standalone uses -11 offset in midiInKeyAction, so: ft2Note = midiNote - 11 */
+        int8_t ft2Note = static_cast<int8_t>(midiNote - 11);
+        
+        /* Apply transpose */
+        ft2Note += cfg.midiTranspose;
+        
+        /* Clamp to FT2 note range (1-96) */
+        if (ft2Note < 1 || ft2Note > 96)
+            return;
+        
+        /* Convert velocity (0-127) to FT2 volume (0-64) with sensitivity */
+        int vol = (velocity * 64 * cfg.midiVelocitySens) / (127 * 100);
+        if (vol > 64) vol = 64;
+        if (velocity > 0 && vol == 0) vol = 1;  /* Match standalone bugfix */
+        
+        /* Allocate FT2 channel */
+        int8_t channel = allocateMidiChannel();
+        if (channel < 0)
+            return;
+        
+        /* Track which channel this note is playing on */
+        midiNoteToChannel[midiNote] = channel;
+        
+        /* Trigger note */
+        ft2_instance_trigger_note(instance, ft2Note, instance->editor.curInstr, 
+                                  static_cast<uint8_t>(channel), static_cast<uint8_t>(vol));
+    }
+    else if (msg.isNoteOff())
+    {
+        int midiNote = msg.getNoteNumber();
+        
+        /* Find which channel this note was playing on */
+        int8_t channel = midiNoteToChannel[midiNote];
+        if (channel < 0)
+            return;
+        
+        /* Release the note */
+        ft2_instance_release_note(instance, static_cast<uint8_t>(channel));
+        
+        /* Clear tracking */
+        midiNoteToChannel[midiNote] = -1;
+        releaseMidiChannel(channel);
     }
 }
 

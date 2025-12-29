@@ -123,6 +123,15 @@ private:
     bool wasDAWPlaying = false;  // Track DAW play state for edge detection
     double lastPpqPosition = 0.0;  // Track PPQ for seek detection
     
+    // MIDI input state: track which FT2 channel is playing which MIDI note
+    static constexpr int MAX_MIDI_NOTES = 128;
+    int8_t midiNoteToChannel[MAX_MIDI_NOTES] = {-1};  // MIDI note -> FT2 channel (-1 = not playing)
+    int8_t nextMidiChannel = 0;  // Round-robin channel assignment
+    
+    void processMidiInput(const juce::MidiMessage& msg);
+    int8_t allocateMidiChannel();
+    void releaseMidiChannel(int8_t channel);
+    
     mutable juce::CriticalSection processLock;
     
     std::unique_ptr<juce::ApplicationProperties> appProperties;

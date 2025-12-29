@@ -15,6 +15,7 @@
 #include "ft2_plugin_interpolation.h"
 #include "ft2_plugin_scopes.h"
 #include "ft2_plugin_config.h"
+#include "../ft2_instance.h"
 
 /* Period lookup tables from ft2_tables_plugin.c */
 extern const uint16_t linearPeriodLUT[1936];
@@ -356,6 +357,21 @@ static void keyOff(ft2_instance_t *inst, ft2_channel_t *ch)
 		if (ch->panEnvTick >= (uint16_t)ins->panEnvPoints[ch->panEnvPos][0])
 			ch->panEnvTick = ins->panEnvPoints[ch->panEnvPos][0] - 1;
 	}
+
+	/* MIDI Output - send note off if instrument has midiOn enabled */
+	if (ins->midiOn && ch->midiNoteActive)
+	{
+		ft2_midi_event_t offEvent;
+		offEvent.type = FT2_MIDI_NOTE_OFF;
+		offEvent.channel = ins->midiChannel;
+		offEvent.note = ch->lastMidiNote;
+		offEvent.velocity = 0;
+		offEvent.program = 0;
+		offEvent.samplePos = 0;
+		ft2_midi_queue_push(inst, &offEvent);
+
+		ch->midiNoteActive = false;
+	}
 }
 
 static void resetVolumes(ft2_channel_t *ch)
@@ -511,13 +527,13 @@ static void triggerNote(ft2_instance_t *inst, uint8_t note, uint8_t efx, uint8_t
 			ch->finetune = s->finetune;
 	}
 
-	note = (int8_t)note + ch->relativeNote;
-	if (note >= 10 * 12)
+	int8_t finalNote = (int8_t)note + ch->relativeNote;
+	if (finalNote >= 10 * 12)
 		return;
 
-	if (note != 0)
+	if (finalNote != 0)
 	{
-		const uint16_t noteIndex = ((note - 1) * 16) + (((int8_t)ch->finetune >> 3) + 16);
+		const uint16_t noteIndex = ((finalNote - 1) * 16) + (((int8_t)ch->finetune >> 3) + 16);
 		const uint16_t *lut = inst->audio.linearPeriodsFlag ? linearPeriodLUT : amigaPeriodLUT;
 		ch->outPeriod = ch->realPeriod = lut[noteIndex];
 	}
@@ -534,6 +550,43 @@ static void triggerNote(ft2_instance_t *inst, uint8_t note, uint8_t efx, uint8_t
 	else
 	{
 		ch->smpStartPos = 0;
+	}
+
+	/* MIDI Output - send note on if instrument has midiOn enabled */
+	if (ins != NULL && ins->midiOn && !ins->mute)
+	{
+		/* Convert FT2 note (1-96) to MIDI note (0-127) */
+		/* FT2 note 48 = C-4 = MIDI 60, so: midiNote = ft2Note + 12 */
+		int midiNote = finalNote + 11;  /* Match offset from ft2_midi.c */
+		if (midiNote >= 0 && midiNote <= 127)
+		{
+			/* Send note off for previous note on this channel's MIDI channel */
+			if (ch->midiNoteActive && ch->lastMidiNote != (uint8_t)midiNote)
+			{
+				ft2_midi_event_t offEvent;
+				offEvent.type = FT2_MIDI_NOTE_OFF;
+				offEvent.channel = ins->midiChannel;
+				offEvent.note = ch->lastMidiNote;
+				offEvent.velocity = 0;
+				offEvent.program = 0;
+				offEvent.samplePos = 0;
+				ft2_midi_queue_push(inst, &offEvent);
+			}
+
+			/* Send note on */
+			ft2_midi_event_t onEvent;
+			onEvent.type = FT2_MIDI_NOTE_ON;
+			onEvent.channel = ins->midiChannel;
+			onEvent.note = (uint8_t)midiNote;
+			/* Convert FT2 volume (0-64) to MIDI velocity (0-127) */
+			onEvent.velocity = (ch->outVol > 0) ? (uint8_t)((ch->outVol * 127) / 64) : 100;
+			onEvent.program = 0;
+			onEvent.samplePos = 0;
+			ft2_midi_queue_push(inst, &onEvent);
+
+			ch->lastMidiNote = (uint8_t)midiNote;
+			ch->midiNoteActive = true;
+		}
 	}
 }
 

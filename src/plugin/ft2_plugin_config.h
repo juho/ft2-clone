@@ -26,6 +26,7 @@ enum
 	CONFIG_SCREEN_LAYOUT = 1,
 	CONFIG_SCREEN_MISCELLANEOUS = 2,
 	CONFIG_SCREEN_IO_ROUTING = 3,
+	CONFIG_SCREEN_MIDI_INPUT = 4,
 	CONFIG_SCREEN_COUNT
 };
 
@@ -128,6 +129,14 @@ typedef struct ft2_plugin_config_t
 	uint16_t savedSpeed;        /* Saved speed when Fxx changes disabled, restored when enabled */
 	uint16_t savedBpm;          /* Saved BPM when DAW sync enabled, restored when disabled */
 
+	/* MIDI Input settings */
+	bool midiEnabled;           /* Enable MIDI input processing */
+	bool midiAllChannels;       /* Receive from all MIDI channels (vs. single) */
+	uint8_t midiChannel;        /* MIDI channel to listen on (1-16) */
+	int8_t midiTranspose;       /* Note transposition (-48 to +48) */
+	uint8_t midiVelocitySens;   /* Velocity sensitivity (0-100%) */
+	bool midiRecordVelocity;    /* Record velocity as volume column */
+
 	/* Palette */
 	uint8_t palettePreset;
 
@@ -180,6 +189,7 @@ void rbConfigAudio(struct ft2_instance_t *inst);
 void rbConfigLayout(struct ft2_instance_t *inst);
 void rbConfigMiscellaneous(struct ft2_instance_t *inst);
 void rbConfigIORouting(struct ft2_instance_t *inst);
+void rbConfigMidiInput(struct ft2_instance_t *inst);
 
 /* Audio config callbacks */
 void rbConfigIntrpNone(struct ft2_instance_t *inst);

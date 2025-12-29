@@ -1843,6 +1843,19 @@ void hideInstEditorExt(ft2_instance_t *inst)
 		return;
 
 	inst->uiState.instEditorExtShown = false;
+
+	/* Hide all I.E.Ext widgets */
+	hideCheckBox(CB_INST_EXT_MIDI);
+	hideCheckBox(CB_INST_EXT_MUTE);
+	hideScrollBar(SB_INST_EXT_MIDI_CH);
+	hideScrollBar(SB_INST_EXT_MIDI_PRG);
+	hideScrollBar(SB_INST_EXT_MIDI_BEND);
+	hidePushButton(PB_INST_EXT_MIDI_CH_DOWN);
+	hidePushButton(PB_INST_EXT_MIDI_CH_UP);
+	hidePushButton(PB_INST_EXT_MIDI_PRG_DOWN);
+	hidePushButton(PB_INST_EXT_MIDI_PRG_UP);
+	hidePushButton(PB_INST_EXT_MIDI_BEND_DOWN);
+	hidePushButton(PB_INST_EXT_MIDI_BEND_UP);
 }
 
 void toggleInstEditorExt(ft2_instance_t *inst)
@@ -1856,16 +1869,112 @@ void toggleInstEditorExt(ft2_instance_t *inst)
 		showInstEditorExt(inst);
 }
 
+/* 2-digit decimal string lookup table for MIDI values */
+static const char *instExtDec2StrTab[100] = {
+	"00","01","02","03","04","05","06","07","08","09","10","11","12","13","14","15",
+	"16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31",
+	"32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47",
+	"48","49","50","51","52","53","54","55","56","57","58","59","60","61","62","63",
+	"64","65","66","67","68","69","70","71","72","73","74","75","76","77","78","79",
+	"80","81","82","83","84","85","86","87","88","89","90","91","92","93","94","95",
+	"96","97","98","99"
+};
+
+/* 3-digit decimal string lookup table for MIDI program */
+static const char *instExtDec3StrTab[128] = {
+	"000","001","002","003","004","005","006","007","008","009","010","011","012","013","014","015",
+	"016","017","018","019","020","021","022","023","024","025","026","027","028","029","030","031",
+	"032","033","034","035","036","037","038","039","040","041","042","043","044","045","046","047",
+	"048","049","050","051","052","053","054","055","056","057","058","059","060","061","062","063",
+	"064","065","066","067","068","069","070","071","072","073","074","075","076","077","078","079",
+	"080","081","082","083","084","085","086","087","088","089","090","091","092","093","094","095",
+	"096","097","098","099","100","101","102","103","104","105","106","107","108","109","110","111",
+	"112","113","114","115","116","117","118","119","120","121","122","123","124","125","126","127"
+};
+
+static void drawMIDICh(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t *bmp)
+{
+	ft2_instr_t *ins = getInstrForInst(inst);
+	uint8_t val = (ins != NULL) ? (ins->midiChannel + 1) : 1;
+	if (val > 16) val = 16;
+	textOutFixed(video, bmp, 156, 132, PAL_FORGRND, PAL_DESKTOP, instExtDec2StrTab[val]);
+}
+
+static void drawMIDIPrg(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t *bmp)
+{
+	ft2_instr_t *ins = getInstrForInst(inst);
+	uint8_t val = (ins != NULL) ? ins->midiProgram : 0;
+	if (val > 127) val = 127;
+	textOutFixed(video, bmp, 149, 146, PAL_FORGRND, PAL_DESKTOP, instExtDec3StrTab[val]);
+}
+
+static void drawMIDIBend(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t *bmp)
+{
+	ft2_instr_t *ins = getInstrForInst(inst);
+	uint8_t val = (ins != NULL) ? ins->midiBend : 0;
+	if (val > 36) val = 36;
+	textOutFixed(video, bmp, 156, 160, PAL_FORGRND, PAL_DESKTOP, instExtDec2StrTab[val]);
+}
+
 void drawInstEditorExt(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t *bmp)
 {
 	if (inst == NULL || video == NULL)
 		return;
 
-	(void)bmp;
+	ft2_instr_t *ins = getInstrForInst(inst);
 
-	/* Draw extended instrument editor framework */
-	drawFramework(video, 0, 351, 291, 49, FRAMEWORK_TYPE1);
-	drawFramework(video, 291, 351, 341, 49, FRAMEWORK_TYPE1);
+	/* Draw frameworks - matches standalone ft2_inst_ed.c:2638-2640 */
+	drawFramework(video, 0,  92, 291, 17, FRAMEWORK_TYPE1);
+	drawFramework(video, 0, 109, 291, 19, FRAMEWORK_TYPE1);
+	drawFramework(video, 0, 128, 291, 45, FRAMEWORK_TYPE1);
+
+	/* Draw text labels */
+	textOutShadow(video, bmp, 4,   96,  PAL_FORGRND, PAL_DSKTOP2, "Instrument Editor Extension:");
+	textOutShadow(video, bmp, 20,  114, PAL_FORGRND, PAL_DSKTOP2, "Instrument MIDI enable");
+	textOutShadow(video, bmp, 189, 114, PAL_FORGRND, PAL_DSKTOP2, "Mute computer");
+	textOutShadow(video, bmp, 4,   132, PAL_FORGRND, PAL_DSKTOP2, "MIDI transmit channel");
+	textOutShadow(video, bmp, 4,   146, PAL_FORGRND, PAL_DSKTOP2, "MIDI program");
+	textOutShadow(video, bmp, 4,   160, PAL_FORGRND, PAL_DSKTOP2, "Bender range (halftones)");
+
+	/* Set checkbox and scrollbar states */
+	if (ins == NULL)
+	{
+		checkBoxes[CB_INST_EXT_MIDI].checked = false;
+		checkBoxes[CB_INST_EXT_MUTE].checked = false;
+		setScrollBarPos(inst, video, SB_INST_EXT_MIDI_CH, 0, false);
+		setScrollBarPos(inst, video, SB_INST_EXT_MIDI_PRG, 0, false);
+		setScrollBarPos(inst, video, SB_INST_EXT_MIDI_BEND, 0, false);
+	}
+	else
+	{
+		checkBoxes[CB_INST_EXT_MIDI].checked = ins->midiOn ? true : false;
+		checkBoxes[CB_INST_EXT_MUTE].checked = ins->mute ? true : false;
+		setScrollBarPos(inst, video, SB_INST_EXT_MIDI_CH, ins->midiChannel, false);
+		setScrollBarPos(inst, video, SB_INST_EXT_MIDI_PRG, ins->midiProgram, false);
+		setScrollBarPos(inst, video, SB_INST_EXT_MIDI_BEND, ins->midiBend, false);
+	}
+
+	/* Show checkboxes */
+	showCheckBox(video, bmp, CB_INST_EXT_MIDI);
+	showCheckBox(video, bmp, CB_INST_EXT_MUTE);
+
+	/* Show scrollbars */
+	showScrollBar(video, SB_INST_EXT_MIDI_CH);
+	showScrollBar(video, SB_INST_EXT_MIDI_PRG);
+	showScrollBar(video, SB_INST_EXT_MIDI_BEND);
+
+	/* Show pushbuttons */
+	showPushButton(video, bmp, PB_INST_EXT_MIDI_CH_DOWN);
+	showPushButton(video, bmp, PB_INST_EXT_MIDI_CH_UP);
+	showPushButton(video, bmp, PB_INST_EXT_MIDI_PRG_DOWN);
+	showPushButton(video, bmp, PB_INST_EXT_MIDI_PRG_UP);
+	showPushButton(video, bmp, PB_INST_EXT_MIDI_BEND_DOWN);
+	showPushButton(video, bmp, PB_INST_EXT_MIDI_BEND_UP);
+
+	/* Draw MIDI values */
+	drawMIDICh(inst, video, bmp);
+	drawMIDIPrg(inst, video, bmp);
+	drawMIDIBend(inst, video, bmp);
 }
 
 /* ============ MIDI CONTROLS ============ */

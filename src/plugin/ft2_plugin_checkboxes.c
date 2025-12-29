@@ -14,6 +14,13 @@
 #include "ft2_plugin_config.h"
 #include "ft2_plugin_pattern_ed.h"
 #include "ft2_plugin_trim.h"
+#include "ft2_plugin_instr_ed.h"
+#include "../ft2_instance.h"
+
+/* Forward declarations for MIDI config callbacks */
+static void cbMidiEnable(struct ft2_instance_t *inst);
+static void cbMidiAllChannels(struct ft2_instance_t *inst);
+static void cbMidiRecVelocity(struct ft2_instance_t *inst);
 
 checkBox_t checkBoxes[NUM_CHECKBOXES] =
 {
@@ -56,8 +63,8 @@ checkBox_t checkBoxes[NUM_CHECKBOXES] =
 
 	/* Instrument editor extension */
 	/*x,   y,   w,   h,  callback */
-	{   3, 112, 148, 12, NULL },
-	{ 172, 112, 103, 12, NULL },
+	{   3, 112, 148, 12, cbInstMidiEnable },
+	{ 172, 112, 103, 12, cbInstMuteComputer },
 
 	/* Sample effects */
 	/*x,   y,   w,  h,  callback */
@@ -97,11 +104,11 @@ checkBox_t checkBoxes[NUM_CHECKBOXES] =
 	{ 212, 120,  89, 12, NULL },
 	{ 212, 133, 180, 24, NULL },
 	{ 212, 159, 169, 12, NULL },
-	{ 411,  93,  83, 12, NULL },
-	{ 530, 106,  29, 12, NULL },
-	{ 411, 119, 121, 12, NULL },
-	{ 411, 132, 109, 12, NULL },
-	{ 411, 145, 124, 12, NULL },
+	{ 121,  18,  93, 12, cbMidiEnable },       /* CB_CONF_MIDI_ENABLE */
+	{ 121,  32, 110, 12, cbMidiAllChannels },  /* CB_CONF_MIDI_ALLCHN */
+	{ 121,  64, 121, 12, NULL },               /* CB_CONF_MIDI_TRANSP (not used) */
+	{ 121, 102, 155, 12, cbMidiRecVelocity },  /* CB_CONF_MIDI_VELOCITY */
+	{ 121, 116, 124, 12, NULL },               /* CB_CONF_MIDI_AFTERTOUCH (not used) */
 	{ 113, 115,  75, 12, NULL },
 	{ 113, 128,  78, 12, NULL },
 	{ 113, 141,  75, 12, NULL },
@@ -337,5 +344,28 @@ void testCheckBoxMouseRelease(struct ft2_instance_t *inst, struct ft2_video_t *v
 		if (cb->callbackFunc != NULL)
 			cb->callbackFunc(inst);
 	}
+}
+
+/* MIDI config callbacks */
+
+static void cbMidiEnable(struct ft2_instance_t *inst)
+{
+	if (inst == NULL)
+		return;
+	inst->config.midiEnabled = checkBoxes[CB_CONF_MIDI_ENABLE].checked;
+}
+
+static void cbMidiAllChannels(struct ft2_instance_t *inst)
+{
+	if (inst == NULL)
+		return;
+	inst->config.midiAllChannels = checkBoxes[CB_CONF_MIDI_ALLCHN].checked;
+}
+
+static void cbMidiRecVelocity(struct ft2_instance_t *inst)
+{
+	if (inst == NULL)
+		return;
+	inst->config.midiRecordVelocity = checkBoxes[CB_CONF_MIDI_VELOCITY].checked;
 }
 

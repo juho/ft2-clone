@@ -196,6 +196,11 @@ void ft2_ui_draw(ft2_ui_t *ui, void *inst)
 			/* Draw trim screen (replaces scopes) */
 			drawTrimScreen(ft2inst, video, bmp);
 		}
+		else if (ft2inst->uiState.instEditorExtShown)
+		{
+			/* Draw instrument editor extended panel (replaces scopes) */
+			drawInstEditorExt(ft2inst, video, bmp);
+		}
 		else if (ft2inst->uiState.scopesShown)
 	{
 		/* Sync scope settings from uiState */

@@ -190,6 +190,10 @@ typedef struct ft2_channel_t
 
 	ft2_sample_t *smpPtr;
 	ft2_instr_t *instrPtr;
+
+	/* MIDI output tracking */
+	uint8_t lastMidiNote;    /* Last MIDI note sent on this channel */
+	bool midiNoteActive;     /* Is a MIDI note currently active on this channel */
 } ft2_channel_t;
 
 /**
@@ -566,6 +570,41 @@ typedef struct ft2_scope_sync_queue_t
 	volatile int32_t writePos;
 } ft2_scope_sync_queue_t;
 
+/**
+ * MIDI output event types
+ */
+typedef enum ft2_midi_event_type_t
+{
+	FT2_MIDI_NOTE_ON,
+	FT2_MIDI_NOTE_OFF,
+	FT2_MIDI_PROGRAM_CHANGE
+} ft2_midi_event_type_t;
+
+/**
+ * MIDI output event structure
+ */
+typedef struct ft2_midi_event_t
+{
+	ft2_midi_event_type_t type;
+	uint8_t channel;    /* MIDI channel 0-15 */
+	uint8_t note;       /* MIDI note 0-127 */
+	uint8_t velocity;   /* Velocity 0-127 */
+	uint8_t program;    /* Program number for program change */
+	int32_t samplePos;  /* Sample position in buffer for timing */
+} ft2_midi_event_t;
+
+#define FT2_MIDI_QUEUE_LEN 256
+
+/**
+ * MIDI output event queue (lock-free SPSC)
+ */
+typedef struct ft2_midi_queue_t
+{
+	ft2_midi_event_t events[FT2_MIDI_QUEUE_LEN];
+	volatile int32_t readPos;
+	volatile int32_t writePos;
+} ft2_midi_queue_t;
+
 typedef struct ft2_instance_t
 {
 	ft2_audio_state_t audio;
@@ -579,6 +618,7 @@ typedef struct ft2_instance_t
 	ft2_plugin_config_t config;  /* Per-instance configuration */
 	ft2_scope_sync_queue_t scopeSyncQueue;  /* Audio-to-UI scope sync */
 	ft2_timemap_t timemap;                  /* DAW position sync time map */
+	ft2_midi_queue_t midiOutQueue;          /* MIDI output event queue */
 
 	uint32_t sampleRate;
 	float fAudioNormalizeMul;
@@ -607,6 +647,27 @@ void ft2_scope_sync_queue_push(ft2_instance_t *inst, const ft2_scope_sync_entry_
  * @return true if entry was available, false if queue empty.
  */
 bool ft2_scope_sync_queue_pop(ft2_instance_t *inst, ft2_scope_sync_entry_t *entry);
+
+/**
+ * @brief Push MIDI output event from audio thread.
+ * @param inst The instance.
+ * @param event The MIDI event to queue.
+ */
+void ft2_midi_queue_push(ft2_instance_t *inst, const ft2_midi_event_t *event);
+
+/**
+ * @brief Pop MIDI output event in processBlock.
+ * @param inst The instance.
+ * @param event Output: the popped event.
+ * @return true if event was available, false if queue empty.
+ */
+bool ft2_midi_queue_pop(ft2_instance_t *inst, ft2_midi_event_t *event);
+
+/**
+ * @brief Clear all pending MIDI output events.
+ * @param inst The instance.
+ */
+void ft2_midi_queue_clear(ft2_instance_t *inst);
 
 /**
  * @brief Creates and initializes a new FT2 instance.

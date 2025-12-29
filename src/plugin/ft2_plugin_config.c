@@ -77,6 +77,14 @@ void ft2_config_init(ft2_plugin_config_t *config)
 	config->savedSpeed = 6;  /* Default speed */
 	config->savedBpm = 125;  /* Default BPM */
 
+	/* MIDI Input */
+	config->midiEnabled = true;
+	config->midiAllChannels = true;
+	config->midiChannel = 1;
+	config->midiTranspose = 0;
+	config->midiVelocitySens = 100;
+	config->midiRecordVelocity = true;
+
 	/* Palette */
 	config->palettePreset = PAL_ARCTIC;
 
@@ -197,6 +205,7 @@ static void setConfigRadioButtonStates(ft2_plugin_config_t *config)
 		case CONFIG_SCREEN_LAYOUT:        tmpID = RB_CONFIG_LAYOUT; break;
 		case CONFIG_SCREEN_MISCELLANEOUS: tmpID = RB_CONFIG_MISC; break;
 		case CONFIG_SCREEN_IO_ROUTING:    tmpID = RB_CONFIG_IO_ROUTING; break;
+		case CONFIG_SCREEN_MIDI_INPUT:    tmpID = RB_CONFIG_MIDI; break;
 	}
 	radioButtons[tmpID].state = RADIOBUTTON_CHECKED;
 }
@@ -749,6 +758,52 @@ static void showConfigIORouting(ft2_instance_t *inst, ft2_video_t *video, const 
 	}
 }
 
+static void showConfigMidiInput(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t *bmp)
+{
+	if (inst == NULL || video == NULL)
+		return;
+
+	ft2_plugin_config_t *cfg = &inst->config;
+
+	/* Draw main content framework */
+	drawFramework(video, 110, 0, 522, 173, FRAMEWORK_TYPE1);
+
+	/* Title */
+	textOutShadow(video, bmp, 116, 4, PAL_FORGRND, PAL_DSKTOP2, "MIDI Input Settings:");
+
+	/* MIDI Enable checkbox */
+	textOutShadow(video, bmp, 138, 20, PAL_FORGRND, PAL_DSKTOP2, "Enable MIDI input");
+	checkBoxes[CB_CONF_MIDI_ENABLE].checked = cfg->midiEnabled;
+	showCheckBox(video, bmp, CB_CONF_MIDI_ENABLE);
+
+	/* All channels checkbox */
+	textOutShadow(video, bmp, 138, 34, PAL_FORGRND, PAL_DSKTOP2, "Receive all channels");
+	checkBoxes[CB_CONF_MIDI_ALLCHN].checked = cfg->midiAllChannels;
+	showCheckBox(video, bmp, CB_CONF_MIDI_ALLCHN);
+
+	/* Channel number */
+	textOutShadow(video, bmp, 116, 52, PAL_FORGRND, PAL_DSKTOP2, "Channel:");
+	/* TODO: Add scrollbar/number display for channel */
+
+	/* Transpose */
+	textOutShadow(video, bmp, 116, 68, PAL_FORGRND, PAL_DSKTOP2, "Transpose:");
+	/* TODO: Add scrollbar/number display for transpose */
+
+	/* Velocity sensitivity */
+	textOutShadow(video, bmp, 116, 84, PAL_FORGRND, PAL_DSKTOP2, "Velocity sens.:");
+	charOutShadow(video, bmp, 270, 84, PAL_FORGRND, PAL_DSKTOP2, '%');
+	/* TODO: Add scrollbar/number display for velocity sensitivity */
+
+	/* Record velocity checkbox */
+	textOutShadow(video, bmp, 138, 104, PAL_FORGRND, PAL_DSKTOP2, "Record velocity as volume");
+	checkBoxes[CB_CONF_MIDI_VELOCITY].checked = cfg->midiRecordVelocity;
+	showCheckBox(video, bmp, CB_CONF_MIDI_VELOCITY);
+
+	/* Info text */
+	textOutShadow(video, bmp, 116, 130, PAL_DSKTOP2, PAL_DSKTOP2, "Note: MIDI output is enabled per-instrument in");
+	textOutShadow(video, bmp, 116, 142, PAL_DSKTOP2, PAL_DSKTOP2, "the Instrument Editor Extension panel (I.E.Ext).");
+}
+
 /* ============ MAIN DRAW FUNCTION ============ */
 
 void drawConfigScreen(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t *bmp)
@@ -777,7 +832,7 @@ void drawConfigScreen(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t 
 	textOutShadow(video, bmp, 21, 19, PAL_FORGRND, PAL_DSKTOP2, "Audio");
 	textOutShadow(video, bmp, 21, 35, PAL_FORGRND, PAL_DSKTOP2, "Layout");
 	textOutShadow(video, bmp, 21, 51, PAL_FORGRND, PAL_DSKTOP2, "Miscellaneous");
-	textOutShadow(video, bmp, 21, 67, PAL_DSKTOP2, PAL_DSKTOP2, "MIDI input");
+	textOutShadow(video, bmp, 21, 67, PAL_FORGRND, PAL_DSKTOP2, "MIDI input");
 	textOutShadow(video, bmp, 21, 83, PAL_FORGRND, PAL_DSKTOP2, "I/O Routing");
 
 	/* Draw current tab content */
@@ -794,6 +849,9 @@ void drawConfigScreen(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t 
 			break;
 		case CONFIG_SCREEN_IO_ROUTING:
 			showConfigIORouting(inst, video, bmp);
+			break;
+		case CONFIG_SCREEN_MIDI_INPUT:
+			showConfigMidiInput(inst, video, bmp);
 			break;
 		default:
 			showConfigAudio(inst, video, bmp);
@@ -839,6 +897,16 @@ void rbConfigIORouting(ft2_instance_t *inst)
 		return;
 	hideConfigScreen(inst);
 	inst->config.currConfigScreen = CONFIG_SCREEN_IO_ROUTING;
+	showConfigScreen(inst);
+	inst->uiState.needsFullRedraw = true;
+}
+
+void rbConfigMidiInput(ft2_instance_t *inst)
+{
+	if (inst == NULL)
+		return;
+	hideConfigScreen(inst);
+	inst->config.currConfigScreen = CONFIG_SCREEN_MIDI_INPUT;
 	showConfigScreen(inst);
 	inst->uiState.needsFullRedraw = true;
 }

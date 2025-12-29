@@ -256,6 +256,45 @@ bool ft2_scope_sync_queue_pop(ft2_instance_t *inst, ft2_scope_sync_entry_t *entr
 	return true;
 }
 
+void ft2_midi_queue_push(ft2_instance_t *inst, const ft2_midi_event_t *event)
+{
+	if (inst == NULL || event == NULL)
+		return;
+
+	ft2_midi_queue_t *q = &inst->midiOutQueue;
+	int32_t nextWritePos = (q->writePos + 1) % FT2_MIDI_QUEUE_LEN;
+	
+	if (nextWritePos == q->readPos)
+		return; /* Queue full, drop event */
+	
+	q->events[q->writePos] = *event;
+	q->writePos = nextWritePos;
+}
+
+bool ft2_midi_queue_pop(ft2_instance_t *inst, ft2_midi_event_t *event)
+{
+	if (inst == NULL || event == NULL)
+		return false;
+
+	ft2_midi_queue_t *q = &inst->midiOutQueue;
+	
+	if (q->readPos == q->writePos)
+		return false; /* Queue empty */
+	
+	*event = q->events[q->readPos];
+	q->readPos = (q->readPos + 1) % FT2_MIDI_QUEUE_LEN;
+	return true;
+}
+
+void ft2_midi_queue_clear(ft2_instance_t *inst)
+{
+	if (inst == NULL)
+		return;
+	
+	inst->midiOutQueue.readPos = 0;
+	inst->midiOutQueue.writePos = 0;
+}
+
 ft2_instance_t *ft2_instance_create(uint32_t sampleRate)
 {
 	ft2_instance_t *inst = (ft2_instance_t *)calloc(1, sizeof(ft2_instance_t));
@@ -647,6 +686,36 @@ void ft2_instance_trigger_note(ft2_instance_t *inst, int8_t note, uint8_t instr,
 	
 	/* Initialize L/R stereo volumes for the mixer */
 	ft2_voice_update_volumes(inst, channel, FT2_CS_TRIGGER_VOICE);
+
+	/* MIDI Output - send note on if instrument has midiOn enabled */
+	if (instrPtr->midiOn && !instrPtr->mute)
+	{
+		/* Convert FT2 note (1-96) to MIDI note (0-127) */
+		int midiNote = relNote + 11;
+		if (midiNote >= 0 && midiNote <= 127)
+		{
+			/* Send note off for previous note on this channel */
+			if (ch->midiNoteActive && ch->lastMidiNote != (uint8_t)midiNote)
+			{
+				ft2_midi_event_t offEvent = {0};
+				offEvent.type = FT2_MIDI_NOTE_OFF;
+				offEvent.channel = instrPtr->midiChannel;
+				offEvent.note = ch->lastMidiNote;
+				ft2_midi_queue_push(inst, &offEvent);
+			}
+
+			/* Send note on */
+			ft2_midi_event_t onEvent = {0};
+			onEvent.type = FT2_MIDI_NOTE_ON;
+			onEvent.channel = instrPtr->midiChannel;
+			onEvent.note = (uint8_t)midiNote;
+			onEvent.velocity = (ch->outVol > 0) ? (uint8_t)((ch->outVol * 127) / 64) : 100;
+			ft2_midi_queue_push(inst, &onEvent);
+
+			ch->lastMidiNote = (uint8_t)midiNote;
+			ch->midiNoteActive = true;
+		}
+	}
 }
 
 void ft2_instance_release_note(ft2_instance_t *inst, uint8_t channel)
@@ -654,8 +723,21 @@ void ft2_instance_release_note(ft2_instance_t *inst, uint8_t channel)
 	if (inst == NULL || channel >= FT2_MAX_CHANNELS)
 		return;
 	
-	inst->replayer.channel[channel].keyOff = true;
-	inst->replayer.channel[channel].status |= FT2_CS_UPDATE_VOL;
+	ft2_channel_t *ch = &inst->replayer.channel[channel];
+	ch->keyOff = true;
+	ch->status |= FT2_CS_UPDATE_VOL;
+
+	/* MIDI Output - send note off if a note is active */
+	if (ch->midiNoteActive && ch->instrPtr != NULL && ch->instrPtr->midiOn)
+	{
+		ft2_midi_event_t offEvent = {0};
+		offEvent.type = FT2_MIDI_NOTE_OFF;
+		offEvent.channel = ch->instrPtr->midiChannel;
+		offEvent.note = ch->lastMidiNote;
+		ft2_midi_queue_push(inst, &offEvent);
+
+		ch->midiNoteActive = false;
+	}
 }
 
 void ft2_instance_play_sample(ft2_instance_t *inst, int8_t note, uint8_t instr, uint8_t smpNum, uint8_t channel, uint8_t volume, int32_t offset, int32_t length)

@@ -214,6 +214,7 @@ void initRadioButtons(void)
 	radioButtons[RB_CONFIG_LAYOUT].callbackFunc = rbConfigLayout;
 	radioButtons[RB_CONFIG_MISC].callbackFunc = rbConfigMiscellaneous;
 	radioButtons[RB_CONFIG_IO_ROUTING].callbackFunc = rbConfigIORouting;
+	radioButtons[RB_CONFIG_MIDI].callbackFunc = rbConfigMidiInput;
 
 	/* Wire up interpolation callbacks */
 	radioButtons[RB_CONFIG_AUDIO_INTRP_NONE].callbackFunc = rbConfigIntrpNone;
