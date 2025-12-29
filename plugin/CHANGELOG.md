@@ -1,5 +1,9 @@
 # Changelog for Fasttracker II Plugin
 
+## 1.0.5 (Dec 29, 2025)
+
+- Feat: Support modules with odd-numbered channels properly.
+
 ## 1.0.4 (Dec 29, 2025)
 
 - Fix: Implement instrument/sample clearing (with numpad period key).

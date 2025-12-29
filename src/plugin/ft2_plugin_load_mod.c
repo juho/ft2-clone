@@ -194,6 +194,15 @@ bool load_mod_from_memory(ft2_instance_t *inst, const uint8_t *data, uint32_t da
 	inst->audio.linearPeriodsFlag = false;
 
 	song->numChannels = tooManyChannels ? FT2_MAX_CHANNELS : numChannels;
+
+	/* Support non-even channel numbers (round up to even) */
+	if (song->numChannels & 1)
+	{
+		song->numChannels++;
+		if (song->numChannels > FT2_MAX_CHANNELS)
+			song->numChannels = FT2_MAX_CHANNELS;
+	}
+
 	song->songLength = hdr.numOrders;
 	song->songLoopStart = hdr.songLoopStart;
 	if (song->songLoopStart >= song->songLength)
