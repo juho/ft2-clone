@@ -1,5 +1,9 @@
 # Changelog for Fasttracker II Plugin
 
+## 1.0.12 (Dec 29, 2025)
+
+- Visual: Remove some superfluous text from config.
+
 ## 1.0.11 (Dec 29, 2025)
 
 - Fix: Better config buttons placement.

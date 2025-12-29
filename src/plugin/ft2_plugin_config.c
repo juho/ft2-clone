@@ -861,10 +861,6 @@ static void showConfigMidiInput(ft2_instance_t *inst, ft2_video_t *video, const 
 	textOutShadow(video, bmp, 131, 104, PAL_FORGRND, PAL_DSKTOP2, "Record velocity as volume");
 	widgets->checkBoxChecked[CB_CONF_MIDI_VELOCITY] = cfg->midiRecordVelocity;
 	showCheckBox(widgets, video, bmp, CB_CONF_MIDI_VELOCITY);
-
-	/* Info text */
-	textOutShadow(video, bmp, 116, 130, PAL_DSKTOP2, PAL_DSKTOP2, "Note: MIDI output is enabled per-instrument in");
-	textOutShadow(video, bmp, 116, 142, PAL_DSKTOP2, PAL_DSKTOP2, "the Instrument Editor Extension panel (I.E.Ext).");
 }
 
 /* ============ MAIN DRAW FUNCTION ============ */
