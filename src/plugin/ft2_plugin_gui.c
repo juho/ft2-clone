@@ -35,8 +35,51 @@
 #include "ft2_plugin_pattern_ed.h"
 #include "ft2_plugin_trim.h"
 #include "ft2_plugin_diskop.h"
+#include "ft2_plugin_sample_ed.h"
+#include "ft2_plugin_instr_ed.h"
 #include "ft2_plugin_ui.h"
 #include "ft2_instance.h"
+
+void hideAllTopLeftPanelOverlays(ft2_instance_t *inst)
+{
+	if (inst == NULL)
+		return;
+
+	/* Hide all panel overlays that occupy the scopes area.
+	 * These are mutually exclusive - only one can be shown at a time.
+	 * This function hides widgets AND resets flags for all of them. */
+
+	/* Hide Sample Editor Extension (buttons) */
+	if (inst->uiState.sampleEditorExtShown)
+	{
+		hideSampleEditorExtButtons(inst);
+		inst->uiState.sampleEditorExtShown = false;
+	}
+
+	/* Hide Instrument Editor Extension */
+	if (inst->uiState.instEditorExtShown)
+	{
+		hideInstEditorExt(inst);
+	}
+
+	/* Hide Transpose screen */
+	if (inst->uiState.transposeShown)
+	{
+		hideTranspose(inst);
+	}
+
+	/* Hide Advanced Edit screen */
+	if (inst->uiState.advEditShown)
+	{
+		hideAdvEdit(inst);
+	}
+
+	/* Hide Trim screen */
+	if (inst->uiState.trimScreenShown)
+	{
+		hideTrimScreen(inst);
+	}
+}
 
 void hideTopLeftMainScreen(ft2_instance_t *inst)
 {
@@ -90,13 +133,9 @@ void hideTopLeftMainScreen(ft2_instance_t *inst)
 	hidePushButton(widgets, PB_PATT_EXPAND);
 	hidePushButton(widgets, PB_PATT_SHRINK);
 
-	/* Hide and reset sub-screens */
-	hideTranspose(inst);
-	hideAdvEdit(inst);
-	hideTrimScreen(inst);
+	/* Hide all panel overlays (S.E.Ext, I.E.Ext, Transpose, Adv.Edit, Trim) */
+	hideAllTopLeftPanelOverlays(inst);
 	inst->uiState.diskOpShown = false;
-	inst->uiState.sampleEditorExtShown = false;
-	inst->uiState.instEditorExtShown = false;
 }
 
 void hideTopRightMainScreen(ft2_instance_t *inst)

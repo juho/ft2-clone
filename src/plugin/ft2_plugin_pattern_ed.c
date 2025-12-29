@@ -17,6 +17,7 @@
 #include "ft2_plugin_pushbuttons.h"
 #include "ft2_plugin_checkboxes.h"
 #include "ft2_plugin_input.h"
+#include "ft2_plugin_gui.h"
 #include "ft2_plugin_ui.h"
 #include "ft2_instance.h"
 
@@ -2601,21 +2602,8 @@ void showAdvEdit(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t *bmp)
 	if (inst->uiState.extendedPatternEditor)
 		exitPatternEditorExtended(inst);
 
-	/* Hide other top-left overlays */
-	if (inst->uiState.sampleEditorExtShown)
-	{
-		inst->uiState.sampleEditorExtShown = false;
-		inst->uiState.scopesShown = true;
-	}
-	if (inst->uiState.instEditorExtShown)
-	{
-		inst->uiState.instEditorExtShown = false;
-		inst->uiState.scopesShown = true;
-	}
-	if (inst->uiState.transposeShown)
-	{
-		hideTranspose(inst);
-	}
+	/* Hide all other top-left panel overlays (S.E.Ext, I.E.Ext, Transpose, Trim) */
+	hideAllTopLeftPanelOverlays(inst);
 
 	inst->uiState.advEditShown = true;
 	inst->uiState.scopesShown = false;
@@ -2895,6 +2883,9 @@ void showTranspose(ft2_instance_t *inst)
 
 	if (inst->uiState.extendedPatternEditor)
 		exitPatternEditorExtended(inst);
+
+	/* Hide all other top-left panel overlays (S.E.Ext, I.E.Ext, Adv.Edit, Trim) */
+	hideAllTopLeftPanelOverlays(inst);
 
 	inst->uiState.transposeShown = true;
 	inst->uiState.scopesShown = false;

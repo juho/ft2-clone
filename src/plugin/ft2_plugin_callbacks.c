@@ -1161,7 +1161,7 @@ void pbBlockTranspAllIns12Dn(ft2_instance_t *inst)
 void pbInstEdExt(ft2_instance_t *inst)
 {
 	if (inst == NULL) return;
-	inst->uiState.instEditorExtShown = !inst->uiState.instEditorExtShown;
+	toggleInstEditorExt(inst);
 }
 
 void pbSmpEdExt(ft2_instance_t *inst)

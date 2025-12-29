@@ -12,8 +12,11 @@ All credit goes to [8bitbubsy](https://16-bits.org) for his tireless work on the
 
 ## Current limitations
 
-- No MIDI support (yet)
 - No sampling in the sample editor (may get removed entirely, you can just drag and drop WAV samples)
+
+### Mac users
+
+The plugins aren't signed, so you need to either "Allow anyway" or run `sudo xattr -r -d com.apple.quarantine /Library/Audio/Plug-Ins/VST3/Fasttracker II.vst3` (or whereever you installed it) to allow the plugin to run. Ditto for AU.
 
 ## Changes from standalone version
 

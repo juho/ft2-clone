@@ -4,6 +4,7 @@
 
 - Fix: Better multi-instance access.
 - Fix: Silence multi-out channels when not playing.
+- Fix: Better UI toggling logic.
 
 ## 1.0.8 (Dec 29, 2025)
 

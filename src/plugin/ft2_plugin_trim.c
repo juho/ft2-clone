@@ -189,25 +189,8 @@ void showTrimScreen(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t *b
 	if (inst->uiState.extendedPatternEditor)
 		exitPatternEditorExtended(inst);
 
-	/* Hide other top-left overlays */
-	if (inst->uiState.sampleEditorExtShown)
-	{
-		inst->uiState.sampleEditorExtShown = false;
-		inst->uiState.scopesShown = true;
-	}
-	if (inst->uiState.instEditorExtShown)
-	{
-		inst->uiState.instEditorExtShown = false;
-		inst->uiState.scopesShown = true;
-	}
-	if (inst->uiState.transposeShown)
-	{
-		hideTranspose(inst);
-	}
-	if (inst->uiState.advEditShown)
-	{
-		hideAdvEdit(inst);
-	}
+	/* Hide all other top-left panel overlays (S.E.Ext, I.E.Ext, Transpose, Adv.Edit) */
+	hideAllTopLeftPanelOverlays(inst);
 
 	inst->uiState.trimScreenShown = true;
 	inst->uiState.scopesShown = false;

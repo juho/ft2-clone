@@ -23,6 +23,7 @@
 #include "ft2_plugin_replayer.h"
 #include "ft2_plugin_pattern_ed.h"
 #include "ft2_plugin_sample_ed.h"
+#include "ft2_plugin_gui.h"
 #include "ft2_plugin_ui.h"
 #include "ft2_instance.h"
 
@@ -1841,7 +1842,14 @@ void showInstEditorExt(ft2_instance_t *inst)
 	if (inst == NULL)
 		return;
 
+	if (inst->uiState.extendedPatternEditor)
+		exitPatternEditorExtended(inst);
+
+	/* Hide all other top-left panel overlays (S.E.Ext, Transpose, Adv.Edit, Trim) */
+	hideAllTopLeftPanelOverlays(inst);
+
 	inst->uiState.instEditorExtShown = true;
+	inst->uiState.scopesShown = false;
 }
 
 void hideInstEditorExt(ft2_instance_t *inst)

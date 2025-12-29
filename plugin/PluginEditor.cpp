@@ -4,6 +4,9 @@ extern "C" {
 #include "ft2_plugin_diskop.h"
 #include "ft2_plugin_loader.h"
 #include "ft2_plugin_timemap.h"
+#include "ft2_plugin_gui.h"
+#include "ft2_plugin_sample_ed.h"
+#include "ft2_plugin_instr_ed.h"
 }
 
 // Use JUCE's OpenGL namespace
@@ -189,11 +192,22 @@ void FT2PluginEditor::processDiskOpRequests()
                 if (ft2_load_module(inst, data, dataSize))
                 {
                     inst->replayer.song.isModified = false;
+                    
+                    // Reset UI state - close all overlays and return to pattern editor
+                    hideTopScreen(inst);
+                    hideSampleEditor(inst);
+                    hideInstEditor(inst);
+                    inst->uiState.aboutScreenShown = false;
+                    inst->uiState.nibblesShown = false;
+                    inst->uiState.patternEditorShown = true;
+                    inst->uiState.scopesShown = true;
+                    inst->uiState.instrSwitcherShown = true;
+                    
                     inst->uiState.updatePosSections = true;
                     inst->uiState.updatePatternEditor = true;
                     inst->uiState.updateInstrSwitcher = true;
                     inst->uiState.needsFullRedraw = true;
-                    ft2_timemap_invalidate(inst);  /* Invalidate - will rebuild with DAW BPM on next lookup */
+                    ft2_timemap_invalidate(inst);  // Invalidate - will rebuild with DAW BPM on next lookup
                 }
             }
         }
@@ -611,9 +625,25 @@ void FT2PluginEditor::loadDiskOpFile(const juce::File& file)
             if (success)
             {
                 inst->replayer.song.isModified = false;
+                
+                // Reset UI state - close disk op and all overlays, return to pattern editor
+                hideDiskOpScreen(inst);
+                hideAllTopLeftPanelOverlays(inst);
+                hideSampleEditor(inst);
+                hideInstEditor(inst);
+                inst->uiState.aboutScreenShown = false;
+                inst->uiState.nibblesShown = false;
+                inst->uiState.configScreenShown = false;
+                inst->uiState.helpScreenShown = false;
+                inst->uiState.patternEditorShown = true;
+                inst->uiState.scopesShown = true;
+                inst->uiState.instrSwitcherShown = true;
+                
                 inst->uiState.updatePosSections = true;
+                inst->uiState.updatePatternEditor = true;
+                inst->uiState.updateInstrSwitcher = true;
                 inst->uiState.needsFullRedraw = true;
-                ft2_timemap_invalidate(inst);  /* Invalidate - will rebuild with DAW BPM on next lookup */
+                ft2_timemap_invalidate(inst);  // Invalidate - will rebuild with DAW BPM on next lookup
             }
             break;
 

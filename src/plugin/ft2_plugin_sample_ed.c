@@ -23,6 +23,8 @@
 #include "ft2_plugin_dialog.h"
 #include "ft2_plugin_replayer.h"
 #include "ft2_plugin_pattern_ed.h"
+#include "ft2_plugin_gui.h"
+#include "ft2_plugin_instr_ed.h"
 #include "ft2_instance.h"
 
 /* Use macros from ft2_plugin_video.h: SGN, ABS, CLAMP */
@@ -2280,8 +2282,13 @@ void showSampleEditor(ft2_instance_t *inst)
 		return;
 
 	/* Hide other bottom screens */
-	inst->uiState.instEditorShown = false;
+	if (inst->uiState.instEditorShown)
+		hideInstEditor(inst);
 	hidePatternEditor(inst);  /* Hides scrollbar and buttons too */
+	
+	/* Hide I.E.Ext since we're switching to sample editor */
+	if (inst->uiState.instEditorExtShown)
+		hideInstEditorExt(inst);
 	
 	inst->uiState.sampleEditorShown = true;
 	inst->uiState.updateSampleEditor = true;
@@ -2509,9 +2516,20 @@ void showSampleEditorExt(ft2_instance_t *inst)
 	if (inst == NULL)
 		return;
 
+	/* Exit extended pattern editor if active */
+	if (inst->uiState.extendedPatternEditor)
+		exitPatternEditorExtended(inst);
+
+	/* Hide other top-left panel overlays (I.E.Ext, Transpose, Adv.Edit, Trim) */
+	hideAllTopLeftPanelOverlays(inst);
+
 	/* Show sample editor if not already shown */
 	if (!inst->uiState.sampleEditorShown)
 		showSampleEditor(inst);
+
+	/* Hide inst editor if shown (S.E.Ext requires sample editor to be active) */
+	if (inst->uiState.instEditorShown)
+		hideInstEditor(inst);
 
 	inst->uiState.sampleEditorExtShown = true;
 	inst->uiState.scopesShown = false;

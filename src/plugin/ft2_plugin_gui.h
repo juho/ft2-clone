@@ -15,6 +15,14 @@ struct ft2_video_t;
 struct ft2_bmp_t;
 
 /**
+ * Hide all top-left panel overlays that occupy the scopes area.
+ * Hides S.E.Ext, I.E.Ext, Transpose, Adv.Edit, and Trim widgets and resets flags.
+ * These overlays are mutually exclusive - only one can be shown at a time.
+ * Call this before showing any of these panel overlays.
+ */
+void hideAllTopLeftPanelOverlays(struct ft2_instance_t *inst);
+
+/**
  * Hide the top left main screen widgets.
  * Hides position editor, logo/badge buttons, and left menu buttons.
  */
