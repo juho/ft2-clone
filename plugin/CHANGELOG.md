@@ -3,6 +3,7 @@
 ## 1.0.9 (Dec 29, 2025)
 
 - Fix: Better multi-instance access.
+- Fix: Silence multi-out channels when not playing.
 
 ## 1.0.8 (Dec 29, 2025)
 
