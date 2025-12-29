@@ -1,5 +1,9 @@
 # Changelog for Fasttracker II Plugin
 
+## 1.0.9 (Dec 29, 2025)
+
+- Fix: Better multi-instance access.
+
 ## 1.0.8 (Dec 29, 2025)
 
 - Fix: unify mod/s3m/xm loading code.
