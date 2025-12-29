@@ -4,6 +4,7 @@
 
 - Fix: Better config buttons placement.
 - Fix: MIDI in note off works correctly.
+- Fix: Textbox background stays same size no matter the state
 
 ## 1.0.10 (Dec 29, 2025)
 
