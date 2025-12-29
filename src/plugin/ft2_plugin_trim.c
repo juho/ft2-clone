@@ -602,7 +602,9 @@ static int64_t calculateTrimSize(ft2_instance_t *inst)
 
 	if (!setTmpInstruments(inst))
 	{
-		/* TODO: Show dialog when dialog system supports it better */
+		ft2_ui_t *ui = ft2_ui_get_current();
+		if (ui != NULL)
+			ft2_dialog_show_message(&ui->dialog, "System request", "Not enough memory!");
 		return 0;
 	}
 
@@ -1189,7 +1191,9 @@ static void doTrimConfirmed(ft2_instance_t *inst, ft2_dialog_result_t result,
 
 	if (!setTmpInstruments(inst))
 	{
-		/* TODO: Show dialog when dialog system supports it better */
+		ft2_ui_t *ui = ft2_ui_get_current();
+		if (ui != NULL)
+			ft2_dialog_show_message(&ui->dialog, "System request", "Not enough memory!");
 		return;
 	}
 
