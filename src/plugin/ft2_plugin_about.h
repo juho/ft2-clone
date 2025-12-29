@@ -26,7 +26,7 @@ void ft2_about_init(void);
  * @param video Video context
  * @param bmp Bitmap assets
  */
-void ft2_about_show(struct ft2_video_t *video, const struct ft2_bmp_t *bmp);
+void ft2_about_show(struct ft2_widgets_t *widgets, struct ft2_video_t *video, const struct ft2_bmp_t *bmp);
 
 /**
  * Render one frame of the about screen animation.

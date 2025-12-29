@@ -146,26 +146,30 @@ static void setDiskOpItemRadioButtons(ft2_instance_t *inst, ft2_video_t *video, 
 	if (inst == NULL)
 		return;
 
+	ft2_widgets_t *widgets = (inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets == NULL)
+		return;
+
 	/* Uncheck all save format groups */
-	uncheckRadioButtonGroup(RB_GROUP_DISKOP_MOD_SAVEAS);
-	uncheckRadioButtonGroup(RB_GROUP_DISKOP_INS_SAVEAS);
-	uncheckRadioButtonGroup(RB_GROUP_DISKOP_SMP_SAVEAS);
-	uncheckRadioButtonGroup(RB_GROUP_DISKOP_PAT_SAVEAS);
-	uncheckRadioButtonGroup(RB_GROUP_DISKOP_TRK_SAVEAS);
+	uncheckRadioButtonGroup(widgets, RB_GROUP_DISKOP_MOD_SAVEAS);
+	uncheckRadioButtonGroup(widgets, RB_GROUP_DISKOP_INS_SAVEAS);
+	uncheckRadioButtonGroup(widgets, RB_GROUP_DISKOP_SMP_SAVEAS);
+	uncheckRadioButtonGroup(widgets, RB_GROUP_DISKOP_PAT_SAVEAS);
+	uncheckRadioButtonGroup(widgets, RB_GROUP_DISKOP_TRK_SAVEAS);
 
 	/* Hide all save format groups */
-	hideRadioButtonGroup(RB_GROUP_DISKOP_MOD_SAVEAS);
-	hideRadioButtonGroup(RB_GROUP_DISKOP_INS_SAVEAS);
-	hideRadioButtonGroup(RB_GROUP_DISKOP_SMP_SAVEAS);
-	hideRadioButtonGroup(RB_GROUP_DISKOP_PAT_SAVEAS);
-	hideRadioButtonGroup(RB_GROUP_DISKOP_TRK_SAVEAS);
+	hideRadioButtonGroup(widgets, RB_GROUP_DISKOP_MOD_SAVEAS);
+	hideRadioButtonGroup(widgets, RB_GROUP_DISKOP_INS_SAVEAS);
+	hideRadioButtonGroup(widgets, RB_GROUP_DISKOP_SMP_SAVEAS);
+	hideRadioButtonGroup(widgets, RB_GROUP_DISKOP_PAT_SAVEAS);
+	hideRadioButtonGroup(widgets, RB_GROUP_DISKOP_TRK_SAVEAS);
 
 	/* Set checked state for each save format */
-	radioButtons[RB_DISKOP_MOD_MOD + inst->diskop.saveFormat[FT2_DISKOP_ITEM_MODULE]].state = RADIOBUTTON_CHECKED;
-	radioButtons[RB_DISKOP_SMP_RAW + inst->diskop.saveFormat[FT2_DISKOP_ITEM_SAMPLE]].state = RADIOBUTTON_CHECKED;
-	radioButtons[RB_DISKOP_INS_XI].state = RADIOBUTTON_CHECKED;
-	radioButtons[RB_DISKOP_PAT_XP].state = RADIOBUTTON_CHECKED;
-	radioButtons[RB_DISKOP_TRK_XT].state = RADIOBUTTON_CHECKED;
+	widgets->radioButtonState[RB_DISKOP_MOD_MOD + inst->diskop.saveFormat[FT2_DISKOP_ITEM_MODULE]] = RADIOBUTTON_CHECKED;
+	widgets->radioButtonState[RB_DISKOP_SMP_RAW + inst->diskop.saveFormat[FT2_DISKOP_ITEM_SAMPLE]] = RADIOBUTTON_CHECKED;
+	widgets->radioButtonState[RB_DISKOP_INS_XI] = RADIOBUTTON_CHECKED;
+	widgets->radioButtonState[RB_DISKOP_PAT_XP] = RADIOBUTTON_CHECKED;
+	widgets->radioButtonState[RB_DISKOP_TRK_XT] = RADIOBUTTON_CHECKED;
 
 	/* Show the appropriate group based on current item type */
 	if (inst->uiState.diskOpShown && video != NULL && bmp != NULL)
@@ -174,19 +178,19 @@ static void setDiskOpItemRadioButtons(ft2_instance_t *inst, ft2_video_t *video, 
 		{
 			default:
 			case FT2_DISKOP_ITEM_MODULE:
-				showRadioButtonGroup(video, bmp, RB_GROUP_DISKOP_MOD_SAVEAS);
+				showRadioButtonGroup(widgets, video, bmp, RB_GROUP_DISKOP_MOD_SAVEAS);
 				break;
 			case FT2_DISKOP_ITEM_INSTR:
-				showRadioButtonGroup(video, bmp, RB_GROUP_DISKOP_INS_SAVEAS);
+				showRadioButtonGroup(widgets, video, bmp, RB_GROUP_DISKOP_INS_SAVEAS);
 				break;
 			case FT2_DISKOP_ITEM_SAMPLE:
-				showRadioButtonGroup(video, bmp, RB_GROUP_DISKOP_SMP_SAVEAS);
+				showRadioButtonGroup(widgets, video, bmp, RB_GROUP_DISKOP_SMP_SAVEAS);
 				break;
 			case FT2_DISKOP_ITEM_PATTERN:
-				showRadioButtonGroup(video, bmp, RB_GROUP_DISKOP_PAT_SAVEAS);
+				showRadioButtonGroup(widgets, video, bmp, RB_GROUP_DISKOP_PAT_SAVEAS);
 				break;
 			case FT2_DISKOP_ITEM_TRACK:
-				showRadioButtonGroup(video, bmp, RB_GROUP_DISKOP_TRK_SAVEAS);
+				showRadioButtonGroup(widgets, video, bmp, RB_GROUP_DISKOP_TRK_SAVEAS);
 				break;
 		}
 	}
@@ -231,27 +235,29 @@ void showDiskOpScreen(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t 
 	inst->uiState.diskOpShown = true;
 	inst->uiState.scopesShown = false;
 
-	/* Show disk op buttons */
-	if (video != NULL && bmp != NULL)
-	{
-		showPushButton(video, bmp, PB_DISKOP_SAVE);
-		showPushButton(video, bmp, PB_DISKOP_MAKEDIR);
-		showPushButton(video, bmp, PB_DISKOP_REFRESH);
-		showPushButton(video, bmp, PB_DISKOP_SET_PATH);
-		showPushButton(video, bmp, PB_DISKOP_SHOW_ALL);
-		showPushButton(video, bmp, PB_DISKOP_EXIT);
-		showPushButton(video, bmp, PB_DISKOP_PARENT);
-		showPushButton(video, bmp, PB_DISKOP_ROOT);
-		showPushButton(video, bmp, PB_DISKOP_HOME);
-		showPushButton(video, bmp, PB_DISKOP_LIST_UP);
-		showPushButton(video, bmp, PB_DISKOP_LIST_DOWN);
+	ft2_widgets_t *widgets = (inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
 
-		showScrollBar(video, SB_DISKOP_LIST);
+	/* Show disk op buttons */
+	if (video != NULL && bmp != NULL && widgets != NULL)
+	{
+		showPushButton(widgets, video, bmp, PB_DISKOP_SAVE);
+		showPushButton(widgets, video, bmp, PB_DISKOP_MAKEDIR);
+		showPushButton(widgets, video, bmp, PB_DISKOP_REFRESH);
+		showPushButton(widgets, video, bmp, PB_DISKOP_SET_PATH);
+		showPushButton(widgets, video, bmp, PB_DISKOP_SHOW_ALL);
+		showPushButton(widgets, video, bmp, PB_DISKOP_EXIT);
+		showPushButton(widgets, video, bmp, PB_DISKOP_PARENT);
+		showPushButton(widgets, video, bmp, PB_DISKOP_ROOT);
+		showPushButton(widgets, video, bmp, PB_DISKOP_HOME);
+		showPushButton(widgets, video, bmp, PB_DISKOP_LIST_UP);
+		showPushButton(widgets, video, bmp, PB_DISKOP_LIST_DOWN);
+
+		showScrollBar(widgets, video, SB_DISKOP_LIST);
 
 		/* Show item type radio buttons */
-		uncheckRadioButtonGroup(RB_GROUP_DISKOP_ITEM);
-		radioButtons[RB_DISKOP_MODULE + inst->diskop.itemType].state = RADIOBUTTON_CHECKED;
-		showRadioButtonGroup(video, bmp, RB_GROUP_DISKOP_ITEM);
+		uncheckRadioButtonGroup(widgets, RB_GROUP_DISKOP_ITEM);
+		widgets->radioButtonState[RB_DISKOP_MODULE + inst->diskop.itemType] = RADIOBUTTON_CHECKED;
+		showRadioButtonGroup(widgets, video, bmp, RB_GROUP_DISKOP_ITEM);
 
 		/* Set up save format radio buttons */
 		setDiskOpItemRadioButtons(inst, video, bmp);
@@ -272,31 +278,35 @@ void hideDiskOpScreen(ft2_instance_t *inst)
 	if (inst == NULL)
 		return;
 
-	/* Hide disk op buttons */
-	hidePushButton(PB_DISKOP_SAVE);
-	hidePushButton(PB_DISKOP_MAKEDIR);
-	hidePushButton(PB_DISKOP_REFRESH);
-	hidePushButton(PB_DISKOP_SET_PATH);
-	hidePushButton(PB_DISKOP_SHOW_ALL);
-	hidePushButton(PB_DISKOP_EXIT);
-	hidePushButton(PB_DISKOP_PARENT);
-	hidePushButton(PB_DISKOP_ROOT);
-	hidePushButton(PB_DISKOP_HOME);
-	hidePushButton(PB_DISKOP_LIST_UP);
-	hidePushButton(PB_DISKOP_LIST_DOWN);
+	ft2_widgets_t *widgets = (inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets != NULL)
+	{
+		/* Hide disk op buttons */
+		hidePushButton(widgets, PB_DISKOP_SAVE);
+		hidePushButton(widgets, PB_DISKOP_MAKEDIR);
+		hidePushButton(widgets, PB_DISKOP_REFRESH);
+		hidePushButton(widgets, PB_DISKOP_SET_PATH);
+		hidePushButton(widgets, PB_DISKOP_SHOW_ALL);
+		hidePushButton(widgets, PB_DISKOP_EXIT);
+		hidePushButton(widgets, PB_DISKOP_PARENT);
+		hidePushButton(widgets, PB_DISKOP_ROOT);
+		hidePushButton(widgets, PB_DISKOP_HOME);
+		hidePushButton(widgets, PB_DISKOP_LIST_UP);
+		hidePushButton(widgets, PB_DISKOP_LIST_DOWN);
 
-	hideScrollBar(SB_DISKOP_LIST);
+		hideScrollBar(widgets, SB_DISKOP_LIST);
+
+		/* Hide radio buttons */
+		hideRadioButtonGroup(widgets, RB_GROUP_DISKOP_ITEM);
+		hideRadioButtonGroup(widgets, RB_GROUP_DISKOP_MOD_SAVEAS);
+		hideRadioButtonGroup(widgets, RB_GROUP_DISKOP_INS_SAVEAS);
+		hideRadioButtonGroup(widgets, RB_GROUP_DISKOP_SMP_SAVEAS);
+		hideRadioButtonGroup(widgets, RB_GROUP_DISKOP_PAT_SAVEAS);
+		hideRadioButtonGroup(widgets, RB_GROUP_DISKOP_TRK_SAVEAS);
+	}
 
 	/* Hide filename textbox */
 	ft2_textbox_hide(TB_DISKOP_FILENAME);
-
-	/* Hide radio buttons */
-	hideRadioButtonGroup(RB_GROUP_DISKOP_ITEM);
-	hideRadioButtonGroup(RB_GROUP_DISKOP_MOD_SAVEAS);
-	hideRadioButtonGroup(RB_GROUP_DISKOP_INS_SAVEAS);
-	hideRadioButtonGroup(RB_GROUP_DISKOP_SMP_SAVEAS);
-	hideRadioButtonGroup(RB_GROUP_DISKOP_PAT_SAVEAS);
-	hideRadioButtonGroup(RB_GROUP_DISKOP_TRK_SAVEAS);
 
 	inst->uiState.diskOpShown = false;
 	inst->uiState.scopesShown = true;
@@ -327,7 +337,7 @@ void drawDiskOpScreen(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t 
 		return;
 
 	/* Check for error flags and show appropriate dialogs */
-	ft2_ui_t *ui = ft2_ui_get_current();
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 	if (inst->diskop.pathSetFailed)
 	{
 		inst->diskop.pathSetFailed = false;
@@ -356,21 +366,25 @@ void drawDiskOpScreen(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t 
 	/* Clear file list area */
 	clearRect(video, 168, 2, 164, 168);
 
+	ft2_widgets_t *widgets = (inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets == NULL)
+		return;
+
 	/* Show buttons - matching standalone order (Delete and Rename removed for plugin) */
-	showPushButton(video, bmp, PB_DISKOP_SAVE);
-	showPushButton(video, bmp, PB_DISKOP_MAKEDIR);
-	showPushButton(video, bmp, PB_DISKOP_REFRESH);
-	showPushButton(video, bmp, PB_DISKOP_EXIT);
-	showPushButton(video, bmp, PB_DISKOP_PARENT);
-	showPushButton(video, bmp, PB_DISKOP_ROOT);
-	showPushButton(video, bmp, PB_DISKOP_HOME);
-	showPushButton(video, bmp, PB_DISKOP_SHOW_ALL);
-	showPushButton(video, bmp, PB_DISKOP_SET_PATH);
-	showPushButton(video, bmp, PB_DISKOP_LIST_UP);
-	showPushButton(video, bmp, PB_DISKOP_LIST_DOWN);
+	showPushButton(widgets, video, bmp, PB_DISKOP_SAVE);
+	showPushButton(widgets, video, bmp, PB_DISKOP_MAKEDIR);
+	showPushButton(widgets, video, bmp, PB_DISKOP_REFRESH);
+	showPushButton(widgets, video, bmp, PB_DISKOP_EXIT);
+	showPushButton(widgets, video, bmp, PB_DISKOP_PARENT);
+	showPushButton(widgets, video, bmp, PB_DISKOP_ROOT);
+	showPushButton(widgets, video, bmp, PB_DISKOP_HOME);
+	showPushButton(widgets, video, bmp, PB_DISKOP_SHOW_ALL);
+	showPushButton(widgets, video, bmp, PB_DISKOP_SET_PATH);
+	showPushButton(widgets, video, bmp, PB_DISKOP_LIST_UP);
+	showPushButton(widgets, video, bmp, PB_DISKOP_LIST_DOWN);
 
 	/* Show scrollbar */
-	showScrollBar(video, SB_DISKOP_LIST);
+	showScrollBar(widgets, video, SB_DISKOP_LIST);
 
 	/* Show filename textbox */
 	ft2_textbox_show(TB_DISKOP_FILENAME);
@@ -378,9 +392,9 @@ void drawDiskOpScreen(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t 
 	/* Show item type radio buttons */
 	if (inst->diskop.itemType > 4)
 		inst->diskop.itemType = 0;
-	uncheckRadioButtonGroup(RB_GROUP_DISKOP_ITEM);
-	radioButtons[RB_DISKOP_MODULE + inst->diskop.itemType].state = RADIOBUTTON_CHECKED;
-	showRadioButtonGroup(video, bmp, RB_GROUP_DISKOP_ITEM);
+	uncheckRadioButtonGroup(widgets, RB_GROUP_DISKOP_ITEM);
+	widgets->radioButtonState[RB_DISKOP_MODULE + inst->diskop.itemType] = RADIOBUTTON_CHECKED;
+	showRadioButtonGroup(widgets, video, bmp, RB_GROUP_DISKOP_ITEM);
 
 	/* Draw labels */
 	textOutShadow(video, bmp, 5,   3, PAL_FORGRND, PAL_DSKTOP2, "Item:");
@@ -403,8 +417,8 @@ void drawDiskOpScreen(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t 
 	diskOpDrawFilelist(inst, video, bmp);
 
 	/* Update scrollbar */
-	setScrollBarEnd(inst, video, SB_DISKOP_LIST, inst->diskop.fileCount);
-	setScrollBarPos(inst, video, SB_DISKOP_LIST, inst->diskop.dirPos, false);
+	setScrollBarEnd(inst, widgets, video, SB_DISKOP_LIST, inst->diskop.fileCount);
+	setScrollBarPos(inst, widgets, video, SB_DISKOP_LIST, inst->diskop.dirPos, false);
 
 	/* Draw filename textbox */
 	ft2_textbox_draw(video, bmp, TB_DISKOP_FILENAME, inst);
@@ -515,8 +529,12 @@ void diskOpDrawDirectory(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp
 
 	displayCurrPath(inst, video, bmp);
 
-	setScrollBarEnd(inst, video, SB_DISKOP_LIST, inst->diskop.fileCount);
-	setScrollBarPos(inst, video, SB_DISKOP_LIST, inst->diskop.dirPos, false);
+	ft2_widgets_t *widgets = (inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets != NULL)
+	{
+		setScrollBarEnd(inst, widgets, video, SB_DISKOP_LIST, inst->diskop.fileCount);
+		setScrollBarPos(inst, widgets, video, SB_DISKOP_LIST, inst->diskop.dirPos, false);
+	}
 
 	diskOpDrawFilelist(inst, video, bmp);
 }
@@ -585,7 +603,7 @@ void pbDiskOpSetPath(ft2_instance_t *inst)
 	if (inst == NULL)
 		return;
 
-	ft2_ui_t *ui = ft2_ui_get_current();
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 	if (ui != NULL)
 	{
 		/* Single text like standalone: "Enter new directory path:" */
@@ -652,7 +670,7 @@ void pbDiskOpMakeDir(ft2_instance_t *inst)
 	if (inst == NULL)
 		return;
 
-	ft2_ui_t *ui = ft2_ui_get_current();
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 	if (ui != NULL)
 	{
 		/* Single text like standalone: "Enter directory name:" */
@@ -848,7 +866,7 @@ void diskOpHandleItemClick(ft2_instance_t *inst, int32_t entryIndex)
 			if (inst->diskop.itemType == FT2_DISKOP_ITEM_MODULE && inst->replayer.song.isModified)
 			{
 				/* Show confirmation dialog */
-				ft2_ui_t *ui = ft2_ui_get_current();
+				ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 				if (ui != NULL)
 				{
 					ft2_dialog_show_yesno_cb(&ui->dialog, "System request",
@@ -2455,7 +2473,7 @@ void ft2_diskop_request_drop_load(ft2_instance_t *inst, const char *path)
 	if (inst->replayer.song.isModified)
 	{
 		/* Show confirmation dialog */
-		ft2_ui_t *ui = ft2_ui_get_current();
+		ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 		if (ui != NULL)
 		{
 			ft2_dialog_show_yesno_cb(&ui->dialog, "System request",

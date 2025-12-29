@@ -3,7 +3,8 @@
  * @brief Unified widget management for the FT2 plugin UI.
  * 
  * Integrates pushbuttons, scrollbars, checkboxes, and radiobuttons.
- * Uses static global arrays matching the original FT2 implementation.
+ * Static global arrays contain constant widget definitions (position, callbacks).
+ * Per-instance state (visibility, checked, pressed) is stored in ft2_widgets_t.
  */
 
 #pragma once
@@ -19,16 +20,51 @@ struct ft2_video_t;
 struct ft2_bmp_t;
 struct ft2_instance_t;
 
+/* Include widget headers for NUM_* constants */
+#include "ft2_plugin_pushbuttons.h"
+#include "ft2_plugin_checkboxes.h"
+#include "ft2_plugin_radiobuttons.h"
+#include "ft2_plugin_scrollbars.h"
+
 /**
- * Widget state container.
- * Note: Actual widgets use static global arrays (pushButtons, scrollBars, etc.)
- * This struct is kept for API compatibility but internal arrays are unused.
+ * Per-scrollbar runtime state (position, page, thumb geometry).
+ * The static arrays store the constant definition (x, y, w, h, callbacks).
+ */
+typedef struct ft2_scrollbar_state_t
+{
+	bool visible;
+	uint8_t state;
+	uint32_t pos, page, end;
+	uint16_t thumbX, thumbY, thumbW, thumbH;
+} ft2_scrollbar_state_t;
+
+/**
+ * Widget state container with per-instance visibility and state.
+ * Static global arrays (pushButtons[], checkBoxes[], radioButtons[], scrollBars[])
+ * contain CONSTANT data (position, size, callbacks).
+ * This struct stores MUTABLE per-instance state (visibility, pressed, checked).
  */
 typedef struct ft2_widgets_t
 {
 	int mouseX, mouseY;
 	bool mouseDown;
 	int activeButton;
+
+	/* Per-instance push button state */
+	bool pushButtonVisible[NUM_PUSHBUTTONS];
+	uint8_t pushButtonState[NUM_PUSHBUTTONS];
+
+	/* Per-instance checkbox state */
+	bool checkBoxVisible[NUM_CHECKBOXES];
+	bool checkBoxChecked[NUM_CHECKBOXES];
+	uint8_t checkBoxState[NUM_CHECKBOXES];
+
+	/* Per-instance radio button state */
+	bool radioButtonVisible[NUM_RADIOBUTTONS];
+	uint8_t radioButtonState[NUM_RADIOBUTTONS];
+
+	/* Per-instance scrollbar state */
+	ft2_scrollbar_state_t scrollBarState[NUM_SCROLLBARS];
 } ft2_widgets_t;
 
 /**

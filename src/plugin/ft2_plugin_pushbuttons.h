@@ -439,6 +439,13 @@ enum
 
 typedef void (*pbCallback_t)(struct ft2_instance_t *inst);
 
+/* Forward declaration */
+struct ft2_widgets_t;
+
+/**
+ * Push button definition (constant data).
+ * Runtime state (visible, pressed) is stored in ft2_widgets_t.
+ */
 typedef struct pushButton_t
 {
 	uint16_t x, y, w, h;
@@ -447,9 +454,7 @@ typedef struct pushButton_t
 	const char *caption2;
 	pbCallback_t callbackFuncOnDown;
 	pbCallback_t callbackFuncOnUp;
-	uint8_t state;
 	bool bitmapFlag;
-	bool visible;
 	const uint8_t *bitmapUnpressed;
 	const uint8_t *bitmapPressed;
 } pushButton_t;
@@ -457,43 +462,49 @@ typedef struct pushButton_t
 extern pushButton_t pushButtons[NUM_PUSHBUTTONS];
 
 /**
- * Initialize push buttons array.
+ * Initialize push buttons array (constant data only).
  */
 void initPushButtons(void);
 
 /**
- * Draw a push button.
+ * Draw a push button using per-instance state.
+ * @param widgets Per-instance widget state
  * @param video Video context
  * @param bmp Bitmap assets
  * @param pushButtonID Button ID
  */
-void drawPushButton(struct ft2_video_t *video, const struct ft2_bmp_t *bmp, uint16_t pushButtonID);
+void drawPushButton(struct ft2_widgets_t *widgets, struct ft2_video_t *video, const struct ft2_bmp_t *bmp, uint16_t pushButtonID);
 
 /**
  * Show a push button (make visible and draw).
+ * @param widgets Per-instance widget state
  * @param video Video context
  * @param bmp Bitmap assets
  * @param pushButtonID Button ID
  */
-void showPushButton(struct ft2_video_t *video, const struct ft2_bmp_t *bmp, uint16_t pushButtonID);
+void showPushButton(struct ft2_widgets_t *widgets, struct ft2_video_t *video, const struct ft2_bmp_t *bmp, uint16_t pushButtonID);
 
 /**
  * Hide a push button.
+ * @param widgets Per-instance widget state
  * @param pushButtonID Button ID
  */
-void hidePushButton(uint16_t pushButtonID);
+void hidePushButton(struct ft2_widgets_t *widgets, uint16_t pushButtonID);
 
 /**
  * Test if mouse click is on a push button.
+ * @param widgets Per-instance widget state
+ * @param inst FT2 instance for callbacks
  * @param mouseX Mouse X coordinate
  * @param mouseY Mouse Y coordinate
  * @param sysReqShown Whether system request dialog is shown
  * @return Button ID if clicked, -1 otherwise
  */
-int16_t testPushButtonMouseDown(struct ft2_instance_t *inst, int32_t mouseX, int32_t mouseY, bool sysReqShown);
+int16_t testPushButtonMouseDown(struct ft2_widgets_t *widgets, struct ft2_instance_t *inst, int32_t mouseX, int32_t mouseY, bool sysReqShown);
 
 /**
  * Handle push button mouse release.
+ * @param widgets Per-instance widget state
  * @param inst FT2 instance
  * @param video Video context
  * @param bmp Bitmap assets
@@ -503,11 +514,12 @@ int16_t testPushButtonMouseDown(struct ft2_instance_t *inst, int32_t mouseX, int
  * @param runCallback Whether to run callback
  * @return Button ID if released on button, -1 otherwise
  */
-int16_t testPushButtonMouseRelease(struct ft2_instance_t *inst, struct ft2_video_t *video,
+int16_t testPushButtonMouseRelease(struct ft2_widgets_t *widgets, struct ft2_instance_t *inst, struct ft2_video_t *video,
 	const struct ft2_bmp_t *bmp, int32_t mouseX, int32_t mouseY, int16_t lastButtonID, bool runCallback);
 
 /**
  * Handle continuous push button interaction while mouse is held down.
+ * @param widgets Per-instance widget state
  * @param inst FT2 instance
  * @param video Video context
  * @param bmp Bitmap assets
@@ -515,7 +527,7 @@ int16_t testPushButtonMouseRelease(struct ft2_instance_t *inst, struct ft2_video
  * @param mouseY Mouse Y coordinate
  * @param buttonID Button ID being held
  */
-void handlePushButtonWhileMouseDown(struct ft2_instance_t *inst, struct ft2_video_t *video,
+void handlePushButtonWhileMouseDown(struct ft2_widgets_t *widgets, struct ft2_instance_t *inst, struct ft2_video_t *video,
 	const struct ft2_bmp_t *bmp, int32_t mouseX, int32_t mouseY, int16_t buttonID,
 	bool *firstTimePressingButton, uint8_t *buttonCounter);
 
@@ -524,12 +536,12 @@ void handlePushButtonWhileMouseDown(struct ft2_instance_t *inst, struct ft2_vide
  * @param bmp Bitmap assets
  * @param logoType 0 or 1 for different logo styles
  */
-void changeLogoType(const struct ft2_bmp_t *bmp, uint8_t logoType);
+void changeLogoType(struct ft2_widgets_t *widgets, const struct ft2_bmp_t *bmp, uint8_t logoType);
 
 /**
  * Set badge type (which badge to display).
  * @param bmp Bitmap assets
  * @param badgeType Badge style (0-3)
  */
-void changeBadgeType(const struct ft2_bmp_t *bmp, uint8_t badgeType);
+void changeBadgeType(struct ft2_widgets_t *widgets, const struct ft2_bmp_t *bmp, uint8_t badgeType);
 

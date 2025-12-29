@@ -934,7 +934,7 @@ static void handleNoteInput(ft2_instance_t *inst, ft2_input_state_t *input, int 
 		return;
 	
 	/* Get UI for access to scopes (multiRecChn, channelMuted) */
-	ft2_ui_t *ui = ft2_ui_get_current();
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 	bool *multiRecChn = (ui != NULL) ? ui->scopes.multiRecChn : NULL;
 	bool *channelMuted = (ui != NULL) ? ui->scopes.channelMuted : NULL;
 	

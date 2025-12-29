@@ -20,6 +20,7 @@
 #include "ft2_plugin_help.h"
 #include "ft2_plugin_nibbles.h"
 #include "ft2_plugin_diskop.h"
+#include "ft2_plugin_ui.h"
 #include "ft2_instance.h"
 
 /* Position editor dimensions */
@@ -367,9 +368,10 @@ void drawSongName(struct ft2_instance_t *inst, struct ft2_video_t *video,
 void drawTopLeftMainScreen(struct ft2_instance_t *inst, struct ft2_video_t *video,
 	const struct ft2_bmp_t *bmp, bool restoreScreens)
 {
-	if (inst == NULL || video == NULL)
+	if (inst == NULL || video == NULL || inst->ui == NULL)
 		return;
 
+	ft2_widgets_t *widgets = &((ft2_ui_t *)inst->ui)->widgets;
 	(void)restoreScreens; /* TODO: implement screen restoration */
 
 	/* Position editor framework */
@@ -387,39 +389,39 @@ void drawTopLeftMainScreen(struct ft2_instance_t *inst, struct ft2_video_t *vide
 	drawSongLoopStart(inst, video, bmp);
 
 	/* Show position editor buttons and scrollbar */
-	showScrollBar(video, SB_POS_ED);
-	showPushButton(video, bmp, PB_POSED_POS_UP);
-	showPushButton(video, bmp, PB_POSED_POS_DOWN);
-	showPushButton(video, bmp, PB_POSED_INS);
-	showPushButton(video, bmp, PB_POSED_PATT_UP);
-	showPushButton(video, bmp, PB_POSED_PATT_DOWN);
-	showPushButton(video, bmp, PB_POSED_DEL);
-	showPushButton(video, bmp, PB_POSED_LEN_UP);
-	showPushButton(video, bmp, PB_POSED_LEN_DOWN);
-	showPushButton(video, bmp, PB_POSED_REP_UP);
-	showPushButton(video, bmp, PB_POSED_REP_DOWN);
+	showScrollBar(widgets, video, SB_POS_ED);
+	showPushButton(widgets, video, bmp, PB_POSED_POS_UP);
+	showPushButton(widgets, video, bmp, PB_POSED_POS_DOWN);
+	showPushButton(widgets, video, bmp, PB_POSED_INS);
+	showPushButton(widgets, video, bmp, PB_POSED_PATT_UP);
+	showPushButton(widgets, video, bmp, PB_POSED_PATT_DOWN);
+	showPushButton(widgets, video, bmp, PB_POSED_DEL);
+	showPushButton(widgets, video, bmp, PB_POSED_LEN_UP);
+	showPushButton(widgets, video, bmp, PB_POSED_LEN_DOWN);
+	showPushButton(widgets, video, bmp, PB_POSED_REP_UP);
+	showPushButton(widgets, video, bmp, PB_POSED_REP_DOWN);
 
 	/* Logo buttons - set up bitmap pointers using config settings */
-	changeLogoType(bmp, inst->config.id_FastLogo);
-	changeBadgeType(bmp, inst->config.id_TritonProd);
-	showPushButton(video, bmp, PB_LOGO);
-	showPushButton(video, bmp, PB_BADGE);
+	changeLogoType(widgets, bmp, inst->config.id_FastLogo);
+	changeBadgeType(widgets, bmp, inst->config.id_TritonProd);
+	showPushButton(widgets, video, bmp, PB_LOGO);
+	showPushButton(widgets, video, bmp, PB_BADGE);
 
 	/* Left menu framework */
 	drawFramework(video, LEFTMENU_X, LEFTMENU_Y, LEFTMENU_W, LEFTMENU_H, FRAMEWORK_TYPE1);
 
 	/* Left menu buttons */
-	showPushButton(video, bmp, PB_ABOUT);
-	showPushButton(video, bmp, PB_NIBBLES);
-	showPushButton(video, bmp, PB_KILL);
-	showPushButton(video, bmp, PB_TRIM);
-	showPushButton(video, bmp, PB_EXTEND_VIEW);
-	showPushButton(video, bmp, PB_TRANSPOSE);
-	showPushButton(video, bmp, PB_INST_ED_EXT);
-	showPushButton(video, bmp, PB_SMP_ED_EXT);
-	showPushButton(video, bmp, PB_ADV_EDIT);
-	showPushButton(video, bmp, PB_ADD_CHANNELS);
-	showPushButton(video, bmp, PB_SUB_CHANNELS);
+	showPushButton(widgets, video, bmp, PB_ABOUT);
+	showPushButton(widgets, video, bmp, PB_NIBBLES);
+	showPushButton(widgets, video, bmp, PB_KILL);
+	showPushButton(widgets, video, bmp, PB_TRIM);
+	showPushButton(widgets, video, bmp, PB_EXTEND_VIEW);
+	showPushButton(widgets, video, bmp, PB_TRANSPOSE);
+	showPushButton(widgets, video, bmp, PB_INST_ED_EXT);
+	showPushButton(widgets, video, bmp, PB_SMP_ED_EXT);
+	showPushButton(widgets, video, bmp, PB_ADV_EDIT);
+	showPushButton(widgets, video, bmp, PB_ADD_CHANNELS);
+	showPushButton(widgets, video, bmp, PB_SUB_CHANNELS);
 
 	/* Song/pattern control frameworks */
 	drawFramework(video, 112, 32, 94, 45, FRAMEWORK_TYPE1);
@@ -429,25 +431,25 @@ void drawTopLeftMainScreen(struct ft2_instance_t *inst, struct ft2_video_t *vide
 	/* Only show BPM buttons if not syncing from DAW */
 	if (!inst->config.syncBpmFromDAW)
 	{
-		showPushButton(video, bmp, PB_BPM_UP);
-		showPushButton(video, bmp, PB_BPM_DOWN);
+		showPushButton(widgets, video, bmp, PB_BPM_UP);
+		showPushButton(widgets, video, bmp, PB_BPM_DOWN);
 	}
 
 	/* Only show speed buttons if Fxx speed changes are allowed */
 	if (inst->config.allowFxxSpeedChanges)
 	{
-		showPushButton(video, bmp, PB_SPEED_UP);
-		showPushButton(video, bmp, PB_SPEED_DOWN);
+		showPushButton(widgets, video, bmp, PB_SPEED_UP);
+		showPushButton(widgets, video, bmp, PB_SPEED_DOWN);
 	}
 
-	showPushButton(video, bmp, PB_EDITADD_UP);
-	showPushButton(video, bmp, PB_EDITADD_DOWN);
-	showPushButton(video, bmp, PB_PATT_UP);
-	showPushButton(video, bmp, PB_PATT_DOWN);
-	showPushButton(video, bmp, PB_PATTLEN_UP);
-	showPushButton(video, bmp, PB_PATTLEN_DOWN);
-	showPushButton(video, bmp, PB_PATT_EXPAND);
-	showPushButton(video, bmp, PB_PATT_SHRINK);
+	showPushButton(widgets, video, bmp, PB_EDITADD_UP);
+	showPushButton(widgets, video, bmp, PB_EDITADD_DOWN);
+	showPushButton(widgets, video, bmp, PB_PATT_UP);
+	showPushButton(widgets, video, bmp, PB_PATT_DOWN);
+	showPushButton(widgets, video, bmp, PB_PATTLEN_UP);
+	showPushButton(widgets, video, bmp, PB_PATTLEN_DOWN);
+	showPushButton(widgets, video, bmp, PB_PATT_EXPAND);
+	showPushButton(widgets, video, bmp, PB_PATT_SHRINK);
 
 	/* Song/pattern labels */
 	/* Gray out BPM label if syncing from DAW */
@@ -483,23 +485,25 @@ void drawTopLeftMainScreen(struct ft2_instance_t *inst, struct ft2_video_t *vide
 void drawTopRightMainScreen(struct ft2_instance_t *inst, struct ft2_video_t *video,
 	const struct ft2_bmp_t *bmp)
 {
-	if (inst == NULL || video == NULL)
+	if (inst == NULL || video == NULL || inst->ui == NULL)
 		return;
+
+	ft2_widgets_t *widgets = &((ft2_ui_t *)inst->ui)->widgets;
 
 	/* Right menu framework */
 	drawFramework(video, RIGHTMENU_X, RIGHTMENU_Y, RIGHTMENU_W, RIGHTMENU_H, FRAMEWORK_TYPE1);
 
 	/* Right menu buttons */
-	showPushButton(video, bmp, PB_PLAY_SONG);
-	showPushButton(video, bmp, PB_PLAY_PATT);
-	showPushButton(video, bmp, PB_STOP);
-	showPushButton(video, bmp, PB_RECORD_SONG);
-	showPushButton(video, bmp, PB_RECORD_PATT);
-	showPushButton(video, bmp, PB_DISK_OP);
-	showPushButton(video, bmp, PB_INST_ED);
-	showPushButton(video, bmp, PB_SMP_ED);
-	showPushButton(video, bmp, PB_CONFIG);
-	showPushButton(video, bmp, PB_HELP);
+	showPushButton(widgets, video, bmp, PB_PLAY_SONG);
+	showPushButton(widgets, video, bmp, PB_PLAY_PATT);
+	showPushButton(widgets, video, bmp, PB_STOP);
+	showPushButton(widgets, video, bmp, PB_RECORD_SONG);
+	showPushButton(widgets, video, bmp, PB_RECORD_PATT);
+	showPushButton(widgets, video, bmp, PB_DISK_OP);
+	showPushButton(widgets, video, bmp, PB_INST_ED);
+	showPushButton(widgets, video, bmp, PB_SMP_ED);
+	showPushButton(widgets, video, bmp, PB_CONFIG);
+	showPushButton(widgets, video, bmp, PB_HELP);
 
 	/* Instrument switcher */
 	inst->uiState.instrSwitcherShown = true;
@@ -512,9 +516,10 @@ void drawTopRightMainScreen(struct ft2_instance_t *inst, struct ft2_video_t *vid
 void drawTopScreen(struct ft2_instance_t *inst, struct ft2_video_t *video,
 	const struct ft2_bmp_t *bmp, bool restoreScreens)
 {
-	if (inst == NULL || video == NULL)
+	if (inst == NULL || video == NULL || inst->ui == NULL)
 		return;
 
+	ft2_widgets_t *widgets = &((ft2_ui_t *)inst->ui)->widgets;
 	inst->uiState.scopesShown = false;
 
 	if (inst->uiState.aboutScreenShown)
@@ -522,7 +527,7 @@ void drawTopScreen(struct ft2_instance_t *inst, struct ft2_video_t *video,
 		/* Draw about screen framework - starfield is rendered in handleRedrawing() */
 		drawFramework(video, 0, 0, 632, 173, FRAMEWORK_TYPE1);
 		drawFramework(video, 2, 2, 628, 169, FRAMEWORK_TYPE2);
-		showPushButton(video, bmp, PB_EXIT_ABOUT);
+		showPushButton(widgets, video, bmp, PB_EXIT_ABOUT);
 	}
 	else if (inst->uiState.configScreenShown)
 	{
@@ -591,11 +596,13 @@ void drawBottomScreen(struct ft2_instance_t *inst, struct ft2_video_t *video,
 void drawGUILayout(struct ft2_instance_t *inst, struct ft2_video_t *video,
 	const struct ft2_bmp_t *bmp)
 {
-	if (inst == NULL || video == NULL)
+	if (inst == NULL || video == NULL || inst->ui == NULL)
 		return;
 
+	ft2_widgets_t *widgets = &((ft2_ui_t *)inst->ui)->widgets;
+
 	/* Initialize scrollbar position */
-	setScrollBarPos(inst, video, SB_POS_ED, 0, false);
+	setScrollBarPos(inst, widgets, video, SB_POS_ED, 0, false);
 
 	/* Draw complete GUI */
 	drawTopScreen(inst, video, bmp, false);

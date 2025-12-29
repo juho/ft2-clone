@@ -74,9 +74,39 @@ void ft2_widgets_init(ft2_widgets_t *widgets)
 	if (widgets == NULL)
 		return;
 
-	/* Initialize all widget subsystems */
+	/* Initialize per-instance widget visibility/state arrays */
+	for (int i = 0; i < NUM_PUSHBUTTONS; i++)
+	{
+		widgets->pushButtonVisible[i] = false;
+		widgets->pushButtonState[i] = 0;
+	}
+	for (int i = 0; i < NUM_CHECKBOXES; i++)
+	{
+		widgets->checkBoxVisible[i] = false;
+		widgets->checkBoxChecked[i] = false;
+		widgets->checkBoxState[i] = 0;
+	}
+	for (int i = 0; i < NUM_RADIOBUTTONS; i++)
+	{
+		widgets->radioButtonVisible[i] = false;
+		widgets->radioButtonState[i] = 0;
+	}
+	for (int i = 0; i < NUM_SCROLLBARS; i++)
+	{
+		widgets->scrollBarState[i].visible = false;
+		widgets->scrollBarState[i].state = 0;
+		widgets->scrollBarState[i].pos = 0;
+		widgets->scrollBarState[i].page = 1;
+		widgets->scrollBarState[i].end = 1;
+		widgets->scrollBarState[i].thumbX = 0;
+		widgets->scrollBarState[i].thumbY = 0;
+		widgets->scrollBarState[i].thumbW = 0;
+		widgets->scrollBarState[i].thumbH = 0;
+	}
+
+	/* Initialize all widget subsystems (callbacks and constant data only) */
 	initPushButtons();
-	initScrollBars();
+	initScrollBars(widgets);
 	initCheckBoxes();
 	initRadioButtons();
 
@@ -117,44 +147,43 @@ void ft2_widgets_init(ft2_widgets_t *widgets)
 
 void ft2_widgets_draw(ft2_widgets_t *widgets, struct ft2_video_t *video, const struct ft2_bmp_t *bmp)
 {
-	if (video == NULL)
+	if (video == NULL || widgets == NULL)
 		return;
-
-	(void)widgets; /* Use global arrays now */
 
 	/* Draw all visible pushbuttons */
 	for (int i = 0; i < NUM_PUSHBUTTONS; i++)
 	{
-		if (pushButtons[i].visible)
-			drawPushButton(video, bmp, i);
+		if (widgets->pushButtonVisible[i])
+			drawPushButton(widgets, video, bmp, i);
 	}
 
 	/* Draw all visible scrollbars */
 	for (int i = 0; i < NUM_SCROLLBARS; i++)
 	{
-		if (scrollBars[i].visible)
-			drawScrollBar(video, i);
+		if (widgets->scrollBarState[i].visible)
+			drawScrollBar(widgets, video, i);
 	}
 
 	/* Draw all visible checkboxes */
 	for (int i = 0; i < NUM_CHECKBOXES; i++)
 	{
-		if (checkBoxes[i].visible)
-			drawCheckBox(video, bmp, i);
+		if (widgets->checkBoxVisible[i])
+			drawCheckBox(widgets, video, bmp, i);
 	}
 
 	/* Draw all visible radiobuttons */
 	for (int i = 0; i < NUM_RADIOBUTTONS; i++)
 	{
-		if (radioButtons[i].visible)
-			drawRadioButton(video, bmp, i);
+		if (widgets->radioButtonVisible[i])
+			drawRadioButton(widgets, video, bmp, i);
 	}
 }
 
 void ft2_widgets_mouse_down(ft2_widgets_t *widgets, struct ft2_instance_t *inst,
 	struct ft2_video_t *video, int x, int y, bool sysReqShown)
 {
-	(void)widgets;
+	if (widgets == NULL)
+		return;
 
 	mouse.x = x;
 	mouse.y = y;
@@ -171,7 +200,7 @@ void ft2_widgets_mouse_down(ft2_widgets_t *widgets, struct ft2_instance_t *inst,
 	mouse.buttonCounter = 0;
 
 	/* Test pushbuttons */
-	int16_t pbID = testPushButtonMouseDown(inst, x, y, sysReqShown);
+	int16_t pbID = testPushButtonMouseDown(widgets, inst, x, y, sysReqShown);
 	if (pbID >= 0)
 	{
 		mouse.lastUsedObjectID = pbID;
@@ -180,7 +209,7 @@ void ft2_widgets_mouse_down(ft2_widgets_t *widgets, struct ft2_instance_t *inst,
 	}
 
 	/* Test scrollbars */
-	int16_t sbID = testScrollBarMouseDown(inst, video, x, y, sysReqShown);
+	int16_t sbID = testScrollBarMouseDown(widgets, inst, video, x, y, sysReqShown);
 	if (sbID >= 0)
 	{
 		mouse.lastUsedObjectID = sbID;
@@ -193,7 +222,7 @@ void ft2_widgets_mouse_down(ft2_widgets_t *widgets, struct ft2_instance_t *inst,
 		return;
 
 	/* Test checkboxes */
-	int16_t cbID = testCheckBoxMouseDown(x, y, false);
+	int16_t cbID = testCheckBoxMouseDown(widgets, x, y, false);
 	if (cbID >= 0)
 	{
 		mouse.lastUsedObjectID = cbID;
@@ -202,7 +231,7 @@ void ft2_widgets_mouse_down(ft2_widgets_t *widgets, struct ft2_instance_t *inst,
 	}
 
 	/* Test radiobuttons */
-	int16_t rbID = testRadioButtonMouseDown(x, y, false);
+	int16_t rbID = testRadioButtonMouseDown(widgets, x, y, false);
 	if (rbID >= 0)
 	{
 		mouse.lastUsedObjectID = rbID;
@@ -227,7 +256,8 @@ void ft2_widgets_mouse_down_right(ft2_widgets_t *widgets, int x, int y)
 
 void ft2_widgets_mouse_up(ft2_widgets_t *widgets, int x, int y, struct ft2_instance_t *inst, struct ft2_video_t *video, const struct ft2_bmp_t *bmp)
 {
-	(void)widgets;
+	if (widgets == NULL)
+		return;
 
 	mouse.x = x;
 	mouse.y = y;
@@ -244,19 +274,19 @@ void ft2_widgets_mouse_up(ft2_widgets_t *widgets, int x, int y, struct ft2_insta
 	switch (mouse.lastUsedObjectType)
 	{
 		case OBJECT_PUSHBUTTON:
-			testPushButtonMouseRelease(inst, video, bmp, x, y, mouse.lastUsedObjectID, true);
+			testPushButtonMouseRelease(widgets, inst, video, bmp, x, y, mouse.lastUsedObjectID, true);
 			break;
 
 		case OBJECT_SCROLLBAR:
-			testScrollBarMouseRelease(video, mouse.lastUsedObjectID);
+			testScrollBarMouseRelease(widgets, video, mouse.lastUsedObjectID);
 			break;
 
 		case OBJECT_CHECKBOX:
-			testCheckBoxMouseRelease(inst, video, bmp, x, y, mouse.lastUsedObjectID);
+			testCheckBoxMouseRelease(widgets, inst, video, bmp, x, y, mouse.lastUsedObjectID);
 			break;
 
 		case OBJECT_RADIOBUTTON:
-			testRadioButtonMouseRelease(inst, video, bmp, x, y, mouse.lastUsedObjectID);
+			testRadioButtonMouseRelease(widgets, inst, video, bmp, x, y, mouse.lastUsedObjectID);
 			break;
 
 		default:
@@ -299,7 +329,8 @@ void ft2_widgets_mouse_move(ft2_widgets_t *widgets, int x, int y)
 
 void ft2_widgets_handle_held_down(ft2_widgets_t *widgets, struct ft2_instance_t *inst, struct ft2_video_t *video, const struct ft2_bmp_t *bmp)
 {
-	(void)widgets;
+	if (widgets == NULL)
+		return;
 
 	if (mouse.lastUsedObjectType == OBJECT_NONE)
 		return;
@@ -314,20 +345,20 @@ void ft2_widgets_handle_held_down(ft2_widgets_t *widgets, struct ft2_instance_t 
 	switch (mouse.lastUsedObjectType)
 	{
 		case OBJECT_PUSHBUTTON:
-			handlePushButtonWhileMouseDown(inst, video, bmp, mouse.x, mouse.y, mouse.lastUsedObjectID,
+			handlePushButtonWhileMouseDown(widgets, inst, video, bmp, mouse.x, mouse.y, mouse.lastUsedObjectID,
 				&mouse.firstTimePressingButton, &mouse.buttonCounter);
 			break;
 
 		case OBJECT_SCROLLBAR:
-			handleScrollBarWhileMouseDown(inst, video, mouse.x, mouse.y, mouse.lastUsedObjectID);
+			handleScrollBarWhileMouseDown(widgets, inst, video, mouse.x, mouse.y, mouse.lastUsedObjectID);
 			break;
 
 		case OBJECT_CHECKBOX:
-			handleCheckBoxesWhileMouseDown(video, bmp, mouse.x, mouse.y, mouse.lastX, mouse.lastY, mouse.lastUsedObjectID);
+			handleCheckBoxesWhileMouseDown(widgets, video, bmp, mouse.x, mouse.y, mouse.lastX, mouse.lastY, mouse.lastUsedObjectID);
 			break;
 
 		case OBJECT_RADIOBUTTON:
-			handleRadioButtonsWhileMouseDown(video, bmp, mouse.x, mouse.y, mouse.lastX, mouse.lastY, mouse.lastUsedObjectID);
+			handleRadioButtonsWhileMouseDown(widgets, video, bmp, mouse.x, mouse.y, mouse.lastX, mouse.lastY, mouse.lastUsedObjectID);
 			break;
 
 		default:

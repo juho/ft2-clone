@@ -359,17 +359,22 @@ void ft2_sample_ed_set_sample(ft2_sample_editor_t *editor, int instr, int sample
 	}
 
 	/* Configure the sample scrollbar - always sync to current editor state */
-	if (smpLen > 0)
+	ft2_widgets_t *widgets = (editor->instance != NULL && editor->instance->ui != NULL) ?
+		&((ft2_ui_t *)editor->instance->ui)->widgets : NULL;
+	if (widgets != NULL)
 	{
-		scrollBars[SB_SAMP_SCROLL].end = (uint32_t)smpLen;
-		scrollBars[SB_SAMP_SCROLL].page = (uint32_t)editor->viewSize;
-		scrollBars[SB_SAMP_SCROLL].pos = (uint32_t)editor->scrPos;
-	}
-	else
-	{
-		scrollBars[SB_SAMP_SCROLL].end = 1;
-		scrollBars[SB_SAMP_SCROLL].page = 1;
-		scrollBars[SB_SAMP_SCROLL].pos = 0;
+		if (smpLen > 0)
+		{
+			widgets->scrollBarState[SB_SAMP_SCROLL].end = (uint32_t)smpLen;
+			widgets->scrollBarState[SB_SAMP_SCROLL].page = (uint32_t)editor->viewSize;
+			widgets->scrollBarState[SB_SAMP_SCROLL].pos = (uint32_t)editor->scrPos;
+		}
+		else
+		{
+			widgets->scrollBarState[SB_SAMP_SCROLL].end = 1;
+			widgets->scrollBarState[SB_SAMP_SCROLL].page = 1;
+			widgets->scrollBarState[SB_SAMP_SCROLL].pos = 0;
+		}
 	}
 
 	updateScalingFactors(editor);
@@ -652,27 +657,38 @@ static void updateSampleEditorRadioButtons(ft2_sample_editor_t *editor)
 			s = &instr->smp[editor->currSample];
 	}
 
+	ft2_widgets_t *widgets = (inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	
 	if (s == NULL)
 	{
 		/* No sample - set defaults */
-		radioButtons[RB_SAMPLE_NO_LOOP].state = RADIOBUTTON_CHECKED;
-		radioButtons[RB_SAMPLE_FWD_LOOP].state = RADIOBUTTON_UNCHECKED;
-		radioButtons[RB_SAMPLE_BIDI_LOOP].state = RADIOBUTTON_UNCHECKED;
-		radioButtons[RB_SAMPLE_8BIT].state = RADIOBUTTON_CHECKED;
-		radioButtons[RB_SAMPLE_16BIT].state = RADIOBUTTON_UNCHECKED;
+		if (widgets != NULL)
+		{
+			widgets->radioButtonState[RB_SAMPLE_NO_LOOP] = RADIOBUTTON_CHECKED;
+			widgets->radioButtonState[RB_SAMPLE_FWD_LOOP] = RADIOBUTTON_UNCHECKED;
+			widgets->radioButtonState[RB_SAMPLE_BIDI_LOOP] = RADIOBUTTON_UNCHECKED;
+			widgets->radioButtonState[RB_SAMPLE_8BIT] = RADIOBUTTON_CHECKED;
+			widgets->radioButtonState[RB_SAMPLE_16BIT] = RADIOBUTTON_UNCHECKED;
+		}
 		return;
 	}
 
 	/* Update loop type radio buttons */
 	uint8_t loopType = GET_LOOPTYPE(s->flags);
-	radioButtons[RB_SAMPLE_NO_LOOP].state = (loopType == LOOP_OFF) ? RADIOBUTTON_CHECKED : RADIOBUTTON_UNCHECKED;
-	radioButtons[RB_SAMPLE_FWD_LOOP].state = (loopType == LOOP_FWD) ? RADIOBUTTON_CHECKED : RADIOBUTTON_UNCHECKED;
-	radioButtons[RB_SAMPLE_BIDI_LOOP].state = (loopType == LOOP_BIDI) ? RADIOBUTTON_CHECKED : RADIOBUTTON_UNCHECKED;
+	if (widgets != NULL)
+	{
+		widgets->radioButtonState[RB_SAMPLE_NO_LOOP] = (loopType == LOOP_OFF) ? RADIOBUTTON_CHECKED : RADIOBUTTON_UNCHECKED;
+		widgets->radioButtonState[RB_SAMPLE_FWD_LOOP] = (loopType == LOOP_FWD) ? RADIOBUTTON_CHECKED : RADIOBUTTON_UNCHECKED;
+		widgets->radioButtonState[RB_SAMPLE_BIDI_LOOP] = (loopType == LOOP_BIDI) ? RADIOBUTTON_CHECKED : RADIOBUTTON_UNCHECKED;
+	}
 
 	/* Update bit depth radio buttons */
 	bool is16Bit = (s->flags & SAMPLE_16BIT) != 0;
-	radioButtons[RB_SAMPLE_8BIT].state = is16Bit ? RADIOBUTTON_UNCHECKED : RADIOBUTTON_CHECKED;
-	radioButtons[RB_SAMPLE_16BIT].state = is16Bit ? RADIOBUTTON_CHECKED : RADIOBUTTON_UNCHECKED;
+	if (widgets != NULL)
+	{
+		widgets->radioButtonState[RB_SAMPLE_8BIT] = is16Bit ? RADIOBUTTON_UNCHECKED : RADIOBUTTON_CHECKED;
+		widgets->radioButtonState[RB_SAMPLE_16BIT] = is16Bit ? RADIOBUTTON_CHECKED : RADIOBUTTON_UNCHECKED;
+	}
 }
 
 static void drawPlayNote(ft2_video_t *video, const ft2_bmp_t *bmp, uint8_t noteNr)
@@ -926,8 +942,13 @@ void ft2_sample_ed_zoom_in(ft2_sample_editor_t *editor, int32_t mouseX)
 	editor->scrPos = (int32_t)newScrPos64;
 
 	/* Update scrollbar */
-	scrollBars[SB_SAMP_SCROLL].page = (uint32_t)editor->viewSize;
-	scrollBars[SB_SAMP_SCROLL].pos = (uint32_t)editor->scrPos;
+	ft2_widgets_t *widgets = (editor->instance->ui != NULL) ?
+		&((ft2_ui_t *)editor->instance->ui)->widgets : NULL;
+	if (widgets != NULL)
+	{
+		widgets->scrollBarState[SB_SAMP_SCROLL].page = (uint32_t)editor->viewSize;
+		widgets->scrollBarState[SB_SAMP_SCROLL].pos = (uint32_t)editor->scrPos;
+	}
 }
 
 /**
@@ -986,8 +1007,13 @@ void ft2_sample_ed_zoom_out(ft2_sample_editor_t *editor, int32_t mouseX)
 	updateScalingFactors(editor);
 
 	/* Update scrollbar */
-	scrollBars[SB_SAMP_SCROLL].page = (uint32_t)editor->viewSize;
-	scrollBars[SB_SAMP_SCROLL].pos = (uint32_t)editor->scrPos;
+	ft2_widgets_t *widgets = (editor->instance->ui != NULL) ?
+		&((ft2_ui_t *)editor->instance->ui)->widgets : NULL;
+	if (widgets != NULL)
+	{
+		widgets->scrollBarState[SB_SAMP_SCROLL].page = (uint32_t)editor->viewSize;
+		widgets->scrollBarState[SB_SAMP_SCROLL].pos = (uint32_t)editor->scrPos;
+	}
 }
 
 void ft2_sample_ed_show_all(ft2_sample_editor_t *editor)
@@ -1011,9 +1037,14 @@ void ft2_sample_ed_show_all(ft2_sample_editor_t *editor)
 	editor->viewSize = smpLen;
 
 	/* Update scrollbar - must set end, page, and pos to sync properly */
-	scrollBars[SB_SAMP_SCROLL].end = (uint32_t)smpLen;
-	scrollBars[SB_SAMP_SCROLL].page = (uint32_t)editor->viewSize;
-	scrollBars[SB_SAMP_SCROLL].pos = 0;
+	ft2_widgets_t *widgets = (editor->instance->ui != NULL) ?
+		&((ft2_ui_t *)editor->instance->ui)->widgets : NULL;
+	if (widgets != NULL)
+	{
+		widgets->scrollBarState[SB_SAMP_SCROLL].end = (uint32_t)smpLen;
+		widgets->scrollBarState[SB_SAMP_SCROLL].page = (uint32_t)editor->viewSize;
+		widgets->scrollBarState[SB_SAMP_SCROLL].pos = 0;
+	}
 
 	updateScalingFactors(editor);
 }
@@ -1043,8 +1074,13 @@ void ft2_sample_ed_show_loop(ft2_sample_editor_t *editor)
 		editor->viewSize = s->loopLength;
 
 		/* Update scrollbar */
-		scrollBars[SB_SAMP_SCROLL].page = (uint32_t)editor->viewSize;
-		scrollBars[SB_SAMP_SCROLL].pos = (uint32_t)editor->scrPos;
+		ft2_widgets_t *widgets = (editor->instance->ui != NULL) ?
+			&((ft2_ui_t *)editor->instance->ui)->widgets : NULL;
+		if (widgets != NULL)
+		{
+			widgets->scrollBarState[SB_SAMP_SCROLL].page = (uint32_t)editor->viewSize;
+			widgets->scrollBarState[SB_SAMP_SCROLL].pos = (uint32_t)editor->scrPos;
+		}
 
 		updateScalingFactors(editor);
 	}
@@ -1080,8 +1116,13 @@ void ft2_sample_ed_show_range(ft2_sample_editor_t *editor)
 		editor->scrPos = editor->rangeStart;
 
 		/* Update scrollbar */
-		scrollBars[SB_SAMP_SCROLL].page = (uint32_t)editor->viewSize;
-		scrollBars[SB_SAMP_SCROLL].pos = (uint32_t)editor->scrPos;
+		ft2_widgets_t *widgets = (editor->instance->ui != NULL) ?
+			&((ft2_ui_t *)editor->instance->ui)->widgets : NULL;
+		if (widgets != NULL)
+		{
+			widgets->scrollBarState[SB_SAMP_SCROLL].page = (uint32_t)editor->viewSize;
+			widgets->scrollBarState[SB_SAMP_SCROLL].pos = (uint32_t)editor->scrPos;
+		}
 
 		updateScalingFactors(editor);
 		
@@ -1090,7 +1131,7 @@ void ft2_sample_ed_show_range(ft2_sample_editor_t *editor)
 	else
 	{
 		/* Show error message - no valid range */
-		ft2_ui_t *ui = ft2_ui_get_current();
+		ft2_ui_t *ui = (ft2_ui_t*)editor->instance->ui;
 		if (ui != NULL)
 		{
 			ft2_dialog_show_message(&ui->dialog, "System message", "Cannot show empty range!");
@@ -2245,44 +2286,48 @@ void showSampleEditor(ft2_instance_t *inst)
 	inst->uiState.sampleEditorShown = true;
 	inst->uiState.updateSampleEditor = true;
 
+	ft2_widgets_t *widgets = (inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets == NULL)
+		return;
+
 	/* Show all sample editor pushbuttons - exact match of standalone showSampleEditor() */
-	pushButtons[PB_SAMP_SCROLL_LEFT].visible = true;
-	pushButtons[PB_SAMP_SCROLL_RIGHT].visible = true;
-	pushButtons[PB_SAMP_PNOTE_UP].visible = true;
-	pushButtons[PB_SAMP_PNOTE_DOWN].visible = true;
-	pushButtons[PB_SAMP_STOP].visible = true;
-	pushButtons[PB_SAMP_PWAVE].visible = true;
-	pushButtons[PB_SAMP_PRANGE].visible = true;
-	pushButtons[PB_SAMP_PDISPLAY].visible = true;
-	pushButtons[PB_SAMP_SHOW_RANGE].visible = true;
-	pushButtons[PB_SAMP_RANGE_ALL].visible = true;
-	pushButtons[PB_SAMP_CLR_RANGE].visible = true;
-	pushButtons[PB_SAMP_ZOOM_OUT].visible = true;
-	pushButtons[PB_SAMP_SHOW_ALL].visible = true;
-	/* pushButtons[PB_SAMP_SAVE_RNG].visible = true; */ /* TODO: Implement save range */
-	pushButtons[PB_SAMP_CUT].visible = true;
-	pushButtons[PB_SAMP_COPY].visible = true;
-	pushButtons[PB_SAMP_PASTE].visible = true;
-	pushButtons[PB_SAMP_CROP].visible = true;
-	pushButtons[PB_SAMP_VOLUME].visible = true;
-	pushButtons[PB_SAMP_EFFECTS].visible = true;
-	pushButtons[PB_SAMP_EXIT].visible = true;
-	pushButtons[PB_SAMP_CLEAR].visible = true;
-	pushButtons[PB_SAMP_MIN].visible = true;
-	pushButtons[PB_SAMP_REPEAT_UP].visible = true;
-	pushButtons[PB_SAMP_REPEAT_DOWN].visible = true;
-	pushButtons[PB_SAMP_REPLEN_UP].visible = true;
-	pushButtons[PB_SAMP_REPLEN_DOWN].visible = true;
+	widgets->pushButtonVisible[PB_SAMP_SCROLL_LEFT] = true;
+	widgets->pushButtonVisible[PB_SAMP_SCROLL_RIGHT] = true;
+	widgets->pushButtonVisible[PB_SAMP_PNOTE_UP] = true;
+	widgets->pushButtonVisible[PB_SAMP_PNOTE_DOWN] = true;
+	widgets->pushButtonVisible[PB_SAMP_STOP] = true;
+	widgets->pushButtonVisible[PB_SAMP_PWAVE] = true;
+	widgets->pushButtonVisible[PB_SAMP_PRANGE] = true;
+	widgets->pushButtonVisible[PB_SAMP_PDISPLAY] = true;
+	widgets->pushButtonVisible[PB_SAMP_SHOW_RANGE] = true;
+	widgets->pushButtonVisible[PB_SAMP_RANGE_ALL] = true;
+	widgets->pushButtonVisible[PB_SAMP_CLR_RANGE] = true;
+	widgets->pushButtonVisible[PB_SAMP_ZOOM_OUT] = true;
+	widgets->pushButtonVisible[PB_SAMP_SHOW_ALL] = true;
+	/* widgets->pushButtonVisible[PB_SAMP_SAVE_RNG] = true; */ /* TODO: Implement save range */
+	widgets->pushButtonVisible[PB_SAMP_CUT] = true;
+	widgets->pushButtonVisible[PB_SAMP_COPY] = true;
+	widgets->pushButtonVisible[PB_SAMP_PASTE] = true;
+	widgets->pushButtonVisible[PB_SAMP_CROP] = true;
+	widgets->pushButtonVisible[PB_SAMP_VOLUME] = true;
+	widgets->pushButtonVisible[PB_SAMP_EFFECTS] = true;
+	widgets->pushButtonVisible[PB_SAMP_EXIT] = true;
+	widgets->pushButtonVisible[PB_SAMP_CLEAR] = true;
+	widgets->pushButtonVisible[PB_SAMP_MIN] = true;
+	widgets->pushButtonVisible[PB_SAMP_REPEAT_UP] = true;
+	widgets->pushButtonVisible[PB_SAMP_REPEAT_DOWN] = true;
+	widgets->pushButtonVisible[PB_SAMP_REPLEN_UP] = true;
+	widgets->pushButtonVisible[PB_SAMP_REPLEN_DOWN] = true;
 
 	/* Show radio button groups */
-	radioButtons[RB_SAMPLE_NO_LOOP].visible = true;
-	radioButtons[RB_SAMPLE_FWD_LOOP].visible = true;
-	radioButtons[RB_SAMPLE_BIDI_LOOP].visible = true;
-	radioButtons[RB_SAMPLE_8BIT].visible = true;
-	radioButtons[RB_SAMPLE_16BIT].visible = true;
+	widgets->radioButtonVisible[RB_SAMPLE_NO_LOOP] = true;
+	widgets->radioButtonVisible[RB_SAMPLE_FWD_LOOP] = true;
+	widgets->radioButtonVisible[RB_SAMPLE_BIDI_LOOP] = true;
+	widgets->radioButtonVisible[RB_SAMPLE_8BIT] = true;
+	widgets->radioButtonVisible[RB_SAMPLE_16BIT] = true;
 
 	/* Show scrollbar */
-	scrollBars[SB_SAMP_SCROLL].visible = true;
+	widgets->scrollBarState[SB_SAMP_SCROLL].visible = true;
 }
 
 void hideSampleEditor(ft2_instance_t *inst)
@@ -2294,47 +2339,51 @@ void hideSampleEditor(ft2_instance_t *inst)
 	inst->uiState.leftLoopPinMoving = false;
 	inst->uiState.rightLoopPinMoving = false;
 
+	ft2_widgets_t *widgets = (inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets == NULL)
+		return;
+
 	/* Hide all sample editor pushbuttons */
-	pushButtons[PB_SAMP_SCROLL_LEFT].visible = false;
-	pushButtons[PB_SAMP_SCROLL_RIGHT].visible = false;
-	pushButtons[PB_SAMP_PNOTE_UP].visible = false;
-	pushButtons[PB_SAMP_PNOTE_DOWN].visible = false;
-	pushButtons[PB_SAMP_STOP].visible = false;
-	pushButtons[PB_SAMP_PWAVE].visible = false;
-	pushButtons[PB_SAMP_PRANGE].visible = false;
-	pushButtons[PB_SAMP_PDISPLAY].visible = false;
-	pushButtons[PB_SAMP_SHOW_RANGE].visible = false;
-	pushButtons[PB_SAMP_RANGE_ALL].visible = false;
-	pushButtons[PB_SAMP_CLR_RANGE].visible = false;
-	pushButtons[PB_SAMP_ZOOM_OUT].visible = false;
-	pushButtons[PB_SAMP_SHOW_ALL].visible = false;
-	pushButtons[PB_SAMP_SAVE_RNG].visible = false;
-	pushButtons[PB_SAMP_CUT].visible = false;
-	pushButtons[PB_SAMP_COPY].visible = false;
-	pushButtons[PB_SAMP_PASTE].visible = false;
-	pushButtons[PB_SAMP_CROP].visible = false;
-	pushButtons[PB_SAMP_VOLUME].visible = false;
-	pushButtons[PB_SAMP_EFFECTS].visible = false;
-	pushButtons[PB_SAMP_EXIT].visible = false;
-	pushButtons[PB_SAMP_CLEAR].visible = false;
-	pushButtons[PB_SAMP_MIN].visible = false;
-	pushButtons[PB_SAMP_REPEAT_UP].visible = false;
-	pushButtons[PB_SAMP_REPEAT_DOWN].visible = false;
-	pushButtons[PB_SAMP_REPLEN_UP].visible = false;
-	pushButtons[PB_SAMP_REPLEN_DOWN].visible = false;
+	widgets->pushButtonVisible[PB_SAMP_SCROLL_LEFT] = false;
+	widgets->pushButtonVisible[PB_SAMP_SCROLL_RIGHT] = false;
+	widgets->pushButtonVisible[PB_SAMP_PNOTE_UP] = false;
+	widgets->pushButtonVisible[PB_SAMP_PNOTE_DOWN] = false;
+	widgets->pushButtonVisible[PB_SAMP_STOP] = false;
+	widgets->pushButtonVisible[PB_SAMP_PWAVE] = false;
+	widgets->pushButtonVisible[PB_SAMP_PRANGE] = false;
+	widgets->pushButtonVisible[PB_SAMP_PDISPLAY] = false;
+	widgets->pushButtonVisible[PB_SAMP_SHOW_RANGE] = false;
+	widgets->pushButtonVisible[PB_SAMP_RANGE_ALL] = false;
+	widgets->pushButtonVisible[PB_SAMP_CLR_RANGE] = false;
+	widgets->pushButtonVisible[PB_SAMP_ZOOM_OUT] = false;
+	widgets->pushButtonVisible[PB_SAMP_SHOW_ALL] = false;
+	widgets->pushButtonVisible[PB_SAMP_SAVE_RNG] = false;
+	widgets->pushButtonVisible[PB_SAMP_CUT] = false;
+	widgets->pushButtonVisible[PB_SAMP_COPY] = false;
+	widgets->pushButtonVisible[PB_SAMP_PASTE] = false;
+	widgets->pushButtonVisible[PB_SAMP_CROP] = false;
+	widgets->pushButtonVisible[PB_SAMP_VOLUME] = false;
+	widgets->pushButtonVisible[PB_SAMP_EFFECTS] = false;
+	widgets->pushButtonVisible[PB_SAMP_EXIT] = false;
+	widgets->pushButtonVisible[PB_SAMP_CLEAR] = false;
+	widgets->pushButtonVisible[PB_SAMP_MIN] = false;
+	widgets->pushButtonVisible[PB_SAMP_REPEAT_UP] = false;
+	widgets->pushButtonVisible[PB_SAMP_REPEAT_DOWN] = false;
+	widgets->pushButtonVisible[PB_SAMP_REPLEN_UP] = false;
+	widgets->pushButtonVisible[PB_SAMP_REPLEN_DOWN] = false;
 
 	/* Hide radio button groups */
-	radioButtons[RB_SAMPLE_NO_LOOP].visible = false;
-	radioButtons[RB_SAMPLE_FWD_LOOP].visible = false;
-	radioButtons[RB_SAMPLE_BIDI_LOOP].visible = false;
-	radioButtons[RB_SAMPLE_8BIT].visible = false;
-	radioButtons[RB_SAMPLE_16BIT].visible = false;
+	widgets->radioButtonVisible[RB_SAMPLE_NO_LOOP] = false;
+	widgets->radioButtonVisible[RB_SAMPLE_FWD_LOOP] = false;
+	widgets->radioButtonVisible[RB_SAMPLE_BIDI_LOOP] = false;
+	widgets->radioButtonVisible[RB_SAMPLE_8BIT] = false;
+	widgets->radioButtonVisible[RB_SAMPLE_16BIT] = false;
 
 	/* Hide scrollbar */
-	scrollBars[SB_SAMP_SCROLL].visible = false;
+	widgets->scrollBarState[SB_SAMP_SCROLL].visible = false;
 
 	/* Also hide extended sample editor buttons */
-	hideSampleEditorExtButtons();
+	hideSampleEditorExtButtons(inst);
 	inst->uiState.sampleEditorExtShown = false;
 
 	/* Hide sample effects screen if open */
@@ -2392,18 +2441,23 @@ void drawSampleEditorExt(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp
 	textOutShadow(video, bmp, 245, 109, PAL_FORGRND, PAL_DSKTOP2, "smp.");
 
 	/* Show extended sample editor buttons */
-	pushButtons[PB_SAMP_EXT_CLEAR_COPYBUF].visible = true;
-	pushButtons[PB_SAMP_EXT_CONV].visible = true;
-	pushButtons[PB_SAMP_EXT_ECHO].visible = true;
-	pushButtons[PB_SAMP_EXT_BACKWARDS].visible = true;
-	pushButtons[PB_SAMP_EXT_CONV_W].visible = true;
-	pushButtons[PB_SAMP_EXT_MORPH].visible = true;
-	pushButtons[PB_SAMP_EXT_COPY_INS].visible = true;
-	pushButtons[PB_SAMP_EXT_COPY_SMP].visible = true;
-	pushButtons[PB_SAMP_EXT_XCHG_INS].visible = true;
-	pushButtons[PB_SAMP_EXT_XCHG_SMP].visible = true;
-	pushButtons[PB_SAMP_EXT_RESAMPLE].visible = true;
-	pushButtons[PB_SAMP_EXT_MIX_SAMPLE].visible = true;
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
+	if (ui != NULL)
+	{
+		ft2_widgets_t *widgets = &ui->widgets;
+		widgets->pushButtonVisible[PB_SAMP_EXT_CLEAR_COPYBUF] = true;
+		widgets->pushButtonVisible[PB_SAMP_EXT_CONV] = true;
+		widgets->pushButtonVisible[PB_SAMP_EXT_ECHO] = true;
+		widgets->pushButtonVisible[PB_SAMP_EXT_BACKWARDS] = true;
+		widgets->pushButtonVisible[PB_SAMP_EXT_CONV_W] = true;
+		widgets->pushButtonVisible[PB_SAMP_EXT_MORPH] = true;
+		widgets->pushButtonVisible[PB_SAMP_EXT_COPY_INS] = true;
+		widgets->pushButtonVisible[PB_SAMP_EXT_COPY_SMP] = true;
+		widgets->pushButtonVisible[PB_SAMP_EXT_XCHG_INS] = true;
+		widgets->pushButtonVisible[PB_SAMP_EXT_XCHG_SMP] = true;
+		widgets->pushButtonVisible[PB_SAMP_EXT_RESAMPLE] = true;
+		widgets->pushButtonVisible[PB_SAMP_EXT_MIX_SAMPLE] = true;
+	}
 
 	/* Draw range values - positions match standalone (35, 99, 99, 99) */
 	ft2_sample_editor_t *editor = ft2_sample_ed_get_current();
@@ -2429,20 +2483,25 @@ void drawSampleEditorExt(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp
 	hexOutBg(video, bmp, 274, 109, PAL_FORGRND, PAL_DESKTOP, inst->editor.curSmp, 2);
 }
 
-void hideSampleEditorExtButtons(void)
+void hideSampleEditorExtButtons(ft2_instance_t *inst)
 {
-	pushButtons[PB_SAMP_EXT_CLEAR_COPYBUF].visible = false;
-	pushButtons[PB_SAMP_EXT_CONV].visible = false;
-	pushButtons[PB_SAMP_EXT_ECHO].visible = false;
-	pushButtons[PB_SAMP_EXT_BACKWARDS].visible = false;
-	pushButtons[PB_SAMP_EXT_CONV_W].visible = false;
-	pushButtons[PB_SAMP_EXT_MORPH].visible = false;
-	pushButtons[PB_SAMP_EXT_COPY_INS].visible = false;
-	pushButtons[PB_SAMP_EXT_COPY_SMP].visible = false;
-	pushButtons[PB_SAMP_EXT_XCHG_INS].visible = false;
-	pushButtons[PB_SAMP_EXT_XCHG_SMP].visible = false;
-	pushButtons[PB_SAMP_EXT_RESAMPLE].visible = false;
-	pushButtons[PB_SAMP_EXT_MIX_SAMPLE].visible = false;
+	if (inst == NULL) return;
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
+	if (ui == NULL) return;
+	ft2_widgets_t *widgets = &ui->widgets;
+	
+	widgets->pushButtonVisible[PB_SAMP_EXT_CLEAR_COPYBUF] = false;
+	widgets->pushButtonVisible[PB_SAMP_EXT_CONV] = false;
+	widgets->pushButtonVisible[PB_SAMP_EXT_ECHO] = false;
+	widgets->pushButtonVisible[PB_SAMP_EXT_BACKWARDS] = false;
+	widgets->pushButtonVisible[PB_SAMP_EXT_CONV_W] = false;
+	widgets->pushButtonVisible[PB_SAMP_EXT_MORPH] = false;
+	widgets->pushButtonVisible[PB_SAMP_EXT_COPY_INS] = false;
+	widgets->pushButtonVisible[PB_SAMP_EXT_COPY_SMP] = false;
+	widgets->pushButtonVisible[PB_SAMP_EXT_XCHG_INS] = false;
+	widgets->pushButtonVisible[PB_SAMP_EXT_XCHG_SMP] = false;
+	widgets->pushButtonVisible[PB_SAMP_EXT_RESAMPLE] = false;
+	widgets->pushButtonVisible[PB_SAMP_EXT_MIX_SAMPLE] = false;
 }
 
 void showSampleEditorExt(ft2_instance_t *inst)
@@ -2466,13 +2525,13 @@ void hideSampleEditorExt(ft2_instance_t *inst)
 	inst->uiState.sampleEditorExtShown = false;
 
 	/* Hide extended sample editor buttons */
-	hideSampleEditorExtButtons();
+	hideSampleEditorExtButtons(inst);
 
 	/* Show scopes again and trigger framework redraw */
 	inst->uiState.scopesShown = true;
 
 	/* Trigger scope framework redraw to clear the extended panel area */
-	ft2_ui_t *ui = ft2_ui_get_current();
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 	if (ui != NULL)
 		ui->scopes.needsFrameworkRedraw = true;
 }
@@ -2613,7 +2672,7 @@ void clearSample(ft2_instance_t *inst)
 		return;
 
 	/* Show confirmation dialog */
-	ft2_ui_t *ui = ft2_ui_get_current();
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 	if (ui != NULL)
 	{
 		ft2_dialog_show_yesno_cb(&ui->dialog,
@@ -2659,7 +2718,7 @@ void clearInstr(ft2_instance_t *inst)
 		return;
 
 	/* Show confirmation dialog */
-	ft2_ui_t *ui = ft2_ui_get_current();
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 	if (ui != NULL)
 	{
 		ft2_dialog_show_yesno_cb(&ui->dialog,
@@ -3336,7 +3395,7 @@ void sampMinimize(ft2_instance_t *inst)
 	if (s == NULL || s->dataPtr == NULL || s->length <= 0)
 		return;
 
-	ft2_ui_t *ui = ft2_ui_get_current();
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 
 	/* Check for loop - matches standalone behavior */
 	uint8_t loopType = GET_LOOPTYPE(s->flags);

@@ -156,58 +156,66 @@ enum
 
 typedef void (*cbCallback_t)(struct ft2_instance_t *inst);
 
+/* Forward declaration */
+struct ft2_widgets_t;
+
+/**
+ * Checkbox definition (constant data).
+ * Runtime state (visible, checked, pressed) is stored in ft2_widgets_t.
+ */
 typedef struct checkBox_t
 {
 	uint16_t x, y;
 	uint16_t clickAreaWidth, clickAreaHeight;
 	cbCallback_t callbackFunc;
-
-	bool visible;
-	bool checked;
-	uint8_t state;
 } checkBox_t;
 
 extern checkBox_t checkBoxes[NUM_CHECKBOXES];
 
 /**
- * Initialize checkboxes array.
+ * Initialize checkboxes array (constant data only).
  */
 void initCheckBoxes(void);
 
 /**
- * Draw a checkbox.
+ * Draw a checkbox using per-instance state.
+ * @param widgets Per-instance widget state
  * @param video Video context
  * @param bmp Bitmap assets
  * @param checkBoxID Checkbox ID
  */
-void drawCheckBox(struct ft2_video_t *video, const struct ft2_bmp_t *bmp, uint16_t checkBoxID);
+void drawCheckBox(struct ft2_widgets_t *widgets, struct ft2_video_t *video, const struct ft2_bmp_t *bmp, uint16_t checkBoxID);
 
 /**
  * Show a checkbox.
+ * @param widgets Per-instance widget state
  * @param video Video context
  * @param bmp Bitmap assets
  * @param checkBoxID Checkbox ID
  */
-void showCheckBox(struct ft2_video_t *video, const struct ft2_bmp_t *bmp, uint16_t checkBoxID);
+void showCheckBox(struct ft2_widgets_t *widgets, struct ft2_video_t *video, const struct ft2_bmp_t *bmp, uint16_t checkBoxID);
 
 /**
  * Hide a checkbox.
+ * @param widgets Per-instance widget state
  * @param checkBoxID Checkbox ID
  */
-void hideCheckBox(uint16_t checkBoxID);
+void hideCheckBox(struct ft2_widgets_t *widgets, uint16_t checkBoxID);
 
 /**
  * Test if mouse click is on a checkbox.
+ * @param widgets Per-instance widget state
  * @param mouseX Mouse X coordinate
  * @param mouseY Mouse Y coordinate
  * @param sysReqShown Whether system request is shown
  * @return Checkbox ID if clicked, -1 otherwise
  */
-int16_t testCheckBoxMouseDown(int32_t mouseX, int32_t mouseY, bool sysReqShown);
+int16_t testCheckBoxMouseDown(struct ft2_widgets_t *widgets, int32_t mouseX, int32_t mouseY, bool sysReqShown);
 
 /**
  * Handle checkbox while mouse is held down.
  * Shows PRESSED state when mouse is over the checkbox, UNPRESSED when moved away.
+ * @param widgets Per-instance widget state
  * @param video Video context
  * @param bmp Bitmap assets
  * @param mouseX Mouse X coordinate
@@ -216,11 +224,12 @@ int16_t testCheckBoxMouseDown(int32_t mouseX, int32_t mouseY, bool sysReqShown);
  * @param lastMouseY Last mouse Y coordinate (for change detection)
  * @param lastCheckBoxID Checkbox that was pressed
  */
-void handleCheckBoxesWhileMouseDown(struct ft2_video_t *video, const struct ft2_bmp_t *bmp,
+void handleCheckBoxesWhileMouseDown(struct ft2_widgets_t *widgets, struct ft2_video_t *video, const struct ft2_bmp_t *bmp,
 	int32_t mouseX, int32_t mouseY, int32_t lastMouseX, int32_t lastMouseY, int16_t lastCheckBoxID);
 
 /**
  * Handle checkbox mouse release.
+ * @param widgets Per-instance widget state
  * @param inst FT2 instance
  * @param video Video context
  * @param bmp Bitmap assets
@@ -228,6 +237,6 @@ void handleCheckBoxesWhileMouseDown(struct ft2_video_t *video, const struct ft2_
  * @param mouseY Mouse Y coordinate
  * @param lastCheckBoxID Last checkbox that was pressed
  */
-void testCheckBoxMouseRelease(struct ft2_instance_t *inst, struct ft2_video_t *video,
+void testCheckBoxMouseRelease(struct ft2_widgets_t *widgets, struct ft2_instance_t *inst, struct ft2_video_t *video,
 	const struct ft2_bmp_t *bmp, int32_t mouseX, int32_t mouseY, int16_t lastCheckBoxID);
 

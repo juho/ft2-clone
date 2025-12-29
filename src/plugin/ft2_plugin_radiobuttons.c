@@ -3,12 +3,14 @@
  * @brief Radio button implementation for the FT2 plugin UI.
  * 
  * Ported from ft2_radiobuttons.c - exact coordinates preserved.
+ * Modified for multi-instance support: visibility/state stored per-instance.
  */
 
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include "ft2_plugin_radiobuttons.h"
+#include "ft2_plugin_widgets.h"
 #include "ft2_plugin_video.h"
 #include "ft2_plugin_bmp.h"
 #include "ft2_plugin_config.h"
@@ -203,11 +205,7 @@ radioButton_t radioButtons[NUM_RADIOBUTTONS] =
 
 void initRadioButtons(void)
 {
-	for (int i = 0; i < NUM_RADIOBUTTONS; i++)
-	{
-		radioButtons[i].visible = false;
-		radioButtons[i].state = RADIOBUTTON_UNCHECKED;
-	}
+	/* Initialize callbacks only (visibility/state now per-instance in ft2_widgets_t) */
 
 	/* Wire up config screen tab callbacks */
 	radioButtons[RB_CONFIG_AUDIO].callbackFunc = rbConfigAudio;
@@ -271,14 +269,16 @@ void initRadioButtons(void)
 	radioButtons[RB_CONFIG_PAL_USER].callbackFunc = rbConfigPalUserDefined;
 }
 
-void drawRadioButton(struct ft2_video_t *video, const struct ft2_bmp_t *bmp, uint16_t radioButtonID)
+void drawRadioButton(struct ft2_widgets_t *widgets, struct ft2_video_t *video, const struct ft2_bmp_t *bmp, uint16_t radioButtonID)
 {
-	if (radioButtonID >= NUM_RADIOBUTTONS)
+	if (widgets == NULL || radioButtonID >= NUM_RADIOBUTTONS)
+		return;
+
+	if (!widgets->radioButtonVisible[radioButtonID])
 		return;
 
 	radioButton_t *rb = &radioButtons[radioButtonID];
-	if (!rb->visible)
-		return;
+	uint8_t state = widgets->radioButtonState[radioButtonID];
 
 	if (bmp == NULL || bmp->radiobuttonGfx == NULL)
 	{
@@ -291,7 +291,7 @@ void drawRadioButton(struct ft2_video_t *video, const struct ft2_bmp_t *bmp, uin
 		vLine(video, rb->x, rb->y + 2, RADIOBUTTON_H - 4, PAL_BUTTON2);
 		vLine(video, rb->x + RADIOBUTTON_W - 1, rb->y + 2, RADIOBUTTON_H - 4, PAL_BUTTON1);
 
-		if (rb->state == RADIOBUTTON_CHECKED)
+		if (state == RADIOBUTTON_CHECKED)
 		{
 			/* Draw dot in center */
 			fillRect(video, rb->x + 3, rb->y + 3, 5, 5, PAL_FORGRND);
@@ -300,53 +300,31 @@ void drawRadioButton(struct ft2_video_t *video, const struct ft2_bmp_t *bmp, uin
 	}
 
 	/* Use bitmap graphics */
-	const uint8_t *gfxPtr = &bmp->radiobuttonGfx[rb->state * (RADIOBUTTON_W * RADIOBUTTON_H)];
+	const uint8_t *gfxPtr = &bmp->radiobuttonGfx[state * (RADIOBUTTON_W * RADIOBUTTON_H)];
 	blitFast(video, rb->x, rb->y, gfxPtr, RADIOBUTTON_W, RADIOBUTTON_H);
 }
 
-void showRadioButton(struct ft2_video_t *video, const struct ft2_bmp_t *bmp, uint16_t radioButtonID)
+void showRadioButton(struct ft2_widgets_t *widgets, struct ft2_video_t *video, const struct ft2_bmp_t *bmp, uint16_t radioButtonID)
 {
-	if (radioButtonID >= NUM_RADIOBUTTONS)
+	if (widgets == NULL || radioButtonID >= NUM_RADIOBUTTONS)
 		return;
 
-	radioButtons[radioButtonID].visible = true;
-	drawRadioButton(video, bmp, radioButtonID);
+	widgets->radioButtonVisible[radioButtonID] = true;
+	drawRadioButton(widgets, video, bmp, radioButtonID);
 }
 
-void hideRadioButton(uint16_t radioButtonID)
+void hideRadioButton(struct ft2_widgets_t *widgets, uint16_t radioButtonID)
 {
-	if (radioButtonID >= NUM_RADIOBUTTONS)
+	if (widgets == NULL || radioButtonID >= NUM_RADIOBUTTONS)
 		return;
 
-	radioButtons[radioButtonID].state = RADIOBUTTON_UNCHECKED;
-	radioButtons[radioButtonID].visible = false;
+	widgets->radioButtonState[radioButtonID] = RADIOBUTTON_UNCHECKED;
+	widgets->radioButtonVisible[radioButtonID] = false;
 }
 
-void checkRadioButton(struct ft2_video_t *video, const struct ft2_bmp_t *bmp, uint16_t radioButtonID)
+void checkRadioButton(struct ft2_widgets_t *widgets, struct ft2_video_t *video, const struct ft2_bmp_t *bmp, uint16_t radioButtonID)
 {
-	if (radioButtonID >= NUM_RADIOBUTTONS)
-		return;
-
-	uint16_t group = radioButtons[radioButtonID].group;
-
-	/* Uncheck all in same group */
-	for (int i = 0; i < NUM_RADIOBUTTONS; i++)
-	{
-		if (radioButtons[i].group == group && radioButtons[i].state == RADIOBUTTON_CHECKED)
-		{
-			radioButtons[i].state = RADIOBUTTON_UNCHECKED;
-			drawRadioButton(video, bmp, i);
-			break;
-		}
-	}
-
-	radioButtons[radioButtonID].state = RADIOBUTTON_CHECKED;
-	drawRadioButton(video, bmp, radioButtonID);
-}
-
-void checkRadioButtonNoRedraw(uint16_t radioButtonID)
-{
-	if (radioButtonID >= NUM_RADIOBUTTONS)
+	if (widgets == NULL || radioButtonID >= NUM_RADIOBUTTONS)
 		return;
 
 	uint16_t group = radioButtons[radioButtonID].group;
@@ -354,77 +332,109 @@ void checkRadioButtonNoRedraw(uint16_t radioButtonID)
 	/* Uncheck all in same group */
 	for (int i = 0; i < NUM_RADIOBUTTONS; i++)
 	{
-		if (radioButtons[i].group == group && radioButtons[i].state == RADIOBUTTON_CHECKED)
+		if (radioButtons[i].group == group && widgets->radioButtonState[i] == RADIOBUTTON_CHECKED)
 		{
-			radioButtons[i].state = RADIOBUTTON_UNCHECKED;
+			widgets->radioButtonState[i] = RADIOBUTTON_UNCHECKED;
+			drawRadioButton(widgets, video, bmp, i);
 			break;
 		}
 	}
 
-	radioButtons[radioButtonID].state = RADIOBUTTON_CHECKED;
+	widgets->radioButtonState[radioButtonID] = RADIOBUTTON_CHECKED;
+	drawRadioButton(widgets, video, bmp, radioButtonID);
 }
 
-void uncheckRadioButtonGroup(uint16_t group)
+void checkRadioButtonNoRedraw(struct ft2_widgets_t *widgets, uint16_t radioButtonID)
 {
+	if (widgets == NULL || radioButtonID >= NUM_RADIOBUTTONS)
+		return;
+
+	uint16_t group = radioButtons[radioButtonID].group;
+
+	/* Uncheck all in same group */
+	for (int i = 0; i < NUM_RADIOBUTTONS; i++)
+	{
+		if (radioButtons[i].group == group && widgets->radioButtonState[i] == RADIOBUTTON_CHECKED)
+		{
+			widgets->radioButtonState[i] = RADIOBUTTON_UNCHECKED;
+			break;
+		}
+	}
+
+	widgets->radioButtonState[radioButtonID] = RADIOBUTTON_CHECKED;
+}
+
+void uncheckRadioButtonGroup(struct ft2_widgets_t *widgets, uint16_t group)
+{
+	if (widgets == NULL)
+		return;
+
 	for (int i = 0; i < NUM_RADIOBUTTONS; i++)
 	{
 		if (radioButtons[i].group == group)
-			radioButtons[i].state = RADIOBUTTON_UNCHECKED;
+			widgets->radioButtonState[i] = RADIOBUTTON_UNCHECKED;
 	}
 }
 
-void showRadioButtonGroup(struct ft2_video_t *video, const struct ft2_bmp_t *bmp, uint16_t group)
+void showRadioButtonGroup(struct ft2_widgets_t *widgets, struct ft2_video_t *video, const struct ft2_bmp_t *bmp, uint16_t group)
 {
+	if (widgets == NULL)
+		return;
+
 	for (int i = 0; i < NUM_RADIOBUTTONS; i++)
 	{
 		if (radioButtons[i].group == group)
-			showRadioButton(video, bmp, i);
+			showRadioButton(widgets, video, bmp, i);
 	}
 }
 
-void hideRadioButtonGroup(uint16_t group)
+void hideRadioButtonGroup(struct ft2_widgets_t *widgets, uint16_t group)
 {
+	if (widgets == NULL)
+		return;
+
 	for (int i = 0; i < NUM_RADIOBUTTONS; i++)
 	{
 		if (radioButtons[i].group == group)
-			hideRadioButton(i);
+			hideRadioButton(widgets, i);
 	}
 }
 
-void handleRadioButtonsWhileMouseDown(ft2_video_t *video, const ft2_bmp_t *bmp,
+void handleRadioButtonsWhileMouseDown(struct ft2_widgets_t *widgets, ft2_video_t *video, const ft2_bmp_t *bmp,
 	int32_t mouseX, int32_t mouseY, int32_t lastMouseX, int32_t lastMouseY, int16_t lastRadioButtonID)
 {
-	if (lastRadioButtonID < 0 || lastRadioButtonID >= NUM_RADIOBUTTONS)
+	if (widgets == NULL || lastRadioButtonID < 0 || lastRadioButtonID >= NUM_RADIOBUTTONS)
+		return;
+
+	if (!widgets->radioButtonVisible[lastRadioButtonID] || widgets->radioButtonState[lastRadioButtonID] == RADIOBUTTON_CHECKED)
 		return;
 
 	radioButton_t *rb = &radioButtons[lastRadioButtonID];
-	if (!rb->visible || rb->state == RADIOBUTTON_CHECKED)
-		return;
 
-	rb->state = RADIOBUTTON_UNCHECKED;
+	widgets->radioButtonState[lastRadioButtonID] = RADIOBUTTON_UNCHECKED;
 	if (mouseX >= rb->x && mouseX < rb->x + rb->clickAreaWidth &&
 	    mouseY >= rb->y && mouseY < rb->y + RADIOBUTTON_H + 1)
 	{
-		rb->state = RADIOBUTTON_PRESSED;
+		widgets->radioButtonState[lastRadioButtonID] = RADIOBUTTON_PRESSED;
 	}
 
 	if (lastMouseX != mouseX || lastMouseY != mouseY)
 	{
-		drawRadioButton(video, bmp, lastRadioButtonID);
+		drawRadioButton(widgets, video, bmp, lastRadioButtonID);
 	}
 }
 
-int16_t testRadioButtonMouseDown(int32_t mouseX, int32_t mouseY, bool sysReqShown)
+int16_t testRadioButtonMouseDown(struct ft2_widgets_t *widgets, int32_t mouseX, int32_t mouseY, bool sysReqShown)
 {
-	if (sysReqShown)
+	if (widgets == NULL || sysReqShown)
 		return -1;
 
 	for (int i = 0; i < NUM_RADIOBUTTONS; i++)
 	{
-		radioButton_t *rb = &radioButtons[i];
-		if (!rb->visible || rb->state == RADIOBUTTON_CHECKED)
+		if (!widgets->radioButtonVisible[i] || widgets->radioButtonState[i] == RADIOBUTTON_CHECKED)
 			continue;
 
+		radioButton_t *rb = &radioButtons[i];
 		if (mouseX >= rb->x && mouseX < rb->x + rb->clickAreaWidth &&
 		    mouseY >= rb->y && mouseY < rb->y + RADIOBUTTON_H + 1)
 		{
@@ -435,15 +445,16 @@ int16_t testRadioButtonMouseDown(int32_t mouseX, int32_t mouseY, bool sysReqShow
 	return -1;
 }
 
-void testRadioButtonMouseRelease(struct ft2_instance_t *inst, struct ft2_video_t *video, const struct ft2_bmp_t *bmp,
+void testRadioButtonMouseRelease(struct ft2_widgets_t *widgets, struct ft2_instance_t *inst, struct ft2_video_t *video, const struct ft2_bmp_t *bmp,
 	int32_t mouseX, int32_t mouseY, int16_t lastRadioButtonID)
 {
-	if (lastRadioButtonID < 0 || lastRadioButtonID >= NUM_RADIOBUTTONS)
+	if (widgets == NULL || lastRadioButtonID < 0 || lastRadioButtonID >= NUM_RADIOBUTTONS)
+		return;
+
+	if (!widgets->radioButtonVisible[lastRadioButtonID] || widgets->radioButtonState[lastRadioButtonID] == RADIOBUTTON_CHECKED)
 		return;
 
 	radioButton_t *rb = &radioButtons[lastRadioButtonID];
-	if (!rb->visible || rb->state == RADIOBUTTON_CHECKED)
-		return;
 
 	if (mouseX >= rb->x && mouseX < rb->x + rb->clickAreaWidth &&
 	    mouseY >= rb->y && mouseY < rb->y + RADIOBUTTON_H + 1)
@@ -451,7 +462,7 @@ void testRadioButtonMouseRelease(struct ft2_instance_t *inst, struct ft2_video_t
 		if (rb->callbackFunc != NULL)
 			rb->callbackFunc(inst);
 		else
-			checkRadioButton(video, bmp, lastRadioButtonID);
+			checkRadioButton(widgets, video, bmp, lastRadioButtonID);
 	}
 }
 

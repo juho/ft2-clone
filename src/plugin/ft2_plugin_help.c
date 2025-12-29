@@ -19,6 +19,7 @@
 #include "ft2_plugin_radiobuttons.h"
 #include "ft2_plugin_scrollbars.h"
 #include "ft2_plugin_gui.h"
+#include "ft2_plugin_ui.h"
 #include "ft2_instance.h"
 #include "../helpdata/ft2_help_data.h"
 
@@ -368,6 +369,11 @@ void drawHelpScreen(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t *b
 	if (inst == NULL || video == NULL)
 		return;
 
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
+	if (ui == NULL)
+		return;
+	ft2_widgets_t *widgets = &ui->widgets;
+
 	if (!helpInitialized)
 		initFTHelp();
 
@@ -377,9 +383,9 @@ void drawHelpScreen(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t *b
 	drawFramework(video, 130, 2, 479, 169, FRAMEWORK_TYPE2);
 
 	/* Show push buttons */
-	showPushButton(video, bmp, PB_HELP_EXIT);
-	showPushButton(video, bmp, PB_HELP_SCROLL_UP);
-	showPushButton(video, bmp, PB_HELP_SCROLL_DOWN);
+	showPushButton(widgets, video, bmp, PB_HELP_EXIT);
+	showPushButton(widgets, video, bmp, PB_HELP_SCROLL_UP);
+	showPushButton(widgets, video, bmp, PB_HELP_SCROLL_DOWN);
 
 	/* Set up radio buttons for current subject */
 	switch (fHlp_Num)
@@ -392,14 +398,14 @@ void drawHelpScreen(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t *b
 		case 4: tmpID = RB_HELP_FAQ;         break;
 		case 5: tmpID = RB_HELP_BUGS;        break;
 	}
-	radioButtons[tmpID].state = RADIOBUTTON_CHECKED;
+	widgets->radioButtonState[tmpID] = RADIOBUTTON_CHECKED;
 
-	showRadioButtonGroup(video, bmp, RB_GROUP_HELP);
+	showRadioButtonGroup(widgets, video, bmp, RB_GROUP_HELP);
 
 	/* Set scrollbar range and show it */
-	setScrollBarEnd(inst, video, SB_HELP_SCROLL, subjLen[fHlp_Num]);
-	setScrollBarPos(inst, video, SB_HELP_SCROLL, fHlp_Line, false);
-	showScrollBar(video, SB_HELP_SCROLL);
+	setScrollBarEnd(inst, widgets, video, SB_HELP_SCROLL, subjLen[fHlp_Num]);
+	setScrollBarPos(inst, widgets, video, SB_HELP_SCROLL, fHlp_Line, false);
+	showScrollBar(widgets, video, SB_HELP_SCROLL);
 
 	/* Draw subject labels - exact match to standalone */
 	textOutShadow(video, bmp, 4,   4, PAL_FORGRND, PAL_DSKTOP2, "Subjects:");
@@ -417,18 +423,28 @@ void drawHelpScreen(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t *b
 
 void helpScrollUp(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t *bmp)
 {
+	if (inst == NULL)
+		return;
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
+	ft2_widgets_t *widgets = (ui != NULL) ? &ui->widgets : NULL;
+	
 	if (fHlp_Line > 0)
 	{
-		scrollBarScrollUp(inst, video, SB_HELP_SCROLL, 1);
+		scrollBarScrollUp(inst, widgets, video, SB_HELP_SCROLL, 1);
 		writeHelp(video, bmp);
 	}
 }
 
 void helpScrollDown(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t *bmp)
 {
+	if (inst == NULL)
+		return;
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
+	ft2_widgets_t *widgets = (ui != NULL) ? &ui->widgets : NULL;
+	
 	if (fHlp_Line < subjLen[fHlp_Num]-1)
 	{
-		scrollBarScrollDown(inst, video, SB_HELP_SCROLL, 1);
+		scrollBarScrollDown(inst, widgets, video, SB_HELP_SCROLL, 1);
 		writeHelp(video, bmp);
 	}
 }
@@ -452,6 +468,11 @@ void showHelpScreen(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t *b
 	if (inst == NULL || video == NULL)
 		return;
 
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
+	if (ui == NULL)
+		return;
+	ft2_widgets_t *widgets = &ui->widgets;
+
 	if (!helpInitialized)
 		initFTHelp();
 
@@ -465,12 +486,12 @@ void showHelpScreen(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t *b
 	drawFramework(video, 130, 2, 479, 169, FRAMEWORK_TYPE2);
 
 	/* Show push buttons */
-	showPushButton(video, bmp, PB_HELP_EXIT);
-	showPushButton(video, bmp, PB_HELP_SCROLL_UP);
-	showPushButton(video, bmp, PB_HELP_SCROLL_DOWN);
+	showPushButton(widgets, video, bmp, PB_HELP_EXIT);
+	showPushButton(widgets, video, bmp, PB_HELP_SCROLL_UP);
+	showPushButton(widgets, video, bmp, PB_HELP_SCROLL_DOWN);
 
 	/* Set up radio buttons for current subject */
-	uncheckRadioButtonGroup(RB_GROUP_HELP);
+	uncheckRadioButtonGroup(widgets, RB_GROUP_HELP);
 	switch (fHlp_Num)
 	{
 		default:
@@ -481,14 +502,14 @@ void showHelpScreen(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t *b
 		case 4: tmpID = RB_HELP_FAQ;         break;
 		case 5: tmpID = RB_HELP_BUGS;        break;
 	}
-	radioButtons[tmpID].state = RADIOBUTTON_CHECKED;
+	widgets->radioButtonState[tmpID] = RADIOBUTTON_CHECKED;
 
-	showRadioButtonGroup(video, bmp, RB_GROUP_HELP);
+	showRadioButtonGroup(widgets, video, bmp, RB_GROUP_HELP);
 
 	/* Set scrollbar range for current subject and show it */
-	setScrollBarEnd(inst, video, SB_HELP_SCROLL, subjLen[fHlp_Num]);
-	setScrollBarPos(inst, video, SB_HELP_SCROLL, fHlp_Line, false);
-	showScrollBar(video, SB_HELP_SCROLL);
+	setScrollBarEnd(inst, widgets, video, SB_HELP_SCROLL, subjLen[fHlp_Num]);
+	setScrollBarPos(inst, widgets, video, SB_HELP_SCROLL, fHlp_Line, false);
+	showScrollBar(widgets, video, SB_HELP_SCROLL);
 
 	/* Draw subject labels - exact match to standalone */
 	textOutShadow(video, bmp, 4,   4, PAL_FORGRND, PAL_DSKTOP2, "Subjects:");
@@ -507,12 +528,17 @@ void hideHelpScreen(ft2_instance_t *inst)
 	if (inst == NULL)
 		return;
 
-	hidePushButton(PB_HELP_EXIT);
-	hidePushButton(PB_HELP_SCROLL_UP);
-	hidePushButton(PB_HELP_SCROLL_DOWN);
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
+	if (ui == NULL)
+		return;
+	ft2_widgets_t *widgets = &ui->widgets;
 
-	hideRadioButtonGroup(RB_GROUP_HELP);
-	hideScrollBar(SB_HELP_SCROLL);
+	hidePushButton(widgets, PB_HELP_EXIT);
+	hidePushButton(widgets, PB_HELP_SCROLL_UP);
+	hidePushButton(widgets, PB_HELP_SCROLL_DOWN);
+
+	hideRadioButtonGroup(widgets, RB_GROUP_HELP);
+	hideScrollBar(widgets, SB_HELP_SCROLL);
 
 	inst->uiState.helpScreenShown = false;
 }
@@ -529,54 +555,72 @@ void exitHelpScreen(ft2_instance_t *inst)
 
 /* ============ SUBJECT SELECTION ============ */
 
-static void setHelpSubject(ft2_instance_t *inst, ft2_video_t *video, uint8_t Nr)
+static void setHelpSubject(ft2_instance_t *inst, ft2_widgets_t *widgets, ft2_video_t *video, uint8_t Nr)
 {
 	fHlp_Num = Nr;
 	fHlp_Line = 0;
 
-	setScrollBarEnd(inst, video, SB_HELP_SCROLL, subjLen[fHlp_Num]);
-	setScrollBarPos(inst, video, SB_HELP_SCROLL, 0, false);
+	setScrollBarEnd(inst, widgets, video, SB_HELP_SCROLL, subjLen[fHlp_Num]);
+	setScrollBarPos(inst, widgets, video, SB_HELP_SCROLL, 0, false);
 }
 
 void rbHelpFeatures(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t *bmp)
 {
-	checkRadioButton(video, bmp, RB_HELP_FEATURES);
-	setHelpSubject(inst, video, 0);
+	if (inst == NULL) return;
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
+	ft2_widgets_t *widgets = (ui != NULL) ? &ui->widgets : NULL;
+	checkRadioButton(widgets, video, bmp, RB_HELP_FEATURES);
+	setHelpSubject(inst, widgets, video, 0);
 	writeHelp(video, bmp);
 }
 
 void rbHelpEffects(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t *bmp)
-	{
-	checkRadioButton(video, bmp, RB_HELP_EFFECTS);
-	setHelpSubject(inst, video, 1);
+{
+	if (inst == NULL) return;
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
+	ft2_widgets_t *widgets = (ui != NULL) ? &ui->widgets : NULL;
+	checkRadioButton(widgets, video, bmp, RB_HELP_EFFECTS);
+	setHelpSubject(inst, widgets, video, 1);
 	writeHelp(video, bmp);
-	}
+}
 
 void rbHelpKeybindings(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t *bmp)
 {
-	checkRadioButton(video, bmp, RB_HELP_KEYBINDINGS);
-	setHelpSubject(inst, video, 2);
+	if (inst == NULL) return;
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
+	ft2_widgets_t *widgets = (ui != NULL) ? &ui->widgets : NULL;
+	checkRadioButton(widgets, video, bmp, RB_HELP_KEYBINDINGS);
+	setHelpSubject(inst, widgets, video, 2);
 	writeHelp(video, bmp);
 }
 
 void rbHelpHowToUseFT2(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t *bmp)
 {
-	checkRadioButton(video, bmp, RB_HELP_HOWTO);
-	setHelpSubject(inst, video, 3);
+	if (inst == NULL) return;
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
+	ft2_widgets_t *widgets = (ui != NULL) ? &ui->widgets : NULL;
+	checkRadioButton(widgets, video, bmp, RB_HELP_HOWTO);
+	setHelpSubject(inst, widgets, video, 3);
 	writeHelp(video, bmp);
 }
 
 void rbHelpFAQ(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t *bmp)
 {
-	checkRadioButton(video, bmp, RB_HELP_FAQ);
-	setHelpSubject(inst, video, 4);
+	if (inst == NULL) return;
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
+	ft2_widgets_t *widgets = (ui != NULL) ? &ui->widgets : NULL;
+	checkRadioButton(widgets, video, bmp, RB_HELP_FAQ);
+	setHelpSubject(inst, widgets, video, 4);
 	writeHelp(video, bmp);
 }
 
 void rbHelpKnownBugs(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t *bmp)
 {
-	checkRadioButton(video, bmp, RB_HELP_BUGS);
-	setHelpSubject(inst, video, 5);
+	if (inst == NULL) return;
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
+	ft2_widgets_t *widgets = (ui != NULL) ? &ui->widgets : NULL;
+	checkRadioButton(widgets, video, bmp, RB_HELP_BUGS);
+	setHelpSubject(inst, widgets, video, 5);
 	writeHelp(video, bmp);
 }
 

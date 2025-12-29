@@ -23,6 +23,7 @@
 #include "ft2_plugin_replayer.h"
 #include "ft2_plugin_pattern_ed.h"
 #include "ft2_plugin_sample_ed.h"
+#include "ft2_plugin_ui.h"
 #include "ft2_instance.h"
 
 /* Forward declarations */
@@ -759,6 +760,9 @@ void updateInstEditor(ft2_instrument_editor_t *editor, const ft2_bmp_t *bmp)
 
 	ft2_video_t *video = editor->video;
 	ft2_instance_t *inst = editor->instance;
+	ft2_widgets_t *widgets = (inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets == NULL)
+		return;
 
 	/* Get current instrument and sample */
 	ft2_instr_t *ins = NULL;
@@ -959,20 +963,20 @@ void updateInstEditor(ft2_instrument_editor_t *editor, const ft2_bmp_t *bmp)
 	/* Update scrollbar positions */
 	if (s != NULL)
 	{
-		setScrollBarPos(inst, video, SB_INST_VOL, s->volume, false);
-		setScrollBarPos(inst, video, SB_INST_PAN, s->panning, false);
-		setScrollBarPos(inst, video, SB_INST_FTUNE, 128 + s->finetune, false);
+		setScrollBarPos(inst, widgets, video, SB_INST_VOL, s->volume, false);
+		setScrollBarPos(inst, widgets, video, SB_INST_PAN, s->panning, false);
+		setScrollBarPos(inst, widgets, video, SB_INST_FTUNE, 128 + s->finetune, false);
 	}
 
 	if (ins != NULL)
 	{
-		setScrollBarPos(inst, video, SB_INST_FADEOUT, ins->fadeout, false);
-		setScrollBarPos(inst, video, SB_INST_VIBSPEED, ins->autoVibRate, false);
-		setScrollBarPos(inst, video, SB_INST_VIBDEPTH, ins->autoVibDepth, false);
-		setScrollBarPos(inst, video, SB_INST_VIBSWEEP, ins->autoVibSweep, false);
+		setScrollBarPos(inst, widgets, video, SB_INST_FADEOUT, ins->fadeout, false);
+		setScrollBarPos(inst, widgets, video, SB_INST_VIBSPEED, ins->autoVibRate, false);
+		setScrollBarPos(inst, widgets, video, SB_INST_VIBDEPTH, ins->autoVibDepth, false);
+		setScrollBarPos(inst, widgets, video, SB_INST_VIBSWEEP, ins->autoVibSweep, false);
 
 		/* Update radio buttons for vibrato type */
-		uncheckRadioButtonGroup(RB_GROUP_INST_WAVEFORM);
+		uncheckRadioButtonGroup(widgets, RB_GROUP_INST_WAVEFORM);
 		uint16_t rbID;
 		switch (ins->autoVibType)
 		{
@@ -982,15 +986,15 @@ void updateInstEditor(ft2_instrument_editor_t *editor, const ft2_bmp_t *bmp)
 			case 2: rbID = RB_INST_WAVE_RAMPDN; break;
 			case 3: rbID = RB_INST_WAVE_RAMPUP; break;
 		}
-		radioButtons[rbID].state = RADIOBUTTON_CHECKED;
+		widgets->radioButtonState[rbID] = RADIOBUTTON_CHECKED;
 
 		/* Update checkboxes for envelope enable */
-		checkBoxes[CB_INST_VENV].checked = (ins->volEnvFlags & ENV_ENABLED) ? true : false;
-		checkBoxes[CB_INST_VENV_SUS].checked = (ins->volEnvFlags & ENV_SUSTAIN) ? true : false;
-		checkBoxes[CB_INST_VENV_LOOP].checked = (ins->volEnvFlags & ENV_LOOP) ? true : false;
-		checkBoxes[CB_INST_PENV].checked = (ins->panEnvFlags & ENV_ENABLED) ? true : false;
-		checkBoxes[CB_INST_PENV_SUS].checked = (ins->panEnvFlags & ENV_SUSTAIN) ? true : false;
-		checkBoxes[CB_INST_PENV_LOOP].checked = (ins->panEnvFlags & ENV_LOOP) ? true : false;
+		widgets->checkBoxChecked[CB_INST_VENV] = (ins->volEnvFlags & ENV_ENABLED) ? true : false;
+		widgets->checkBoxChecked[CB_INST_VENV_SUS] = (ins->volEnvFlags & ENV_SUSTAIN) ? true : false;
+		widgets->checkBoxChecked[CB_INST_VENV_LOOP] = (ins->volEnvFlags & ENV_LOOP) ? true : false;
+		widgets->checkBoxChecked[CB_INST_PENV] = (ins->panEnvFlags & ENV_ENABLED) ? true : false;
+		widgets->checkBoxChecked[CB_INST_PENV_SUS] = (ins->panEnvFlags & ENV_SUSTAIN) ? true : false;
+		widgets->checkBoxChecked[CB_INST_PENV_LOOP] = (ins->panEnvFlags & ENV_LOOP) ? true : false;
 	}
 }
 
@@ -1606,8 +1610,10 @@ void ft2_instr_ed_clear(ft2_instrument_editor_t *editor)
 
 void showInstEditor(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t *bmp)
 {
-	if (inst == NULL)
+	if (inst == NULL || inst->ui == NULL)
 		return;
+
+	ft2_widgets_t *widgets = &((ft2_ui_t *)inst->ui)->widgets;
 
 	/* Hide other bottom screens (matching standalone) */
 	if (inst->uiState.extendedPatternEditor)
@@ -1628,172 +1634,173 @@ void showInstEditor(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t *b
 	inst->uiState.instEditorShown = true;
 
 	/* Show scrollbars */
-	showScrollBar(video, SB_INST_VOL);
-	showScrollBar(video, SB_INST_PAN);
-	showScrollBar(video, SB_INST_FTUNE);
-	showScrollBar(video, SB_INST_FADEOUT);
-	showScrollBar(video, SB_INST_VIBSPEED);
-	showScrollBar(video, SB_INST_VIBDEPTH);
-	showScrollBar(video, SB_INST_VIBSWEEP);
+	showScrollBar(widgets, video, SB_INST_VOL);
+	showScrollBar(widgets, video, SB_INST_PAN);
+	showScrollBar(widgets, video, SB_INST_FTUNE);
+	showScrollBar(widgets, video, SB_INST_FADEOUT);
+	showScrollBar(widgets, video, SB_INST_VIBSPEED);
+	showScrollBar(widgets, video, SB_INST_VIBDEPTH);
+	showScrollBar(widgets, video, SB_INST_VIBSWEEP);
 
 	/* Show predef buttons (volume) */
-	showPushButton(video, bmp, PB_INST_VDEF1);
-	showPushButton(video, bmp, PB_INST_VDEF2);
-	showPushButton(video, bmp, PB_INST_VDEF3);
-	showPushButton(video, bmp, PB_INST_VDEF4);
-	showPushButton(video, bmp, PB_INST_VDEF5);
-	showPushButton(video, bmp, PB_INST_VDEF6);
+	showPushButton(widgets, video, bmp, PB_INST_VDEF1);
+	showPushButton(widgets, video, bmp, PB_INST_VDEF2);
+	showPushButton(widgets, video, bmp, PB_INST_VDEF3);
+	showPushButton(widgets, video, bmp, PB_INST_VDEF4);
+	showPushButton(widgets, video, bmp, PB_INST_VDEF5);
+	showPushButton(widgets, video, bmp, PB_INST_VDEF6);
 
 	/* Show predef buttons (panning) */
-	showPushButton(video, bmp, PB_INST_PDEF1);
-	showPushButton(video, bmp, PB_INST_PDEF2);
-	showPushButton(video, bmp, PB_INST_PDEF3);
-	showPushButton(video, bmp, PB_INST_PDEF4);
-	showPushButton(video, bmp, PB_INST_PDEF5);
-	showPushButton(video, bmp, PB_INST_PDEF6);
+	showPushButton(widgets, video, bmp, PB_INST_PDEF1);
+	showPushButton(widgets, video, bmp, PB_INST_PDEF2);
+	showPushButton(widgets, video, bmp, PB_INST_PDEF3);
+	showPushButton(widgets, video, bmp, PB_INST_PDEF4);
+	showPushButton(widgets, video, bmp, PB_INST_PDEF5);
+	showPushButton(widgets, video, bmp, PB_INST_PDEF6);
 
 	/* Show volume envelope buttons */
-	showPushButton(video, bmp, PB_INST_VP_ADD);
-	showPushButton(video, bmp, PB_INST_VP_DEL);
-	showPushButton(video, bmp, PB_INST_VS_UP);
-	showPushButton(video, bmp, PB_INST_VS_DOWN);
-	showPushButton(video, bmp, PB_INST_VREPS_UP);
-	showPushButton(video, bmp, PB_INST_VREPS_DOWN);
-	showPushButton(video, bmp, PB_INST_VREPE_UP);
-	showPushButton(video, bmp, PB_INST_VREPE_DOWN);
+	showPushButton(widgets, video, bmp, PB_INST_VP_ADD);
+	showPushButton(widgets, video, bmp, PB_INST_VP_DEL);
+	showPushButton(widgets, video, bmp, PB_INST_VS_UP);
+	showPushButton(widgets, video, bmp, PB_INST_VS_DOWN);
+	showPushButton(widgets, video, bmp, PB_INST_VREPS_UP);
+	showPushButton(widgets, video, bmp, PB_INST_VREPS_DOWN);
+	showPushButton(widgets, video, bmp, PB_INST_VREPE_UP);
+	showPushButton(widgets, video, bmp, PB_INST_VREPE_DOWN);
 
 	/* Show panning envelope buttons */
-	showPushButton(video, bmp, PB_INST_PP_ADD);
-	showPushButton(video, bmp, PB_INST_PP_DEL);
-	showPushButton(video, bmp, PB_INST_PS_UP);
-	showPushButton(video, bmp, PB_INST_PS_DOWN);
-	showPushButton(video, bmp, PB_INST_PREPS_UP);
-	showPushButton(video, bmp, PB_INST_PREPS_DOWN);
-	showPushButton(video, bmp, PB_INST_PREPE_UP);
-	showPushButton(video, bmp, PB_INST_PREPE_DOWN);
+	showPushButton(widgets, video, bmp, PB_INST_PP_ADD);
+	showPushButton(widgets, video, bmp, PB_INST_PP_DEL);
+	showPushButton(widgets, video, bmp, PB_INST_PS_UP);
+	showPushButton(widgets, video, bmp, PB_INST_PS_DOWN);
+	showPushButton(widgets, video, bmp, PB_INST_PREPS_UP);
+	showPushButton(widgets, video, bmp, PB_INST_PREPS_DOWN);
+	showPushButton(widgets, video, bmp, PB_INST_PREPE_UP);
+	showPushButton(widgets, video, bmp, PB_INST_PREPE_DOWN);
 
 	/* Show value adjust buttons */
-	showPushButton(video, bmp, PB_INST_VOL_DOWN);
-	showPushButton(video, bmp, PB_INST_VOL_UP);
-	showPushButton(video, bmp, PB_INST_PAN_DOWN);
-	showPushButton(video, bmp, PB_INST_PAN_UP);
-	showPushButton(video, bmp, PB_INST_FTUNE_DOWN);
-	showPushButton(video, bmp, PB_INST_FTUNE_UP);
-	showPushButton(video, bmp, PB_INST_FADEOUT_DOWN);
-	showPushButton(video, bmp, PB_INST_FADEOUT_UP);
-	showPushButton(video, bmp, PB_INST_VIBSPEED_DOWN);
-	showPushButton(video, bmp, PB_INST_VIBSPEED_UP);
-	showPushButton(video, bmp, PB_INST_VIBDEPTH_DOWN);
-	showPushButton(video, bmp, PB_INST_VIBDEPTH_UP);
-	showPushButton(video, bmp, PB_INST_VIBSWEEP_DOWN);
-	showPushButton(video, bmp, PB_INST_VIBSWEEP_UP);
+	showPushButton(widgets, video, bmp, PB_INST_VOL_DOWN);
+	showPushButton(widgets, video, bmp, PB_INST_VOL_UP);
+	showPushButton(widgets, video, bmp, PB_INST_PAN_DOWN);
+	showPushButton(widgets, video, bmp, PB_INST_PAN_UP);
+	showPushButton(widgets, video, bmp, PB_INST_FTUNE_DOWN);
+	showPushButton(widgets, video, bmp, PB_INST_FTUNE_UP);
+	showPushButton(widgets, video, bmp, PB_INST_FADEOUT_DOWN);
+	showPushButton(widgets, video, bmp, PB_INST_FADEOUT_UP);
+	showPushButton(widgets, video, bmp, PB_INST_VIBSPEED_DOWN);
+	showPushButton(widgets, video, bmp, PB_INST_VIBSPEED_UP);
+	showPushButton(widgets, video, bmp, PB_INST_VIBDEPTH_DOWN);
+	showPushButton(widgets, video, bmp, PB_INST_VIBDEPTH_UP);
+	showPushButton(widgets, video, bmp, PB_INST_VIBSWEEP_DOWN);
+	showPushButton(widgets, video, bmp, PB_INST_VIBSWEEP_UP);
 
 	/* Show control buttons */
-	showPushButton(video, bmp, PB_INST_EXIT);
-	showPushButton(video, bmp, PB_INST_OCT_UP);
-	showPushButton(video, bmp, PB_INST_HALFTONE_UP);
-	showPushButton(video, bmp, PB_INST_OCT_DOWN);
-	showPushButton(video, bmp, PB_INST_HALFTONE_DOWN);
+	showPushButton(widgets, video, bmp, PB_INST_EXIT);
+	showPushButton(widgets, video, bmp, PB_INST_OCT_UP);
+	showPushButton(widgets, video, bmp, PB_INST_HALFTONE_UP);
+	showPushButton(widgets, video, bmp, PB_INST_OCT_DOWN);
+	showPushButton(widgets, video, bmp, PB_INST_HALFTONE_DOWN);
 
 	/* Show envelope checkboxes */
-	showCheckBox(video, bmp, CB_INST_VENV);
-	showCheckBox(video, bmp, CB_INST_VENV_SUS);
-	showCheckBox(video, bmp, CB_INST_VENV_LOOP);
-	showCheckBox(video, bmp, CB_INST_PENV);
-	showCheckBox(video, bmp, CB_INST_PENV_SUS);
-	showCheckBox(video, bmp, CB_INST_PENV_LOOP);
+	showCheckBox(widgets, video, bmp, CB_INST_VENV);
+	showCheckBox(widgets, video, bmp, CB_INST_VENV_SUS);
+	showCheckBox(widgets, video, bmp, CB_INST_VENV_LOOP);
+	showCheckBox(widgets, video, bmp, CB_INST_PENV);
+	showCheckBox(widgets, video, bmp, CB_INST_PENV_SUS);
+	showCheckBox(widgets, video, bmp, CB_INST_PENV_LOOP);
 
 	/* Show vibrato waveform radio buttons */
-	showRadioButtonGroup(video, bmp, RB_GROUP_INST_WAVEFORM);
+	showRadioButtonGroup(widgets, video, bmp, RB_GROUP_INST_WAVEFORM);
 
 	inst->uiState.updateInstEditor = true;
 }
 
 void hideInstEditor(ft2_instance_t *inst)
 {
-	if (inst == NULL)
+	if (inst == NULL || inst->ui == NULL)
 		return;
 
+	ft2_widgets_t *widgets = &((ft2_ui_t *)inst->ui)->widgets;
 	inst->uiState.instEditorShown = false;
 
 	/* Hide scrollbars */
-	hideScrollBar(SB_INST_VOL);
-	hideScrollBar(SB_INST_PAN);
-	hideScrollBar(SB_INST_FTUNE);
-	hideScrollBar(SB_INST_FADEOUT);
-	hideScrollBar(SB_INST_VIBSPEED);
-	hideScrollBar(SB_INST_VIBDEPTH);
-	hideScrollBar(SB_INST_VIBSWEEP);
+	hideScrollBar(widgets, SB_INST_VOL);
+	hideScrollBar(widgets, SB_INST_PAN);
+	hideScrollBar(widgets, SB_INST_FTUNE);
+	hideScrollBar(widgets, SB_INST_FADEOUT);
+	hideScrollBar(widgets, SB_INST_VIBSPEED);
+	hideScrollBar(widgets, SB_INST_VIBDEPTH);
+	hideScrollBar(widgets, SB_INST_VIBSWEEP);
 
 	/* Hide predef buttons (volume) */
-	hidePushButton(PB_INST_VDEF1);
-	hidePushButton(PB_INST_VDEF2);
-	hidePushButton(PB_INST_VDEF3);
-	hidePushButton(PB_INST_VDEF4);
-	hidePushButton(PB_INST_VDEF5);
-	hidePushButton(PB_INST_VDEF6);
+	hidePushButton(widgets, PB_INST_VDEF1);
+	hidePushButton(widgets, PB_INST_VDEF2);
+	hidePushButton(widgets, PB_INST_VDEF3);
+	hidePushButton(widgets, PB_INST_VDEF4);
+	hidePushButton(widgets, PB_INST_VDEF5);
+	hidePushButton(widgets, PB_INST_VDEF6);
 
 	/* Hide predef buttons (panning) */
-	hidePushButton(PB_INST_PDEF1);
-	hidePushButton(PB_INST_PDEF2);
-	hidePushButton(PB_INST_PDEF3);
-	hidePushButton(PB_INST_PDEF4);
-	hidePushButton(PB_INST_PDEF5);
-	hidePushButton(PB_INST_PDEF6);
+	hidePushButton(widgets, PB_INST_PDEF1);
+	hidePushButton(widgets, PB_INST_PDEF2);
+	hidePushButton(widgets, PB_INST_PDEF3);
+	hidePushButton(widgets, PB_INST_PDEF4);
+	hidePushButton(widgets, PB_INST_PDEF5);
+	hidePushButton(widgets, PB_INST_PDEF6);
 
 	/* Hide volume envelope buttons */
-	hidePushButton(PB_INST_VP_ADD);
-	hidePushButton(PB_INST_VP_DEL);
-	hidePushButton(PB_INST_VS_UP);
-	hidePushButton(PB_INST_VS_DOWN);
-	hidePushButton(PB_INST_VREPS_UP);
-	hidePushButton(PB_INST_VREPS_DOWN);
-	hidePushButton(PB_INST_VREPE_UP);
-	hidePushButton(PB_INST_VREPE_DOWN);
+	hidePushButton(widgets, PB_INST_VP_ADD);
+	hidePushButton(widgets, PB_INST_VP_DEL);
+	hidePushButton(widgets, PB_INST_VS_UP);
+	hidePushButton(widgets, PB_INST_VS_DOWN);
+	hidePushButton(widgets, PB_INST_VREPS_UP);
+	hidePushButton(widgets, PB_INST_VREPS_DOWN);
+	hidePushButton(widgets, PB_INST_VREPE_UP);
+	hidePushButton(widgets, PB_INST_VREPE_DOWN);
 
 	/* Hide panning envelope buttons */
-	hidePushButton(PB_INST_PP_ADD);
-	hidePushButton(PB_INST_PP_DEL);
-	hidePushButton(PB_INST_PS_UP);
-	hidePushButton(PB_INST_PS_DOWN);
-	hidePushButton(PB_INST_PREPS_UP);
-	hidePushButton(PB_INST_PREPS_DOWN);
-	hidePushButton(PB_INST_PREPE_UP);
-	hidePushButton(PB_INST_PREPE_DOWN);
+	hidePushButton(widgets, PB_INST_PP_ADD);
+	hidePushButton(widgets, PB_INST_PP_DEL);
+	hidePushButton(widgets, PB_INST_PS_UP);
+	hidePushButton(widgets, PB_INST_PS_DOWN);
+	hidePushButton(widgets, PB_INST_PREPS_UP);
+	hidePushButton(widgets, PB_INST_PREPS_DOWN);
+	hidePushButton(widgets, PB_INST_PREPE_UP);
+	hidePushButton(widgets, PB_INST_PREPE_DOWN);
 
 	/* Hide value adjust buttons */
-	hidePushButton(PB_INST_VOL_DOWN);
-	hidePushButton(PB_INST_VOL_UP);
-	hidePushButton(PB_INST_PAN_DOWN);
-	hidePushButton(PB_INST_PAN_UP);
-	hidePushButton(PB_INST_FTUNE_DOWN);
-	hidePushButton(PB_INST_FTUNE_UP);
-	hidePushButton(PB_INST_FADEOUT_DOWN);
-	hidePushButton(PB_INST_FADEOUT_UP);
-	hidePushButton(PB_INST_VIBSPEED_DOWN);
-	hidePushButton(PB_INST_VIBSPEED_UP);
-	hidePushButton(PB_INST_VIBDEPTH_DOWN);
-	hidePushButton(PB_INST_VIBDEPTH_UP);
-	hidePushButton(PB_INST_VIBSWEEP_DOWN);
-	hidePushButton(PB_INST_VIBSWEEP_UP);
+	hidePushButton(widgets, PB_INST_VOL_DOWN);
+	hidePushButton(widgets, PB_INST_VOL_UP);
+	hidePushButton(widgets, PB_INST_PAN_DOWN);
+	hidePushButton(widgets, PB_INST_PAN_UP);
+	hidePushButton(widgets, PB_INST_FTUNE_DOWN);
+	hidePushButton(widgets, PB_INST_FTUNE_UP);
+	hidePushButton(widgets, PB_INST_FADEOUT_DOWN);
+	hidePushButton(widgets, PB_INST_FADEOUT_UP);
+	hidePushButton(widgets, PB_INST_VIBSPEED_DOWN);
+	hidePushButton(widgets, PB_INST_VIBSPEED_UP);
+	hidePushButton(widgets, PB_INST_VIBDEPTH_DOWN);
+	hidePushButton(widgets, PB_INST_VIBDEPTH_UP);
+	hidePushButton(widgets, PB_INST_VIBSWEEP_DOWN);
+	hidePushButton(widgets, PB_INST_VIBSWEEP_UP);
 
 	/* Hide control buttons */
-	hidePushButton(PB_INST_EXIT);
-	hidePushButton(PB_INST_OCT_UP);
-	hidePushButton(PB_INST_HALFTONE_UP);
-	hidePushButton(PB_INST_OCT_DOWN);
-	hidePushButton(PB_INST_HALFTONE_DOWN);
+	hidePushButton(widgets, PB_INST_EXIT);
+	hidePushButton(widgets, PB_INST_OCT_UP);
+	hidePushButton(widgets, PB_INST_HALFTONE_UP);
+	hidePushButton(widgets, PB_INST_OCT_DOWN);
+	hidePushButton(widgets, PB_INST_HALFTONE_DOWN);
 
 	/* Hide envelope checkboxes */
-	hideCheckBox(CB_INST_VENV);
-	hideCheckBox(CB_INST_VENV_SUS);
-	hideCheckBox(CB_INST_VENV_LOOP);
-	hideCheckBox(CB_INST_PENV);
-	hideCheckBox(CB_INST_PENV_SUS);
-	hideCheckBox(CB_INST_PENV_LOOP);
+	hideCheckBox(widgets, CB_INST_VENV);
+	hideCheckBox(widgets, CB_INST_VENV_SUS);
+	hideCheckBox(widgets, CB_INST_VENV_LOOP);
+	hideCheckBox(widgets, CB_INST_PENV);
+	hideCheckBox(widgets, CB_INST_PENV_SUS);
+	hideCheckBox(widgets, CB_INST_PENV_LOOP);
 
 	/* Hide vibrato waveform radio buttons */
-	hideRadioButtonGroup(RB_GROUP_INST_WAVEFORM);
+	hideRadioButtonGroup(widgets, RB_GROUP_INST_WAVEFORM);
 }
 
 void toggleInstEditor(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t *bmp)
@@ -1839,23 +1846,24 @@ void showInstEditorExt(ft2_instance_t *inst)
 
 void hideInstEditorExt(ft2_instance_t *inst)
 {
-	if (inst == NULL)
+	if (inst == NULL || inst->ui == NULL)
 		return;
 
+	ft2_widgets_t *widgets = &((ft2_ui_t *)inst->ui)->widgets;
 	inst->uiState.instEditorExtShown = false;
 
 	/* Hide all I.E.Ext widgets */
-	hideCheckBox(CB_INST_EXT_MIDI);
-	hideCheckBox(CB_INST_EXT_MUTE);
-	hideScrollBar(SB_INST_EXT_MIDI_CH);
-	hideScrollBar(SB_INST_EXT_MIDI_PRG);
-	hideScrollBar(SB_INST_EXT_MIDI_BEND);
-	hidePushButton(PB_INST_EXT_MIDI_CH_DOWN);
-	hidePushButton(PB_INST_EXT_MIDI_CH_UP);
-	hidePushButton(PB_INST_EXT_MIDI_PRG_DOWN);
-	hidePushButton(PB_INST_EXT_MIDI_PRG_UP);
-	hidePushButton(PB_INST_EXT_MIDI_BEND_DOWN);
-	hidePushButton(PB_INST_EXT_MIDI_BEND_UP);
+	hideCheckBox(widgets, CB_INST_EXT_MIDI);
+	hideCheckBox(widgets, CB_INST_EXT_MUTE);
+	hideScrollBar(widgets, SB_INST_EXT_MIDI_CH);
+	hideScrollBar(widgets, SB_INST_EXT_MIDI_PRG);
+	hideScrollBar(widgets, SB_INST_EXT_MIDI_BEND);
+	hidePushButton(widgets, PB_INST_EXT_MIDI_CH_DOWN);
+	hidePushButton(widgets, PB_INST_EXT_MIDI_CH_UP);
+	hidePushButton(widgets, PB_INST_EXT_MIDI_PRG_DOWN);
+	hidePushButton(widgets, PB_INST_EXT_MIDI_PRG_UP);
+	hidePushButton(widgets, PB_INST_EXT_MIDI_BEND_DOWN);
+	hidePushButton(widgets, PB_INST_EXT_MIDI_BEND_UP);
 }
 
 void toggleInstEditorExt(ft2_instance_t *inst)
@@ -1918,9 +1926,10 @@ static void drawMIDIBend(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp
 
 void drawInstEditorExt(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t *bmp)
 {
-	if (inst == NULL || video == NULL)
+	if (inst == NULL || video == NULL || inst->ui == NULL)
 		return;
 
+	ft2_widgets_t *widgets = &((ft2_ui_t *)inst->ui)->widgets;
 	ft2_instr_t *ins = getInstrForInst(inst);
 
 	/* Draw frameworks - matches standalone ft2_inst_ed.c:2638-2640 */
@@ -1939,37 +1948,37 @@ void drawInstEditorExt(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t
 	/* Set checkbox and scrollbar states */
 	if (ins == NULL)
 	{
-		checkBoxes[CB_INST_EXT_MIDI].checked = false;
-		checkBoxes[CB_INST_EXT_MUTE].checked = false;
-		setScrollBarPos(inst, video, SB_INST_EXT_MIDI_CH, 0, false);
-		setScrollBarPos(inst, video, SB_INST_EXT_MIDI_PRG, 0, false);
-		setScrollBarPos(inst, video, SB_INST_EXT_MIDI_BEND, 0, false);
+		widgets->checkBoxChecked[CB_INST_EXT_MIDI] = false;
+		widgets->checkBoxChecked[CB_INST_EXT_MUTE] = false;
+		setScrollBarPos(inst, widgets, video, SB_INST_EXT_MIDI_CH, 0, false);
+		setScrollBarPos(inst, widgets, video, SB_INST_EXT_MIDI_PRG, 0, false);
+		setScrollBarPos(inst, widgets, video, SB_INST_EXT_MIDI_BEND, 0, false);
 	}
 	else
 	{
-		checkBoxes[CB_INST_EXT_MIDI].checked = ins->midiOn ? true : false;
-		checkBoxes[CB_INST_EXT_MUTE].checked = ins->mute ? true : false;
-		setScrollBarPos(inst, video, SB_INST_EXT_MIDI_CH, ins->midiChannel, false);
-		setScrollBarPos(inst, video, SB_INST_EXT_MIDI_PRG, ins->midiProgram, false);
-		setScrollBarPos(inst, video, SB_INST_EXT_MIDI_BEND, ins->midiBend, false);
+		widgets->checkBoxChecked[CB_INST_EXT_MIDI] = ins->midiOn ? true : false;
+		widgets->checkBoxChecked[CB_INST_EXT_MUTE] = ins->mute ? true : false;
+		setScrollBarPos(inst, widgets, video, SB_INST_EXT_MIDI_CH, ins->midiChannel, false);
+		setScrollBarPos(inst, widgets, video, SB_INST_EXT_MIDI_PRG, ins->midiProgram, false);
+		setScrollBarPos(inst, widgets, video, SB_INST_EXT_MIDI_BEND, ins->midiBend, false);
 	}
 
 	/* Show checkboxes */
-	showCheckBox(video, bmp, CB_INST_EXT_MIDI);
-	showCheckBox(video, bmp, CB_INST_EXT_MUTE);
+	showCheckBox(widgets, video, bmp, CB_INST_EXT_MIDI);
+	showCheckBox(widgets, video, bmp, CB_INST_EXT_MUTE);
 
 	/* Show scrollbars */
-	showScrollBar(video, SB_INST_EXT_MIDI_CH);
-	showScrollBar(video, SB_INST_EXT_MIDI_PRG);
-	showScrollBar(video, SB_INST_EXT_MIDI_BEND);
+	showScrollBar(widgets, video, SB_INST_EXT_MIDI_CH);
+	showScrollBar(widgets, video, SB_INST_EXT_MIDI_PRG);
+	showScrollBar(widgets, video, SB_INST_EXT_MIDI_BEND);
 
 	/* Show pushbuttons */
-	showPushButton(video, bmp, PB_INST_EXT_MIDI_CH_DOWN);
-	showPushButton(video, bmp, PB_INST_EXT_MIDI_CH_UP);
-	showPushButton(video, bmp, PB_INST_EXT_MIDI_PRG_DOWN);
-	showPushButton(video, bmp, PB_INST_EXT_MIDI_PRG_UP);
-	showPushButton(video, bmp, PB_INST_EXT_MIDI_BEND_DOWN);
-	showPushButton(video, bmp, PB_INST_EXT_MIDI_BEND_UP);
+	showPushButton(widgets, video, bmp, PB_INST_EXT_MIDI_CH_DOWN);
+	showPushButton(widgets, video, bmp, PB_INST_EXT_MIDI_CH_UP);
+	showPushButton(widgets, video, bmp, PB_INST_EXT_MIDI_PRG_DOWN);
+	showPushButton(widgets, video, bmp, PB_INST_EXT_MIDI_PRG_UP);
+	showPushButton(widgets, video, bmp, PB_INST_EXT_MIDI_BEND_DOWN);
+	showPushButton(widgets, video, bmp, PB_INST_EXT_MIDI_BEND_UP);
 
 	/* Draw MIDI values */
 	drawMIDICh(inst, video, bmp);

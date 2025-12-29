@@ -88,8 +88,6 @@ typedef struct ft2_ui_t
 
 void ft2_ui_init(ft2_ui_t *ui);
 void ft2_ui_shutdown(ft2_ui_t *ui);
-void ft2_ui_set_current(ft2_ui_t *ui);
-ft2_ui_t *ft2_ui_get_current(void);
 void ft2_ui_set_screen(ft2_ui_t *ui, ft2_ui_screen screen);
 void ft2_ui_draw(ft2_ui_t *ui, void *inst);
 void ft2_ui_update(ft2_ui_t *ui, void *inst);

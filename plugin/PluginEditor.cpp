@@ -16,6 +16,11 @@ FT2PluginEditor::FT2PluginEditor (FT2PluginProcessor& p)
     // Initialize UI system
     ft2_ui_init(&ui);
     
+    // Link the UI to the instance for multi-instance support
+    auto* inst = audioProcessor.getInstance();
+    if (inst != nullptr)
+        inst->ui = &ui;
+    
     // Set the window size (2x upscale by default)
     setSize (FT2_SCREEN_W * upscaleFactor, FT2_SCREEN_H * upscaleFactor);
     
@@ -42,6 +47,11 @@ FT2PluginEditor::FT2PluginEditor (FT2PluginProcessor& p)
 
 FT2PluginEditor::~FT2PluginEditor()
 {
+    // Clear the UI link before destroying
+    auto* inst = audioProcessor.getInstance();
+    if (inst != nullptr)
+        inst->ui = nullptr;
+    
     // Must detach before destroying
     openGLContext.detach();
     stopTimer();

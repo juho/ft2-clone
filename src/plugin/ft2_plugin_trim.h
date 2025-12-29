@@ -26,7 +26,7 @@ void hideTrimScreen(struct ft2_instance_t *inst);
 void toggleTrimScreen(struct ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t *bmp);
 
 /* Initialization */
-void setInitialTrimFlags(void);
+void setInitialTrimFlags(struct ft2_instance_t *inst);
 void resetTrimSizes(struct ft2_instance_t *inst);
 
 /* Checkbox callbacks */

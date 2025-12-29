@@ -185,7 +185,7 @@ static void showColorErrorMsg(ft2_instance_t *inst)
 	if (colorErrorShown)
 		return;
 
-	ft2_ui_t *ui = ft2_ui_get_current();
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 	if (ui != NULL)
 	{
 		ft2_dialog_show_message(&ui->dialog, "System message", "Default colors cannot be modified.");
@@ -228,6 +228,9 @@ void updatePaletteEditor(ft2_instance_t *inst, ft2_video_t *video)
 	if (inst == NULL)
 		return;
 
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
+	ft2_widgets_t *widgets = (ui != NULL) ? &ui->widgets : NULL;
+
 	const uint8_t colorNum = FTC_EditOrder[cfg_ColorNum];
 	const uint8_t palNum = inst->config.palettePreset;
 
@@ -240,19 +243,23 @@ void updatePaletteEditor(ft2_instance_t *inst, ft2_video_t *video)
 	else
 		cfg_Contrast = 0;
 
-	setScrollBarPos(inst, video, SB_PAL_R, cfg_Red, false);
-	setScrollBarPos(inst, video, SB_PAL_G, cfg_Green, false);
-	setScrollBarPos(inst, video, SB_PAL_B, cfg_Blue, false);
-	setScrollBarPos(inst, video, SB_PAL_CONTRAST, cfg_Contrast, false);
+	setScrollBarPos(inst, widgets, video, SB_PAL_R, cfg_Red, false);
+	setScrollBarPos(inst, widgets, video, SB_PAL_G, cfg_Green, false);
+	setScrollBarPos(inst, widgets, video, SB_PAL_B, cfg_Blue, false);
+	setScrollBarPos(inst, widgets, video, SB_PAL_CONTRAST, cfg_Contrast, false);
 }
 
 static void paletteDragMoved(ft2_instance_t *inst)
 {
-	ft2_ui_t *ui = ft2_ui_get_current();
-	if (inst == NULL || ui == NULL)
+	if (inst == NULL)
+		return;
+
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
+	if (ui == NULL)
 		return;
 
 	ft2_video_t *video = &ui->video;
+	ft2_widgets_t *widgets = &ui->widgets;
 
 	if (inst->config.palettePreset != PAL_USER_DEFINED)
 	{
@@ -297,12 +304,12 @@ static void paletteDragMoved(ft2_instance_t *inst)
 	{
 		cfg_Contrast = 0;
 
-		setScrollBarPos(inst, video, SB_PAL_R, cfg_Red, false);
-		setScrollBarPos(inst, video, SB_PAL_G, cfg_Green, false);
-		setScrollBarPos(inst, video, SB_PAL_B, cfg_Blue, false);
+		setScrollBarPos(inst, widgets, video, SB_PAL_R, cfg_Red, false);
+		setScrollBarPos(inst, widgets, video, SB_PAL_G, cfg_Green, false);
+		setScrollBarPos(inst, widgets, video, SB_PAL_B, cfg_Blue, false);
 	}
 
-	setScrollBarPos(inst, video, SB_PAL_CONTRAST, cfg_Contrast, false);
+	setScrollBarPos(inst, widgets, video, SB_PAL_CONTRAST, cfg_Contrast, false);
 
 	setPal16(video, pluginPalTable[inst->config.palettePreset], true);
 	drawCurrentPaletteColor(inst, video, &ui->bmp);
@@ -350,152 +357,166 @@ void sbPalContrastPos(ft2_instance_t *inst, uint32_t pos)
 
 void configPalRDown(ft2_instance_t *inst)
 {
-	ft2_ui_t *ui = ft2_ui_get_current();
-	if (inst == NULL || ui == NULL) return;
+	if (inst == NULL) return;
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
+	if (ui == NULL) return;
 	if (inst->config.palettePreset != PAL_USER_DEFINED)
 		showColorErrorMsg(inst);
 	else
-		scrollBarScrollLeft(inst, &ui->video, SB_PAL_R, 1);
+		scrollBarScrollLeft(inst, &ui->widgets, &ui->video, SB_PAL_R, 1);
 }
 
 void configPalRUp(ft2_instance_t *inst)
 {
-	ft2_ui_t *ui = ft2_ui_get_current();
-	if (inst == NULL || ui == NULL) return;
+	if (inst == NULL) return;
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
+	if (ui == NULL) return;
 	if (inst->config.palettePreset != PAL_USER_DEFINED)
 		showColorErrorMsg(inst);
 	else
-		scrollBarScrollRight(inst, &ui->video, SB_PAL_R, 1);
+		scrollBarScrollRight(inst, &ui->widgets, &ui->video, SB_PAL_R, 1);
 }
 
 void configPalGDown(ft2_instance_t *inst)
 {
-	ft2_ui_t *ui = ft2_ui_get_current();
-	if (inst == NULL || ui == NULL) return;
+	if (inst == NULL) return;
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
+	if (ui == NULL) return;
 	if (inst->config.palettePreset != PAL_USER_DEFINED)
 		showColorErrorMsg(inst);
 	else
-		scrollBarScrollLeft(inst, &ui->video, SB_PAL_G, 1);
+		scrollBarScrollLeft(inst, &ui->widgets, &ui->video, SB_PAL_G, 1);
 }
 
 void configPalGUp(ft2_instance_t *inst)
 {
-	ft2_ui_t *ui = ft2_ui_get_current();
-	if (inst == NULL || ui == NULL) return;
+	if (inst == NULL) return;
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
+	if (ui == NULL) return;
 	if (inst->config.palettePreset != PAL_USER_DEFINED)
 		showColorErrorMsg(inst);
 	else
-		scrollBarScrollRight(inst, &ui->video, SB_PAL_G, 1);
+		scrollBarScrollRight(inst, &ui->widgets, &ui->video, SB_PAL_G, 1);
 }
 
 void configPalBDown(ft2_instance_t *inst)
 {
-	ft2_ui_t *ui = ft2_ui_get_current();
-	if (inst == NULL || ui == NULL) return;
+	if (inst == NULL) return;
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
+	if (ui == NULL) return;
 	if (inst->config.palettePreset != PAL_USER_DEFINED)
 		showColorErrorMsg(inst);
 	else
-		scrollBarScrollLeft(inst, &ui->video, SB_PAL_B, 1);
+		scrollBarScrollLeft(inst, &ui->widgets, &ui->video, SB_PAL_B, 1);
 }
 
 void configPalBUp(ft2_instance_t *inst)
 {
-	ft2_ui_t *ui = ft2_ui_get_current();
-	if (inst == NULL || ui == NULL) return;
+	if (inst == NULL) return;
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
+	if (ui == NULL) return;
 	if (inst->config.palettePreset != PAL_USER_DEFINED)
 		showColorErrorMsg(inst);
 	else
-		scrollBarScrollRight(inst, &ui->video, SB_PAL_B, 1);
+		scrollBarScrollRight(inst, &ui->widgets, &ui->video, SB_PAL_B, 1);
 }
 
 void configPalContDown(ft2_instance_t *inst)
 {
-	ft2_ui_t *ui = ft2_ui_get_current();
-	if (inst == NULL || ui == NULL) return;
+	if (inst == NULL) return;
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
+	if (ui == NULL) return;
 	if (inst->config.palettePreset != PAL_USER_DEFINED)
 		showColorErrorMsg(inst);
 	else
-		scrollBarScrollLeft(inst, &ui->video, SB_PAL_CONTRAST, 1);
+		scrollBarScrollLeft(inst, &ui->widgets, &ui->video, SB_PAL_CONTRAST, 1);
 }
 
 void configPalContUp(ft2_instance_t *inst)
 {
-	ft2_ui_t *ui = ft2_ui_get_current();
-	if (inst == NULL || ui == NULL) return;
+	if (inst == NULL) return;
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
+	if (ui == NULL) return;
 	if (inst->config.palettePreset != PAL_USER_DEFINED)
 		showColorErrorMsg(inst);
 	else
-		scrollBarScrollRight(inst, &ui->video, SB_PAL_CONTRAST, 1);
+		scrollBarScrollRight(inst, &ui->widgets, &ui->video, SB_PAL_CONTRAST, 1);
 }
 
 /* Radio button callbacks - palette entry selection */
 
 void rbConfigPalPatternText(ft2_instance_t *inst)
 {
-	ft2_ui_t *ui = ft2_ui_get_current();
+	if (inst == NULL) return;
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
+	if (ui == NULL) return;
 	cfg_ColorNum = 0;
-	checkRadioButtonNoRedraw(RB_CONFIG_PAL_PATTEXT);
-	if (inst != NULL && ui != NULL)
-		updatePaletteEditor(inst, &ui->video);
+	checkRadioButtonNoRedraw(&ui->widgets, RB_CONFIG_PAL_PATTEXT);
+	updatePaletteEditor(inst, &ui->video);
 }
 
 void rbConfigPalBlockMark(ft2_instance_t *inst)
 {
-	ft2_ui_t *ui = ft2_ui_get_current();
+	if (inst == NULL) return;
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
+	if (ui == NULL) return;
 	cfg_ColorNum = 1;
-	checkRadioButtonNoRedraw(RB_CONFIG_PAL_BLOCKMARK);
-	if (inst != NULL && ui != NULL)
-		updatePaletteEditor(inst, &ui->video);
+	checkRadioButtonNoRedraw(&ui->widgets, RB_CONFIG_PAL_BLOCKMARK);
+	updatePaletteEditor(inst, &ui->video);
 }
 
 void rbConfigPalTextOnBlock(ft2_instance_t *inst)
 {
-	ft2_ui_t *ui = ft2_ui_get_current();
+	if (inst == NULL) return;
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
+	if (ui == NULL) return;
 	cfg_ColorNum = 2;
-	checkRadioButtonNoRedraw(RB_CONFIG_PAL_TEXTONBLOCK);
-	if (inst != NULL && ui != NULL)
-		updatePaletteEditor(inst, &ui->video);
+	checkRadioButtonNoRedraw(&ui->widgets, RB_CONFIG_PAL_TEXTONBLOCK);
+	updatePaletteEditor(inst, &ui->video);
 }
 
 void rbConfigPalMouse(ft2_instance_t *inst)
 {
-	ft2_ui_t *ui = ft2_ui_get_current();
+	if (inst == NULL) return;
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
+	if (ui == NULL) return;
 	cfg_ColorNum = 3;
-	checkRadioButtonNoRedraw(RB_CONFIG_PAL_MOUSE);
-	if (inst != NULL && ui != NULL)
-		updatePaletteEditor(inst, &ui->video);
+	checkRadioButtonNoRedraw(&ui->widgets, RB_CONFIG_PAL_MOUSE);
+	updatePaletteEditor(inst, &ui->video);
 }
 
 void rbConfigPalDesktop(ft2_instance_t *inst)
 {
-	ft2_ui_t *ui = ft2_ui_get_current();
+	if (inst == NULL) return;
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
+	if (ui == NULL) return;
 	cfg_ColorNum = 4;
-	checkRadioButtonNoRedraw(RB_CONFIG_PAL_DESKTOP);
-	if (inst != NULL && ui != NULL)
-		updatePaletteEditor(inst, &ui->video);
+	checkRadioButtonNoRedraw(&ui->widgets, RB_CONFIG_PAL_DESKTOP);
+	updatePaletteEditor(inst, &ui->video);
 }
 
 void rbConfigPalButtons(ft2_instance_t *inst)
 {
-	ft2_ui_t *ui = ft2_ui_get_current();
+	if (inst == NULL) return;
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
+	if (ui == NULL) return;
 	cfg_ColorNum = 5;
-	checkRadioButtonNoRedraw(RB_CONFIG_PAL_BUTTONS);
-	if (inst != NULL && ui != NULL)
-		updatePaletteEditor(inst, &ui->video);
+	checkRadioButtonNoRedraw(&ui->widgets, RB_CONFIG_PAL_BUTTONS);
+	updatePaletteEditor(inst, &ui->video);
 }
 
 /* Radio button callbacks - palette preset selection */
 
 static void applyPalettePreset(ft2_instance_t *inst, uint8_t preset, uint16_t rbId)
 {
-	ft2_ui_t *ui = ft2_ui_get_current();
-	if (inst == NULL || ui == NULL)
-		return;
+	if (inst == NULL) return;
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
+	if (ui == NULL) return;
 
 	inst->config.palettePreset = preset;
 	updatePaletteEditor(inst, &ui->video);
 	setPal16(&ui->video, pluginPalTable[preset], true);
-	checkRadioButtonNoRedraw(rbId);
+	checkRadioButtonNoRedraw(&ui->widgets, rbId);
 	drawCurrentPaletteColor(inst, &ui->video, &ui->bmp);
 }
 
@@ -564,38 +585,43 @@ void showPaletteEditor(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t
 	if (inst == NULL || video == NULL || bmp == NULL)
 		return;
 
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
+	if (ui == NULL)
+		return;
+	ft2_widgets_t *widgets = &ui->widgets;
+
 	/* Draw R/G/B labels */
 	charOutShadow(video, bmp, 503, 17, PAL_FORGRND, PAL_DSKTOP2, 'R');
 	charOutShadow(video, bmp, 503, 31, PAL_FORGRND, PAL_DSKTOP2, 'G');
 	charOutShadow(video, bmp, 503, 45, PAL_FORGRND, PAL_DSKTOP2, 'B');
 
 	/* Show RGB scrollbars */
-	showScrollBar(video, SB_PAL_R);
-	showScrollBar(video, SB_PAL_G);
-	showScrollBar(video, SB_PAL_B);
+	showScrollBar(widgets, video, SB_PAL_R);
+	showScrollBar(widgets, video, SB_PAL_G);
+	showScrollBar(widgets, video, SB_PAL_B);
 
 	/* Show RGB up/down buttons */
-	showPushButton(video, bmp, PB_CONFIG_PAL_R_DOWN);
-	showPushButton(video, bmp, PB_CONFIG_PAL_R_UP);
-	showPushButton(video, bmp, PB_CONFIG_PAL_G_DOWN);
-	showPushButton(video, bmp, PB_CONFIG_PAL_G_UP);
-	showPushButton(video, bmp, PB_CONFIG_PAL_B_DOWN);
-	showPushButton(video, bmp, PB_CONFIG_PAL_B_UP);
+	showPushButton(widgets, video, bmp, PB_CONFIG_PAL_R_DOWN);
+	showPushButton(widgets, video, bmp, PB_CONFIG_PAL_R_UP);
+	showPushButton(widgets, video, bmp, PB_CONFIG_PAL_G_DOWN);
+	showPushButton(widgets, video, bmp, PB_CONFIG_PAL_G_UP);
+	showPushButton(widgets, video, bmp, PB_CONFIG_PAL_B_DOWN);
+	showPushButton(widgets, video, bmp, PB_CONFIG_PAL_B_UP);
 
 	/* Show palette entry radio buttons */
-	showRadioButtonGroup(video, bmp, RB_GROUP_CONFIG_PAL_ENTRIES);
+	showRadioButtonGroup(widgets, video, bmp, RB_GROUP_CONFIG_PAL_ENTRIES);
 
 	/* Draw Contrast label and widgets */
 	textOutShadow(video, bmp, 516, 59, PAL_FORGRND, PAL_DSKTOP2, "Contrast:");
-	showScrollBar(video, SB_PAL_CONTRAST);
-	showPushButton(video, bmp, PB_CONFIG_PAL_CONT_DOWN);
-	showPushButton(video, bmp, PB_CONFIG_PAL_CONT_UP);
+	showScrollBar(widgets, video, SB_PAL_CONTRAST);
+	showPushButton(widgets, video, bmp, PB_CONFIG_PAL_CONT_DOWN);
+	showPushButton(widgets, video, bmp, PB_CONFIG_PAL_CONT_UP);
 
 	/* Show palette preset radio buttons */
-	showRadioButtonGroup(video, bmp, RB_GROUP_CONFIG_PAL_PRESET);
+	showRadioButtonGroup(widgets, video, bmp, RB_GROUP_CONFIG_PAL_PRESET);
 
 	/* Set initial radio button states based on current config */
-	checkRadioButtonNoRedraw(RB_CONFIG_PAL_PATTEXT + cfg_ColorNum);
+	checkRadioButtonNoRedraw(widgets, RB_CONFIG_PAL_PATTEXT + cfg_ColorNum);
 	
 	/* Set preset radio button based on current palette */
 	uint16_t presetRbId;
@@ -615,7 +641,7 @@ void showPaletteEditor(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t
 		case PAL_USER_DEFINED:    presetRbId = RB_CONFIG_PAL_USER; break;
 		default:                  presetRbId = RB_CONFIG_PAL_DARK_MODE; break;
 	}
-	checkRadioButtonNoRedraw(presetRbId);
+	checkRadioButtonNoRedraw(widgets, presetRbId);
 
 	/* Initialize slider positions and draw color preview */
 	updatePaletteEditor(inst, video);

@@ -3,6 +3,7 @@
  * @brief Push button implementation for the FT2 plugin UI.
  * 
  * Ported from ft2_pushbuttons.c - exact coordinates preserved.
+ * Modified for multi-instance support: visibility/state stored per-instance.
  */
 
 #include <stdint.h>
@@ -10,6 +11,7 @@
 #include <stddef.h>
 #include <string.h>
 #include "ft2_plugin_pushbuttons.h"
+#include "ft2_plugin_widgets.h"
 #include "ft2_plugin_video.h"
 #include "ft2_plugin_bmp.h"
 
@@ -404,11 +406,9 @@ pushButton_t pushButtons[NUM_PUSHBUTTONS] =
 
 void initPushButtons(void)
 {
+	/* Initialize constant data only (visibility/state now per-instance in ft2_widgets_t) */
 	for (int i = 0; i < NUM_PUSHBUTTONS; i++)
 	{
-		pushButtons[i].state = PUSHBUTTON_UNPRESSED;
-		pushButtons[i].visible = false;
-		
 		/* Logo and badge buttons use bitmap graphics */
 		if (i == PB_LOGO || i == PB_BADGE)
 		{
@@ -423,16 +423,16 @@ void initPushButtons(void)
 	}
 }
 
-void drawPushButton(struct ft2_video_t *video, const struct ft2_bmp_t *bmp, uint16_t pushButtonID)
+void drawPushButton(struct ft2_widgets_t *widgets, struct ft2_video_t *video, const struct ft2_bmp_t *bmp, uint16_t pushButtonID)
 {
-	if (pushButtonID >= NUM_PUSHBUTTONS)
+	if (widgets == NULL || pushButtonID >= NUM_PUSHBUTTONS)
+		return;
+
+	if (!widgets->pushButtonVisible[pushButtonID])
 		return;
 
 	pushButton_t *b = &pushButtons[pushButtonID];
-	if (!b->visible)
-		return;
-
-	uint8_t state = b->state;
+	uint8_t state = widgets->pushButtonState[pushButtonID];
 	uint16_t x = b->x;
 	uint16_t y = b->y;
 	uint16_t w = b->w;
@@ -547,26 +547,29 @@ void drawPushButton(struct ft2_video_t *video, const struct ft2_bmp_t *bmp, uint
 	}
 }
 
-void showPushButton(struct ft2_video_t *video, const struct ft2_bmp_t *bmp, uint16_t pushButtonID)
+void showPushButton(struct ft2_widgets_t *widgets, struct ft2_video_t *video, const struct ft2_bmp_t *bmp, uint16_t pushButtonID)
 {
-	if (pushButtonID >= NUM_PUSHBUTTONS)
+	if (widgets == NULL || pushButtonID >= NUM_PUSHBUTTONS)
 		return;
 
-	pushButtons[pushButtonID].visible = true;
-	drawPushButton(video, bmp, pushButtonID);
+	widgets->pushButtonVisible[pushButtonID] = true;
+	drawPushButton(widgets, video, bmp, pushButtonID);
 }
 
-void hidePushButton(uint16_t pushButtonID)
+void hidePushButton(struct ft2_widgets_t *widgets, uint16_t pushButtonID)
 {
-	if (pushButtonID >= NUM_PUSHBUTTONS)
+	if (widgets == NULL || pushButtonID >= NUM_PUSHBUTTONS)
 		return;
 
-	pushButtons[pushButtonID].state = PUSHBUTTON_UNPRESSED;
-	pushButtons[pushButtonID].visible = false;
+	widgets->pushButtonState[pushButtonID] = PUSHBUTTON_UNPRESSED;
+	widgets->pushButtonVisible[pushButtonID] = false;
 }
 
-int16_t testPushButtonMouseDown(struct ft2_instance_t *inst, int32_t mouseX, int32_t mouseY, bool sysReqShown)
+int16_t testPushButtonMouseDown(struct ft2_widgets_t *widgets, struct ft2_instance_t *inst, int32_t mouseX, int32_t mouseY, bool sysReqShown)
 {
+	if (widgets == NULL)
+		return -1;
+
 	uint16_t start, end;
 
 	if (sysReqShown)
@@ -582,14 +585,14 @@ int16_t testPushButtonMouseDown(struct ft2_instance_t *inst, int32_t mouseX, int
 
 	for (uint16_t i = start; i < end; i++)
 	{
-		pushButton_t *pb = &pushButtons[i];
-		if (!pb->visible)
+		if (!widgets->pushButtonVisible[i])
 			continue;
 
+		pushButton_t *pb = &pushButtons[i];
 		if (mouseX >= pb->x && mouseX < pb->x + pb->w &&
 		    mouseY >= pb->y && mouseY < pb->y + pb->h)
 		{
-			pb->state = PUSHBUTTON_PRESSED;
+			widgets->pushButtonState[i] = PUSHBUTTON_PRESSED;
 			
 			/* Call callback immediately on first press (matching original FT2 behavior) */
 			if (pb->callbackFuncOnDown != NULL)
@@ -602,18 +605,18 @@ int16_t testPushButtonMouseDown(struct ft2_instance_t *inst, int32_t mouseX, int
 	return -1;
 }
 
-int16_t testPushButtonMouseRelease(struct ft2_instance_t *inst, struct ft2_video_t *video,
+int16_t testPushButtonMouseRelease(struct ft2_widgets_t *widgets, struct ft2_instance_t *inst, struct ft2_video_t *video,
 	const struct ft2_bmp_t *bmp, int32_t mouseX, int32_t mouseY, int16_t lastButtonID, bool runCallback)
 {
-	if (lastButtonID < 0 || lastButtonID >= NUM_PUSHBUTTONS)
+	if (widgets == NULL || lastButtonID < 0 || lastButtonID >= NUM_PUSHBUTTONS)
+		return -1;
+
+	if (!widgets->pushButtonVisible[lastButtonID])
 		return -1;
 
 	pushButton_t *pb = &pushButtons[lastButtonID];
-	if (!pb->visible)
-		return -1;
-
-	pb->state = PUSHBUTTON_UNPRESSED;
-	drawPushButton(video, bmp, lastButtonID);
+	widgets->pushButtonState[lastButtonID] = PUSHBUTTON_UNPRESSED;
+	drawPushButton(widgets, video, bmp, lastButtonID);
 
 	if (mouseX >= pb->x && mouseX < pb->x + pb->w &&
 	    mouseY >= pb->y && mouseY < pb->y + pb->h)
@@ -627,16 +630,17 @@ int16_t testPushButtonMouseRelease(struct ft2_instance_t *inst, struct ft2_video
 	return -1;
 }
 
-void handlePushButtonWhileMouseDown(struct ft2_instance_t *inst, struct ft2_video_t *video,
+void handlePushButtonWhileMouseDown(struct ft2_widgets_t *widgets, struct ft2_instance_t *inst, struct ft2_video_t *video,
 	const struct ft2_bmp_t *bmp, int32_t mouseX, int32_t mouseY, int16_t buttonID,
 	bool *firstTimePressingButton, uint8_t *buttonCounter)
 {
-	if (buttonID < 0 || buttonID >= NUM_PUSHBUTTONS)
+	if (widgets == NULL || buttonID < 0 || buttonID >= NUM_PUSHBUTTONS)
+		return;
+
+	if (!widgets->pushButtonVisible[buttonID])
 		return;
 
 	pushButton_t *pb = &pushButtons[buttonID];
-	if (!pb->visible)
-		return;
 
 	/* Check if mouse is still over the button */
 	bool mouseOverButton = (mouseX >= pb->x && mouseX < pb->x + pb->w &&
@@ -644,14 +648,14 @@ void handlePushButtonWhileMouseDown(struct ft2_instance_t *inst, struct ft2_vide
 
 	/* Update button state and visual */
 	uint8_t newState = mouseOverButton ? PUSHBUTTON_PRESSED : PUSHBUTTON_UNPRESSED;
-	if (pb->state != newState)
+	if (widgets->pushButtonState[buttonID] != newState)
 	{
-		pb->state = newState;
-		drawPushButton(video, bmp, buttonID);
+		widgets->pushButtonState[buttonID] = newState;
+		drawPushButton(widgets, video, bmp, buttonID);
 	}
 
 	/* Handle repeat functionality - match original FT2 behavior from handlePushButtonsWhileMouseDown() */
-	if (pb->state != PUSHBUTTON_PRESSED || pb->callbackFuncOnDown == NULL)
+	if (widgets->pushButtonState[buttonID] != PUSHBUTTON_PRESSED || pb->callbackFuncOnDown == NULL)
 		return;
 
 	/* Pre-delay: long delay before repeat starts (BUTTON_DOWN_DELAY = 25 in original) */
@@ -678,7 +682,7 @@ void handlePushButtonWhileMouseDown(struct ft2_instance_t *inst, struct ft2_vide
 	}
 }
 
-void changeLogoType(const struct ft2_bmp_t *bmp, uint8_t logoType)
+void changeLogoType(ft2_widgets_t *widgets, const struct ft2_bmp_t *bmp, uint8_t logoType)
 {
 	if (bmp == NULL || bmp->ft2LogoBadges == NULL)
 		return;
@@ -695,9 +699,15 @@ void changeLogoType(const struct ft2_bmp_t *bmp, uint8_t logoType)
 		pushButtons[PB_LOGO].bitmapUnpressed = &bmp->ft2LogoBadges[(154 * 32) * 2];
 		pushButtons[PB_LOGO].bitmapPressed = &bmp->ft2LogoBadges[(154 * 32) * 3];
 	}
+
+	if (widgets != NULL)
+	{
+		widgets->pushButtonState[PB_LOGO] = PUSHBUTTON_UNPRESSED;
+		widgets->pushButtonVisible[PB_LOGO] = true;
+	}
 }
 
-void changeBadgeType(const struct ft2_bmp_t *bmp, uint8_t badgeType)
+void changeBadgeType(ft2_widgets_t *widgets, const struct ft2_bmp_t *bmp, uint8_t badgeType)
 {
 	if (bmp == NULL || bmp->ft2ByBadges == NULL)
 		return;
@@ -716,6 +726,12 @@ void changeBadgeType(const struct ft2_bmp_t *bmp, uint8_t badgeType)
 	{
 		pushButtons[PB_BADGE].bitmapUnpressed = &bmp->ft2ByBadges[(25 * 32) * 2];
 		pushButtons[PB_BADGE].bitmapPressed = &bmp->ft2ByBadges[(25 * 32) * 3];
+	}
+
+	if (widgets != NULL)
+	{
+		widgets->pushButtonState[PB_BADGE] = PUSHBUTTON_UNPRESSED;
+		widgets->pushButtonVisible[PB_BADGE] = true;
 	}
 }
 

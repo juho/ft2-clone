@@ -14,6 +14,7 @@
 #include "ft2_plugin_bmp.h"
 #include "ft2_plugin_pushbuttons.h"
 #include "ft2_plugin_scrollbars.h"
+#include "ft2_plugin_ui.h"
 #include "ft2_instance.h"
 
 void updateInstrumentSwitcher(struct ft2_instance_t *inst, struct ft2_video_t *video,
@@ -166,14 +167,18 @@ void showInstrumentSwitcher(struct ft2_instance_t *inst, struct ft2_video_t *vid
 	if (!inst->uiState.instrSwitcherShown)
 		return;
 
+	ft2_widgets_t *widgets = (inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets == NULL)
+		return;
+
 	bool extended = inst->uiState.extendedPatternEditor;
 
 	if (extended)
 	{
 		/* Extended pattern editor: two-column layout */
-		hidePushButton(PB_SAMPLE_LIST_UP);
-		hidePushButton(PB_SAMPLE_LIST_DOWN);
-		hideScrollBar(SB_SAMPLE_LIST);
+		hidePushButton(widgets, PB_SAMPLE_LIST_UP);
+		hidePushButton(widgets, PB_SAMPLE_LIST_DOWN);
+		hideScrollBar(widgets, SB_SAMPLE_LIST);
 
 		drawFramework(video, 386, 0, 246, 3, FRAMEWORK_TYPE1);
 		drawFramework(video, 506, 3, 3, 47, FRAMEWORK_TYPE1);
@@ -200,18 +205,18 @@ void showInstrumentSwitcher(struct ft2_instance_t *inst, struct ft2_video_t *vid
 		fillRect(video, 421, 97, 21, 58, PAL_BCKGRND);
 		fillRect(video, 445, 97, 118, 58, PAL_BCKGRND);
 
-		showPushButton(video, bmp, PB_SAMPLE_LIST_UP);
-		showPushButton(video, bmp, PB_SAMPLE_LIST_DOWN);
-		showScrollBar(video, SB_SAMPLE_LIST);
+		showPushButton(widgets, video, bmp, PB_SAMPLE_LIST_UP);
+		showPushButton(widgets, video, bmp, PB_SAMPLE_LIST_DOWN);
+		showScrollBar(widgets, video, SB_SAMPLE_LIST);
 	}
 
 	updateInstrumentSwitcher(inst, video, bmp);
 
 	/* Show bank buttons */
 	for (uint16_t i = 0; i < 8; i++)
-		showPushButton(video, bmp, PB_RANGE1 + i + (inst->editor.instrBankSwapped * 8));
+		showPushButton(widgets, video, bmp, PB_RANGE1 + i + (inst->editor.instrBankSwapped * 8));
 
-	showPushButton(video, bmp, PB_SWAP_BANK);
+	showPushButton(widgets, video, bmp, PB_SWAP_BANK);
 }
 
 void hideInstrumentSwitcher(struct ft2_instance_t *inst)
@@ -219,14 +224,18 @@ void hideInstrumentSwitcher(struct ft2_instance_t *inst)
 	if (inst == NULL)
 		return;
 
+	ft2_widgets_t *widgets = (inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets == NULL)
+		return;
+
 	/* Hide all bank buttons */
 	for (uint16_t i = 0; i < 16; i++)
-		hidePushButton(PB_RANGE1 + i);
+		hidePushButton(widgets, PB_RANGE1 + i);
 
-	hidePushButton(PB_SWAP_BANK);
-	hidePushButton(PB_SAMPLE_LIST_UP);
-	hidePushButton(PB_SAMPLE_LIST_DOWN);
-	hideScrollBar(SB_SAMPLE_LIST);
+	hidePushButton(widgets, PB_SWAP_BANK);
+	hidePushButton(widgets, PB_SAMPLE_LIST_UP);
+	hidePushButton(widgets, PB_SAMPLE_LIST_DOWN);
+	hideScrollBar(widgets, SB_SAMPLE_LIST);
 }
 
 void drawInstrumentSwitcher(struct ft2_instance_t *inst, struct ft2_video_t *video,

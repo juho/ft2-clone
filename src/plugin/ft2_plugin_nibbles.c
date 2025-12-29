@@ -31,7 +31,7 @@ static void onP2HighScoreNameEntered(ft2_instance_t *inst, ft2_dialog_result_t r
 /* Show a message dialog using the plugin dialog system */
 static void nibblesShowMessage(ft2_instance_t *inst, const char *headline, const char *text)
 {
-	ft2_ui_t *ui = ft2_ui_get_current();
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 	if (ui != NULL)
 		ft2_dialog_show_message(&ui->dialog, headline, text);
 }
@@ -527,7 +527,7 @@ static void nibblesDecLives(ft2_instance_t *inst, ft2_video_t *video, const ft2_
 			inst->nibbles.pendingP1HighScore = true;
 			inst->nibbles.pendingP1Slot = i;
 
-			ft2_ui_t *ui = ft2_ui_get_current();
+			ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 			if (ui != NULL)
 			{
 				ft2_dialog_show_input_cb(&ui->dialog,
@@ -560,7 +560,7 @@ static void nibblesDecLives(ft2_instance_t *inst, ft2_video_t *video, const ft2_
 			inst->nibbles.pendingP2HighScore = true;
 			inst->nibbles.pendingP2Slot = i;
 
-			ft2_ui_t *ui = ft2_ui_get_current();
+			ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 			if (ui != NULL)
 			{
 				ft2_dialog_show_input_cb(&ui->dialog,
@@ -626,7 +626,7 @@ static void onP1HighScoreNameEntered(ft2_instance_t *inst, ft2_dialog_result_t r
 		inst->nibbles.pendingP2HighScore = true;
 		inst->nibbles.pendingP2Slot = i;
 
-		ft2_ui_t *ui = ft2_ui_get_current();
+		ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 		if (ui != NULL)
 		{
 			ft2_dialog_show_input_cb(&ui->dialog,
@@ -637,7 +637,7 @@ static void onP1HighScoreNameEntered(ft2_instance_t *inst, ft2_dialog_result_t r
 	}
 
 	/* No more high scores to enter, show the table */
-	ft2_ui_t *ui = ft2_ui_get_current();
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 	if (ui != NULL)
 		ft2_nibbles_show_highscores(inst, &ui->video, ui->bmpLoaded ? &ui->bmp : NULL);
 }
@@ -665,7 +665,7 @@ static void onP2HighScoreNameEntered(ft2_instance_t *inst, ft2_dialog_result_t r
 	}
 
 	/* Show the high score table */
-	ft2_ui_t *ui = ft2_ui_get_current();
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 	if (ui != NULL)
 		ft2_nibbles_show_highscores(inst, &ui->video, ui->bmpLoaded ? &ui->bmp : NULL);
 }
@@ -681,7 +681,7 @@ static void onRestartGameConfirm(ft2_instance_t *inst, ft2_dialog_result_t resul
 		/* User confirmed restart - stop current game and start new */
 		inst->nibbles.playing = false;
 
-		ft2_ui_t *ui = ft2_ui_get_current();
+		ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 		if (ui != NULL)
 			ft2_nibbles_play(inst, &ui->video, ui->bmpLoaded ? &ui->bmp : NULL);
 	}
@@ -696,7 +696,7 @@ static void onQuitGameConfirm(ft2_instance_t *inst, ft2_dialog_result_t result, 
 	if (result == DIALOG_RESULT_YES)
 	{
 		inst->nibbles.playing = false;
-		ft2_ui_t *ui = ft2_ui_get_current();
+		ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 		if (ui != NULL)
 			ft2_nibbles_exit(inst, &ui->video, ui->bmpLoaded ? &ui->bmp : NULL);
 	}
@@ -726,6 +726,14 @@ void ft2_nibbles_load_default_highscores(ft2_instance_t *inst)
 /* Show nibbles screen */
 void ft2_nibbles_show(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t *bmp)
 {
+	if (inst == NULL)
+		return;
+
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
+	if (ui == NULL)
+		return;
+	ft2_widgets_t *widgets = &ui->widgets;
+
 	/* Hide extended pattern editor if shown */
 	if (inst->uiState.extendedPatternEditor)
 	{
@@ -771,54 +779,62 @@ void ft2_nibbles_show(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t 
 	blitFast(video, 569, 7, bmp->nibblesLogo, 59, 91);
 
 	/* Show buttons */
-	showPushButton(video, bmp, PB_NIBBLES_PLAY);
-	showPushButton(video, bmp, PB_NIBBLES_HELP);
-	showPushButton(video, bmp, PB_NIBBLES_HIGHS);
-	showPushButton(video, bmp, PB_NIBBLES_EXIT);
+	showPushButton(widgets, video, bmp, PB_NIBBLES_PLAY);
+	showPushButton(widgets, video, bmp, PB_NIBBLES_HELP);
+	showPushButton(widgets, video, bmp, PB_NIBBLES_HIGHS);
+	showPushButton(widgets, video, bmp, PB_NIBBLES_EXIT);
 
 	/* Show checkboxes */
-	checkBoxes[CB_NIBBLES_SURROUND].checked = inst->nibbles.surround;
-	checkBoxes[CB_NIBBLES_GRID].checked = inst->nibbles.grid;
-	checkBoxes[CB_NIBBLES_WRAP].checked = inst->nibbles.wrap;
-	showCheckBox(video, bmp, CB_NIBBLES_SURROUND);
-	showCheckBox(video, bmp, CB_NIBBLES_GRID);
-	showCheckBox(video, bmp, CB_NIBBLES_WRAP);
+	widgets->checkBoxChecked[CB_NIBBLES_SURROUND] = inst->nibbles.surround;
+	widgets->checkBoxChecked[CB_NIBBLES_GRID] = inst->nibbles.grid;
+	widgets->checkBoxChecked[CB_NIBBLES_WRAP] = inst->nibbles.wrap;
+	showCheckBox(widgets, video, bmp, CB_NIBBLES_SURROUND);
+	showCheckBox(widgets, video, bmp, CB_NIBBLES_GRID);
+	showCheckBox(widgets, video, bmp, CB_NIBBLES_WRAP);
 
 	/* Show player radio buttons */
-	uncheckRadioButtonGroup(RB_GROUP_NIBBLES_PLAYERS);
+	uncheckRadioButtonGroup(widgets, RB_GROUP_NIBBLES_PLAYERS);
 	if (inst->nibbles.numPlayers == 0)
-		radioButtons[RB_NIBBLES_1PLAYER].state = RADIOBUTTON_CHECKED;
+		widgets->radioButtonState[RB_NIBBLES_1PLAYER] = RADIOBUTTON_CHECKED;
 	else
-		radioButtons[RB_NIBBLES_2PLAYER].state = RADIOBUTTON_CHECKED;
-	showRadioButtonGroup(video, bmp, RB_GROUP_NIBBLES_PLAYERS);
+		widgets->radioButtonState[RB_NIBBLES_2PLAYER] = RADIOBUTTON_CHECKED;
+	showRadioButtonGroup(widgets, video, bmp, RB_GROUP_NIBBLES_PLAYERS);
 
 	/* Show difficulty radio buttons */
-	uncheckRadioButtonGroup(RB_GROUP_NIBBLES_DIFFICULTY);
+	uncheckRadioButtonGroup(widgets, RB_GROUP_NIBBLES_DIFFICULTY);
 	switch (inst->nibbles.speed)
 	{
 		default:
-		case 0: radioButtons[RB_NIBBLES_NOVICE].state = RADIOBUTTON_CHECKED; break;
-		case 1: radioButtons[RB_NIBBLES_AVERAGE].state = RADIOBUTTON_CHECKED; break;
-		case 2: radioButtons[RB_NIBBLES_PRO].state = RADIOBUTTON_CHECKED; break;
-		case 3: radioButtons[RB_NIBBLES_TRITON].state = RADIOBUTTON_CHECKED; break;
+		case 0: widgets->radioButtonState[RB_NIBBLES_NOVICE] = RADIOBUTTON_CHECKED; break;
+		case 1: widgets->radioButtonState[RB_NIBBLES_AVERAGE] = RADIOBUTTON_CHECKED; break;
+		case 2: widgets->radioButtonState[RB_NIBBLES_PRO] = RADIOBUTTON_CHECKED; break;
+		case 3: widgets->radioButtonState[RB_NIBBLES_TRITON] = RADIOBUTTON_CHECKED; break;
 	}
-	showRadioButtonGroup(video, bmp, RB_GROUP_NIBBLES_DIFFICULTY);
+	showRadioButtonGroup(widgets, video, bmp, RB_GROUP_NIBBLES_DIFFICULTY);
 }
 
 /* Hide nibbles screen */
 void ft2_nibbles_hide(ft2_instance_t *inst)
 {
-	hidePushButton(PB_NIBBLES_PLAY);
-	hidePushButton(PB_NIBBLES_HELP);
-	hidePushButton(PB_NIBBLES_HIGHS);
-	hidePushButton(PB_NIBBLES_EXIT);
+	if (inst == NULL)
+		return;
 
-	hideRadioButtonGroup(RB_GROUP_NIBBLES_PLAYERS);
-	hideRadioButtonGroup(RB_GROUP_NIBBLES_DIFFICULTY);
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
+	if (ui == NULL)
+		return;
+	ft2_widgets_t *widgets = &ui->widgets;
 
-	hideCheckBox(CB_NIBBLES_SURROUND);
-	hideCheckBox(CB_NIBBLES_GRID);
-	hideCheckBox(CB_NIBBLES_WRAP);
+	hidePushButton(widgets, PB_NIBBLES_PLAY);
+	hidePushButton(widgets, PB_NIBBLES_HELP);
+	hidePushButton(widgets, PB_NIBBLES_HIGHS);
+	hidePushButton(widgets, PB_NIBBLES_EXIT);
+
+	hideRadioButtonGroup(widgets, RB_GROUP_NIBBLES_PLAYERS);
+	hideRadioButtonGroup(widgets, RB_GROUP_NIBBLES_DIFFICULTY);
+
+	hideCheckBox(widgets, CB_NIBBLES_SURROUND);
+	hideCheckBox(widgets, CB_NIBBLES_GRID);
+	hideCheckBox(widgets, CB_NIBBLES_WRAP);
 
 	inst->uiState.nibblesShown = false;
 	inst->uiState.nibblesHelpShown = false;
@@ -834,7 +850,7 @@ void ft2_nibbles_exit(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t 
 	/* If game is playing, ask for confirmation */
 	if (inst->nibbles.playing)
 	{
-		ft2_ui_t *ui = ft2_ui_get_current();
+		ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 		if (ui != NULL)
 		{
 			ft2_dialog_show_yesno_cb(&ui->dialog,
@@ -860,7 +876,7 @@ void ft2_nibbles_play(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t 
 	if (inst->nibbles.playing)
 	{
 		/* Already playing - ask to restart */
-		ft2_ui_t *ui = ft2_ui_get_current();
+		ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 		if (ui != NULL)
 		{
 			ft2_dialog_show_yesno_cb(&ui->dialog,
@@ -954,7 +970,7 @@ void ft2_nibbles_tick(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t 
 		return;
 
 	/* Also pause if a dialog is active (player died, quit confirmation, etc.) */
-	ft2_ui_t *ui = ft2_ui_get_current();
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 	if (ui != NULL && ft2_dialog_is_active(&ui->dialog))
 		return;
 
@@ -1153,7 +1169,7 @@ bool ft2_nibbles_handle_key(ft2_instance_t *inst, int32_t keyCode)
 	/* Handle escape - ask to quit */
 	if (keyCode == 27) /* Escape */
 	{
-		ft2_ui_t *ui = ft2_ui_get_current();
+		ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 		if (ui != NULL)
 		{
 			ft2_dialog_show_yesno_cb(&ui->dialog,
@@ -1281,57 +1297,93 @@ void pbNibblesExit(ft2_instance_t *inst)
 
 void rbNibbles1Player(ft2_instance_t *inst)
 {
+	if (inst == NULL) return;
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
+	ft2_widgets_t *widgets = (ui != NULL) ? &ui->widgets : NULL;
 	inst->nibbles.numPlayers = 0;
-	checkRadioButtonNoRedraw(RB_NIBBLES_1PLAYER);
+	if (widgets != NULL)
+		checkRadioButtonNoRedraw(widgets, RB_NIBBLES_1PLAYER);
 }
 
 void rbNibbles2Players(ft2_instance_t *inst)
 {
+	if (inst == NULL) return;
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
+	ft2_widgets_t *widgets = (ui != NULL) ? &ui->widgets : NULL;
 	inst->nibbles.numPlayers = 1;
-	checkRadioButtonNoRedraw(RB_NIBBLES_2PLAYER);
+	if (widgets != NULL)
+		checkRadioButtonNoRedraw(widgets, RB_NIBBLES_2PLAYER);
 }
 
 void rbNibblesNovice(ft2_instance_t *inst)
 {
+	if (inst == NULL) return;
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
+	ft2_widgets_t *widgets = (ui != NULL) ? &ui->widgets : NULL;
 	inst->nibbles.speed = 0;
-	checkRadioButtonNoRedraw(RB_NIBBLES_NOVICE);
+	if (widgets != NULL)
+		checkRadioButtonNoRedraw(widgets, RB_NIBBLES_NOVICE);
 }
 
 void rbNibblesAverage(ft2_instance_t *inst)
 {
+	if (inst == NULL) return;
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
+	ft2_widgets_t *widgets = (ui != NULL) ? &ui->widgets : NULL;
 	inst->nibbles.speed = 1;
-	checkRadioButtonNoRedraw(RB_NIBBLES_AVERAGE);
+	if (widgets != NULL)
+		checkRadioButtonNoRedraw(widgets, RB_NIBBLES_AVERAGE);
 }
 
 void rbNibblesPro(ft2_instance_t *inst)
 {
+	if (inst == NULL) return;
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
+	ft2_widgets_t *widgets = (ui != NULL) ? &ui->widgets : NULL;
 	inst->nibbles.speed = 2;
-	checkRadioButtonNoRedraw(RB_NIBBLES_PRO);
+	if (widgets != NULL)
+		checkRadioButtonNoRedraw(widgets, RB_NIBBLES_PRO);
 }
 
 void rbNibblesTriton(ft2_instance_t *inst)
 {
+	if (inst == NULL) return;
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
+	ft2_widgets_t *widgets = (ui != NULL) ? &ui->widgets : NULL;
 	inst->nibbles.speed = 3;
-	checkRadioButtonNoRedraw(RB_NIBBLES_TRITON);
+	if (widgets != NULL)
+		checkRadioButtonNoRedraw(widgets, RB_NIBBLES_TRITON);
 }
 
 void cbNibblesSurround(ft2_instance_t *inst)
 {
+	if (inst == NULL) return;
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
+	ft2_widgets_t *widgets = (ui != NULL) ? &ui->widgets : NULL;
 	inst->nibbles.surround = !inst->nibbles.surround;
-	checkBoxes[CB_NIBBLES_SURROUND].checked = inst->nibbles.surround;
+	if (widgets != NULL)
+		widgets->checkBoxChecked[CB_NIBBLES_SURROUND] = inst->nibbles.surround;
 }
 
 void cbNibblesGrid(ft2_instance_t *inst)
 {
+	if (inst == NULL) return;
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
+	ft2_widgets_t *widgets = (ui != NULL) ? &ui->widgets : NULL;
 	inst->nibbles.grid = !inst->nibbles.grid;
-	checkBoxes[CB_NIBBLES_GRID].checked = inst->nibbles.grid;
+	if (widgets != NULL)
+		widgets->checkBoxChecked[CB_NIBBLES_GRID] = inst->nibbles.grid;
 	/* Redraw screen if playing */
 	inst->uiState.nibblesRedrawRequested = inst->nibbles.playing;
 }
 
 void cbNibblesWrap(ft2_instance_t *inst)
 {
+	if (inst == NULL) return;
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
+	ft2_widgets_t *widgets = (ui != NULL) ? &ui->widgets : NULL;
 	inst->nibbles.wrap = !inst->nibbles.wrap;
-	checkBoxes[CB_NIBBLES_WRAP].checked = inst->nibbles.wrap;
+	if (widgets != NULL)
+		widgets->checkBoxChecked[CB_NIBBLES_WRAP] = inst->nibbles.wrap;
 }
 

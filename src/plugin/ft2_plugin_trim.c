@@ -114,6 +114,11 @@ void drawTrimScreen(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t *b
 	if (inst == NULL || video == NULL)
 		return;
 
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
+	if (ui == NULL)
+		return;
+	ft2_widgets_t *widgets = &ui->widgets;
+
 	/* Draw frameworks */
 	drawFramework(video, 0,   92, 136, 81, FRAMEWORK_TYPE1);
 	drawFramework(video, 136, 92, 155, 81, FRAMEWORK_TYPE1);
@@ -164,16 +169,16 @@ void drawTrimScreen(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t *b
 	}
 
 	/* Show checkboxes */
-	showCheckBox(video, bmp, CB_TRIM_PATT);
-	showCheckBox(video, bmp, CB_TRIM_INST);
-	showCheckBox(video, bmp, CB_TRIM_SAMP);
-	showCheckBox(video, bmp, CB_TRIM_CHAN);
-	showCheckBox(video, bmp, CB_TRIM_SMPD);
-	showCheckBox(video, bmp, CB_TRIM_CONV);
+	showCheckBox(widgets, video, bmp, CB_TRIM_PATT);
+	showCheckBox(widgets, video, bmp, CB_TRIM_INST);
+	showCheckBox(widgets, video, bmp, CB_TRIM_SAMP);
+	showCheckBox(widgets, video, bmp, CB_TRIM_CHAN);
+	showCheckBox(widgets, video, bmp, CB_TRIM_SMPD);
+	showCheckBox(widgets, video, bmp, CB_TRIM_CONV);
 
 	/* Show buttons */
-	showPushButton(video, bmp, PB_TRIM_CALC);
-	showPushButton(video, bmp, PB_TRIM_TRIM);
+	showPushButton(widgets, video, bmp, PB_TRIM_CALC);
+	showPushButton(widgets, video, bmp, PB_TRIM_TRIM);
 }
 
 void showTrimScreen(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t *bmp)
@@ -218,25 +223,28 @@ void hideTrimScreen(ft2_instance_t *inst)
 	if (inst == NULL)
 		return;
 
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
+	if (ui == NULL)
+		return;
+	ft2_widgets_t *widgets = &ui->widgets;
+
 	/* Hide checkboxes */
-	hideCheckBox(CB_TRIM_PATT);
-	hideCheckBox(CB_TRIM_INST);
-	hideCheckBox(CB_TRIM_SAMP);
-	hideCheckBox(CB_TRIM_CHAN);
-	hideCheckBox(CB_TRIM_SMPD);
-	hideCheckBox(CB_TRIM_CONV);
+	hideCheckBox(widgets, CB_TRIM_PATT);
+	hideCheckBox(widgets, CB_TRIM_INST);
+	hideCheckBox(widgets, CB_TRIM_SAMP);
+	hideCheckBox(widgets, CB_TRIM_CHAN);
+	hideCheckBox(widgets, CB_TRIM_SMPD);
+	hideCheckBox(widgets, CB_TRIM_CONV);
 
 	/* Hide buttons */
-	hidePushButton(PB_TRIM_CALC);
-	hidePushButton(PB_TRIM_TRIM);
+	hidePushButton(widgets, PB_TRIM_CALC);
+	hidePushButton(widgets, PB_TRIM_TRIM);
 
 	inst->uiState.trimScreenShown = false;
 	inst->uiState.scopesShown = true;
 
 	/* Trigger scope framework redraw */
-	ft2_ui_t *ui = ft2_ui_get_current();
-	if (ui != NULL)
-		ui->scopes.needsFrameworkRedraw = true;
+	ui->scopes.needsFrameworkRedraw = true;
 
 	inst->uiState.needsFullRedraw = true;
 }
@@ -254,7 +262,7 @@ void toggleTrimScreen(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t 
 
 /* ============ INITIALIZATION ============ */
 
-void setInitialTrimFlags(void)
+void setInitialTrimFlags(ft2_instance_t *inst)
 {
 	removePatt = true;
 	removeInst = true;
@@ -263,12 +271,17 @@ void setInitialTrimFlags(void)
 	removeSmpDataAfterLoop = true;
 	convSmpsTo8Bit = false;
 
-	checkBoxes[CB_TRIM_PATT].checked = true;
-	checkBoxes[CB_TRIM_INST].checked = true;
-	checkBoxes[CB_TRIM_SAMP].checked = true;
-	checkBoxes[CB_TRIM_CHAN].checked = true;
-	checkBoxes[CB_TRIM_SMPD].checked = true;
-	checkBoxes[CB_TRIM_CONV].checked = false;
+	if (inst == NULL) return;
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
+	if (ui == NULL) return;
+	ft2_widgets_t *widgets = &ui->widgets;
+
+	widgets->checkBoxChecked[CB_TRIM_PATT] = true;
+	widgets->checkBoxChecked[CB_TRIM_INST] = true;
+	widgets->checkBoxChecked[CB_TRIM_SAMP] = true;
+	widgets->checkBoxChecked[CB_TRIM_CHAN] = true;
+	widgets->checkBoxChecked[CB_TRIM_SMPD] = true;
+	widgets->checkBoxChecked[CB_TRIM_CONV] = false;
 }
 
 void resetTrimSizes(ft2_instance_t *inst)
@@ -280,7 +293,7 @@ void resetTrimSizes(ft2_instance_t *inst)
 	/* Redraw if trim screen is shown */
 	if (inst != NULL && inst->uiState.trimScreenShown)
 	{
-		ft2_ui_t *ui = ft2_ui_get_current();
+		ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 		if (ui != NULL)
 			drawTrimScreen(inst, &ui->video, &ui->bmp);
 	}
@@ -602,7 +615,7 @@ static int64_t calculateTrimSize(ft2_instance_t *inst)
 
 	if (!setTmpInstruments(inst))
 	{
-		ft2_ui_t *ui = ft2_ui_get_current();
+		ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 		if (ui != NULL)
 			ft2_dialog_show_message(&ui->dialog, "System request", "Not enough memory!");
 		return 0;
@@ -1157,7 +1170,7 @@ void pbTrimCalc(ft2_instance_t *inst)
 
 	if (inst->uiState.trimScreenShown)
 	{
-		ft2_ui_t *ui = ft2_ui_get_current();
+		ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 		if (ui != NULL)
 			drawTrimScreen(inst, &ui->video, &ui->bmp);
 	}
@@ -1191,7 +1204,7 @@ static void doTrimConfirmed(ft2_instance_t *inst, ft2_dialog_result_t result,
 
 	if (!setTmpInstruments(inst))
 	{
-		ft2_ui_t *ui = ft2_ui_get_current();
+		ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 		if (ui != NULL)
 			ft2_dialog_show_message(&ui->dialog, "System request", "Not enough memory!");
 		return;
@@ -1300,7 +1313,7 @@ void pbTrimDoTrim(ft2_instance_t *inst)
 		return; /* nothing to trim */
 
 	/* Show confirmation dialog */
-	ft2_ui_t *ui = ft2_ui_get_current();
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 	if (ui == NULL)
 		return;
 

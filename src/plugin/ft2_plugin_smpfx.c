@@ -939,48 +939,52 @@ void showSampleEffectsScreen(ft2_instance_t *inst)
 	if (inst == NULL)
 		return;
 
+	ft2_widgets_t *widgets = (inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets == NULL)
+		return;
+
 	inst->uiState.sampleEditorEffectsShown = true;
 
-	pushButtons[PB_SAMP_PNOTE_UP].visible = false;
-	pushButtons[PB_SAMP_PNOTE_DOWN].visible = false;
-	pushButtons[PB_SAMP_STOP].visible = false;
-	pushButtons[PB_SAMP_PWAVE].visible = false;
-	pushButtons[PB_SAMP_PRANGE].visible = false;
-	pushButtons[PB_SAMP_PDISPLAY].visible = false;
-	pushButtons[PB_SAMP_SHOW_RANGE].visible = false;
-	pushButtons[PB_SAMP_RANGE_ALL].visible = false;
-	pushButtons[PB_SAMP_CLR_RANGE].visible = false;
-	pushButtons[PB_SAMP_ZOOM_OUT].visible = false;
-	pushButtons[PB_SAMP_SHOW_ALL].visible = false;
-	pushButtons[PB_SAMP_SAVE_RNG].visible = false;
-	pushButtons[PB_SAMP_CUT].visible = false;
-	pushButtons[PB_SAMP_COPY].visible = false;
-	pushButtons[PB_SAMP_PASTE].visible = false;
-	pushButtons[PB_SAMP_CROP].visible = false;
-	pushButtons[PB_SAMP_VOLUME].visible = false;
-	pushButtons[PB_SAMP_EFFECTS].visible = false;
+	widgets->pushButtonVisible[PB_SAMP_PNOTE_UP] = false;
+	widgets->pushButtonVisible[PB_SAMP_PNOTE_DOWN] = false;
+	widgets->pushButtonVisible[PB_SAMP_STOP] = false;
+	widgets->pushButtonVisible[PB_SAMP_PWAVE] = false;
+	widgets->pushButtonVisible[PB_SAMP_PRANGE] = false;
+	widgets->pushButtonVisible[PB_SAMP_PDISPLAY] = false;
+	widgets->pushButtonVisible[PB_SAMP_SHOW_RANGE] = false;
+	widgets->pushButtonVisible[PB_SAMP_RANGE_ALL] = false;
+	widgets->pushButtonVisible[PB_SAMP_CLR_RANGE] = false;
+	widgets->pushButtonVisible[PB_SAMP_ZOOM_OUT] = false;
+	widgets->pushButtonVisible[PB_SAMP_SHOW_ALL] = false;
+	widgets->pushButtonVisible[PB_SAMP_SAVE_RNG] = false;
+	widgets->pushButtonVisible[PB_SAMP_CUT] = false;
+	widgets->pushButtonVisible[PB_SAMP_COPY] = false;
+	widgets->pushButtonVisible[PB_SAMP_PASTE] = false;
+	widgets->pushButtonVisible[PB_SAMP_CROP] = false;
+	widgets->pushButtonVisible[PB_SAMP_VOLUME] = false;
+	widgets->pushButtonVisible[PB_SAMP_EFFECTS] = false;
 
-	checkBoxes[CB_SAMPFX_NORM].checked = normalization;
-	checkBoxes[CB_SAMPFX_NORM].visible = true;
+	widgets->checkBoxChecked[CB_SAMPFX_NORM] = normalization;
+	widgets->checkBoxVisible[CB_SAMPFX_NORM] = true;
 
-	pushButtons[PB_SAMPFX_CYCLES_UP].visible = true;
-	pushButtons[PB_SAMPFX_CYCLES_DOWN].visible = true;
-	pushButtons[PB_SAMPFX_TRIANGLE].visible = true;
-	pushButtons[PB_SAMPFX_SAW].visible = true;
-	pushButtons[PB_SAMPFX_SINE].visible = true;
-	pushButtons[PB_SAMPFX_SQUARE].visible = true;
-	pushButtons[PB_SAMPFX_RESO_UP].visible = true;
-	pushButtons[PB_SAMPFX_RESO_DOWN].visible = true;
-	pushButtons[PB_SAMPFX_LOWPASS].visible = true;
-	pushButtons[PB_SAMPFX_HIGHPASS].visible = true;
-	pushButtons[PB_SAMPFX_SUB_BASS].visible = true;
-	pushButtons[PB_SAMPFX_ADD_BASS].visible = true;
-	pushButtons[PB_SAMPFX_SUB_TREBLE].visible = true;
-	pushButtons[PB_SAMPFX_ADD_TREBLE].visible = true;
-	pushButtons[PB_SAMPFX_SET_AMP].visible = true;
-	pushButtons[PB_SAMPFX_UNDO].visible = true;
-	pushButtons[PB_SAMPFX_XFADE].visible = true;
-	pushButtons[PB_SAMPFX_BACK].visible = true;
+	widgets->pushButtonVisible[PB_SAMPFX_CYCLES_UP] = true;
+	widgets->pushButtonVisible[PB_SAMPFX_CYCLES_DOWN] = true;
+	widgets->pushButtonVisible[PB_SAMPFX_TRIANGLE] = true;
+	widgets->pushButtonVisible[PB_SAMPFX_SAW] = true;
+	widgets->pushButtonVisible[PB_SAMPFX_SINE] = true;
+	widgets->pushButtonVisible[PB_SAMPFX_SQUARE] = true;
+	widgets->pushButtonVisible[PB_SAMPFX_RESO_UP] = true;
+	widgets->pushButtonVisible[PB_SAMPFX_RESO_DOWN] = true;
+	widgets->pushButtonVisible[PB_SAMPFX_LOWPASS] = true;
+	widgets->pushButtonVisible[PB_SAMPFX_HIGHPASS] = true;
+	widgets->pushButtonVisible[PB_SAMPFX_SUB_BASS] = true;
+	widgets->pushButtonVisible[PB_SAMPFX_ADD_BASS] = true;
+	widgets->pushButtonVisible[PB_SAMPFX_SUB_TREBLE] = true;
+	widgets->pushButtonVisible[PB_SAMPFX_ADD_TREBLE] = true;
+	widgets->pushButtonVisible[PB_SAMPFX_SET_AMP] = true;
+	widgets->pushButtonVisible[PB_SAMPFX_UNDO] = true;
+	widgets->pushButtonVisible[PB_SAMPFX_XFADE] = true;
+	widgets->pushButtonVisible[PB_SAMPFX_BACK] = true;
 
 	inst->uiState.needsFullRedraw = true;
 }
@@ -990,47 +994,51 @@ void hideSampleEffectsScreen(ft2_instance_t *inst)
 	if (inst == NULL)
 		return;
 
+	ft2_widgets_t *widgets = (inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets == NULL)
+		return;
+
 	inst->uiState.sampleEditorEffectsShown = false;
 
-	checkBoxes[CB_SAMPFX_NORM].visible = false;
+	widgets->checkBoxVisible[CB_SAMPFX_NORM] = false;
 
-	pushButtons[PB_SAMPFX_CYCLES_UP].visible = false;
-	pushButtons[PB_SAMPFX_CYCLES_DOWN].visible = false;
-	pushButtons[PB_SAMPFX_TRIANGLE].visible = false;
-	pushButtons[PB_SAMPFX_SAW].visible = false;
-	pushButtons[PB_SAMPFX_SINE].visible = false;
-	pushButtons[PB_SAMPFX_SQUARE].visible = false;
-	pushButtons[PB_SAMPFX_RESO_UP].visible = false;
-	pushButtons[PB_SAMPFX_RESO_DOWN].visible = false;
-	pushButtons[PB_SAMPFX_LOWPASS].visible = false;
-	pushButtons[PB_SAMPFX_HIGHPASS].visible = false;
-	pushButtons[PB_SAMPFX_SUB_BASS].visible = false;
-	pushButtons[PB_SAMPFX_ADD_BASS].visible = false;
-	pushButtons[PB_SAMPFX_SUB_TREBLE].visible = false;
-	pushButtons[PB_SAMPFX_ADD_TREBLE].visible = false;
-	pushButtons[PB_SAMPFX_SET_AMP].visible = false;
-	pushButtons[PB_SAMPFX_UNDO].visible = false;
-	pushButtons[PB_SAMPFX_XFADE].visible = false;
-	pushButtons[PB_SAMPFX_BACK].visible = false;
+	widgets->pushButtonVisible[PB_SAMPFX_CYCLES_UP] = false;
+	widgets->pushButtonVisible[PB_SAMPFX_CYCLES_DOWN] = false;
+	widgets->pushButtonVisible[PB_SAMPFX_TRIANGLE] = false;
+	widgets->pushButtonVisible[PB_SAMPFX_SAW] = false;
+	widgets->pushButtonVisible[PB_SAMPFX_SINE] = false;
+	widgets->pushButtonVisible[PB_SAMPFX_SQUARE] = false;
+	widgets->pushButtonVisible[PB_SAMPFX_RESO_UP] = false;
+	widgets->pushButtonVisible[PB_SAMPFX_RESO_DOWN] = false;
+	widgets->pushButtonVisible[PB_SAMPFX_LOWPASS] = false;
+	widgets->pushButtonVisible[PB_SAMPFX_HIGHPASS] = false;
+	widgets->pushButtonVisible[PB_SAMPFX_SUB_BASS] = false;
+	widgets->pushButtonVisible[PB_SAMPFX_ADD_BASS] = false;
+	widgets->pushButtonVisible[PB_SAMPFX_SUB_TREBLE] = false;
+	widgets->pushButtonVisible[PB_SAMPFX_ADD_TREBLE] = false;
+	widgets->pushButtonVisible[PB_SAMPFX_SET_AMP] = false;
+	widgets->pushButtonVisible[PB_SAMPFX_UNDO] = false;
+	widgets->pushButtonVisible[PB_SAMPFX_XFADE] = false;
+	widgets->pushButtonVisible[PB_SAMPFX_BACK] = false;
 
-	pushButtons[PB_SAMP_PNOTE_UP].visible = true;
-	pushButtons[PB_SAMP_PNOTE_DOWN].visible = true;
-	pushButtons[PB_SAMP_STOP].visible = true;
-	pushButtons[PB_SAMP_PWAVE].visible = true;
-	pushButtons[PB_SAMP_PRANGE].visible = true;
-	pushButtons[PB_SAMP_PDISPLAY].visible = true;
-	pushButtons[PB_SAMP_SHOW_RANGE].visible = true;
-	pushButtons[PB_SAMP_RANGE_ALL].visible = true;
-	pushButtons[PB_SAMP_CLR_RANGE].visible = true;
-	pushButtons[PB_SAMP_ZOOM_OUT].visible = true;
-	pushButtons[PB_SAMP_SHOW_ALL].visible = true;
-	/* pushButtons[PB_SAMP_SAVE_RNG].visible = true; */ /* TODO: Implement save range */
-	pushButtons[PB_SAMP_CUT].visible = true;
-	pushButtons[PB_SAMP_COPY].visible = true;
-	pushButtons[PB_SAMP_PASTE].visible = true;
-	pushButtons[PB_SAMP_CROP].visible = true;
-	pushButtons[PB_SAMP_VOLUME].visible = true;
-	pushButtons[PB_SAMP_EFFECTS].visible = true;
+	widgets->pushButtonVisible[PB_SAMP_PNOTE_UP] = true;
+	widgets->pushButtonVisible[PB_SAMP_PNOTE_DOWN] = true;
+	widgets->pushButtonVisible[PB_SAMP_STOP] = true;
+	widgets->pushButtonVisible[PB_SAMP_PWAVE] = true;
+	widgets->pushButtonVisible[PB_SAMP_PRANGE] = true;
+	widgets->pushButtonVisible[PB_SAMP_PDISPLAY] = true;
+	widgets->pushButtonVisible[PB_SAMP_SHOW_RANGE] = true;
+	widgets->pushButtonVisible[PB_SAMP_RANGE_ALL] = true;
+	widgets->pushButtonVisible[PB_SAMP_CLR_RANGE] = true;
+	widgets->pushButtonVisible[PB_SAMP_ZOOM_OUT] = true;
+	widgets->pushButtonVisible[PB_SAMP_SHOW_ALL] = true;
+	/* widgets->pushButtonVisible[PB_SAMP_SAVE_RNG] = true; */ /* TODO: Implement save range */
+	widgets->pushButtonVisible[PB_SAMP_CUT] = true;
+	widgets->pushButtonVisible[PB_SAMP_COPY] = true;
+	widgets->pushButtonVisible[PB_SAMP_PASTE] = true;
+	widgets->pushButtonVisible[PB_SAMP_CROP] = true;
+	widgets->pushButtonVisible[PB_SAMP_VOLUME] = true;
+	widgets->pushButtonVisible[PB_SAMP_EFFECTS] = true;
 
 	inst->uiState.needsFullRedraw = true;
 }

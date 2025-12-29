@@ -35,58 +35,60 @@
 #include "ft2_plugin_pattern_ed.h"
 #include "ft2_plugin_trim.h"
 #include "ft2_plugin_diskop.h"
+#include "ft2_plugin_ui.h"
 #include "ft2_instance.h"
 
 void hideTopLeftMainScreen(ft2_instance_t *inst)
 {
-	if (inst == NULL)
+	if (inst == NULL || inst->ui == NULL)
 		return;
 
+	ft2_widgets_t *widgets = &((ft2_ui_t *)inst->ui)->widgets;
 	inst->uiState.scopesShown = false;
 
 	/* Position editor */
-	hideScrollBar(SB_POS_ED);
-	hidePushButton(PB_POSED_POS_UP);
-	hidePushButton(PB_POSED_POS_DOWN);
-	hidePushButton(PB_POSED_INS);
-	hidePushButton(PB_POSED_PATT_UP);
-	hidePushButton(PB_POSED_PATT_DOWN);
-	hidePushButton(PB_POSED_DEL);
-	hidePushButton(PB_POSED_LEN_UP);
-	hidePushButton(PB_POSED_LEN_DOWN);
-	hidePushButton(PB_POSED_REP_UP);
-	hidePushButton(PB_POSED_REP_DOWN);
+	hideScrollBar(widgets, SB_POS_ED);
+	hidePushButton(widgets, PB_POSED_POS_UP);
+	hidePushButton(widgets, PB_POSED_POS_DOWN);
+	hidePushButton(widgets, PB_POSED_INS);
+	hidePushButton(widgets, PB_POSED_PATT_UP);
+	hidePushButton(widgets, PB_POSED_PATT_DOWN);
+	hidePushButton(widgets, PB_POSED_DEL);
+	hidePushButton(widgets, PB_POSED_LEN_UP);
+	hidePushButton(widgets, PB_POSED_LEN_DOWN);
+	hidePushButton(widgets, PB_POSED_REP_UP);
+	hidePushButton(widgets, PB_POSED_REP_DOWN);
 
 	/* Logo buttons */
-	hidePushButton(PB_LOGO);
-	hidePushButton(PB_BADGE);
+	hidePushButton(widgets, PB_LOGO);
+	hidePushButton(widgets, PB_BADGE);
 
 	/* Left menu buttons */
-	hidePushButton(PB_ABOUT);
-	hidePushButton(PB_NIBBLES);
-	hidePushButton(PB_KILL);
-	hidePushButton(PB_TRIM);
-	hidePushButton(PB_EXTEND_VIEW);
-	hidePushButton(PB_TRANSPOSE);
-	hidePushButton(PB_INST_ED_EXT);
-	hidePushButton(PB_SMP_ED_EXT);
-	hidePushButton(PB_ADV_EDIT);
-	hidePushButton(PB_ADD_CHANNELS);
-	hidePushButton(PB_SUB_CHANNELS);
+	hidePushButton(widgets, PB_ABOUT);
+	hidePushButton(widgets, PB_NIBBLES);
+	hidePushButton(widgets, PB_KILL);
+	hidePushButton(widgets, PB_TRIM);
+	hidePushButton(widgets, PB_EXTEND_VIEW);
+	hidePushButton(widgets, PB_TRANSPOSE);
+	hidePushButton(widgets, PB_INST_ED_EXT);
+	hidePushButton(widgets, PB_SMP_ED_EXT);
+	hidePushButton(widgets, PB_ADV_EDIT);
+	hidePushButton(widgets, PB_ADD_CHANNELS);
+	hidePushButton(widgets, PB_SUB_CHANNELS);
 
 	/* Song/pattern control buttons */
-	hidePushButton(PB_BPM_UP);
-	hidePushButton(PB_BPM_DOWN);
-	hidePushButton(PB_SPEED_UP);
-	hidePushButton(PB_SPEED_DOWN);
-	hidePushButton(PB_EDITADD_UP);
-	hidePushButton(PB_EDITADD_DOWN);
-	hidePushButton(PB_PATT_UP);
-	hidePushButton(PB_PATT_DOWN);
-	hidePushButton(PB_PATTLEN_UP);
-	hidePushButton(PB_PATTLEN_DOWN);
-	hidePushButton(PB_PATT_EXPAND);
-	hidePushButton(PB_PATT_SHRINK);
+	hidePushButton(widgets, PB_BPM_UP);
+	hidePushButton(widgets, PB_BPM_DOWN);
+	hidePushButton(widgets, PB_SPEED_UP);
+	hidePushButton(widgets, PB_SPEED_DOWN);
+	hidePushButton(widgets, PB_EDITADD_UP);
+	hidePushButton(widgets, PB_EDITADD_DOWN);
+	hidePushButton(widgets, PB_PATT_UP);
+	hidePushButton(widgets, PB_PATT_DOWN);
+	hidePushButton(widgets, PB_PATTLEN_UP);
+	hidePushButton(widgets, PB_PATTLEN_DOWN);
+	hidePushButton(widgets, PB_PATT_EXPAND);
+	hidePushButton(widgets, PB_PATT_SHRINK);
 
 	/* Hide and reset sub-screens */
 	hideTranspose(inst);
@@ -99,20 +101,22 @@ void hideTopLeftMainScreen(ft2_instance_t *inst)
 
 void hideTopRightMainScreen(ft2_instance_t *inst)
 {
-	if (inst == NULL)
+	if (inst == NULL || inst->ui == NULL)
 		return;
 
+	ft2_widgets_t *widgets = &((ft2_ui_t *)inst->ui)->widgets;
+
 	/* Right menu buttons */
-	hidePushButton(PB_PLAY_SONG);
-	hidePushButton(PB_PLAY_PATT);
-	hidePushButton(PB_STOP);
-	hidePushButton(PB_RECORD_SONG);
-	hidePushButton(PB_RECORD_PATT);
-	hidePushButton(PB_DISK_OP);
-	hidePushButton(PB_INST_ED);
-	hidePushButton(PB_SMP_ED);
-	hidePushButton(PB_CONFIG);
-	hidePushButton(PB_HELP);
+	hidePushButton(widgets, PB_PLAY_SONG);
+	hidePushButton(widgets, PB_PLAY_PATT);
+	hidePushButton(widgets, PB_STOP);
+	hidePushButton(widgets, PB_RECORD_SONG);
+	hidePushButton(widgets, PB_RECORD_PATT);
+	hidePushButton(widgets, PB_DISK_OP);
+	hidePushButton(widgets, PB_INST_ED);
+	hidePushButton(widgets, PB_SMP_ED);
+	hidePushButton(widgets, PB_CONFIG);
+	hidePushButton(widgets, PB_HELP);
 
 	/* Instrument switcher */
 	hideInstrumentSwitcher(inst);

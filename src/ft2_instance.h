@@ -620,6 +620,8 @@ typedef struct ft2_instance_t
 	ft2_timemap_t timemap;                  /* DAW position sync time map */
 	ft2_midi_queue_t midiOutQueue;          /* MIDI output event queue */
 
+	void *ui;  /* Pointer to ft2_ui_t (opaque to avoid circular include) */
+
 	uint32_t sampleRate;
 	float fAudioNormalizeMul;
 	float fSqrtPanningTable[256 + 1];

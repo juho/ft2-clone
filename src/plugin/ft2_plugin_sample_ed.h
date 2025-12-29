@@ -124,7 +124,7 @@ void exitSampleEditor(struct ft2_instance_t *inst);
 /* Extended sample editor */
 void showSampleEditorExt(struct ft2_instance_t *inst);
 void hideSampleEditorExt(struct ft2_instance_t *inst);
-void hideSampleEditorExtButtons(void);
+void hideSampleEditorExtButtons(struct ft2_instance_t *inst);
 void toggleSampleEditorExt(struct ft2_instance_t *inst);
 void drawSampleEditorExt(struct ft2_instance_t *inst, struct ft2_video_t *video, const struct ft2_bmp_t *bmp);
 

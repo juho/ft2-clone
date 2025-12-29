@@ -16,6 +16,7 @@
 #include "ft2_plugin_smpfx.h"
 #include "ft2_plugin_input.h"
 #include "ft2_plugin_replayer.h"
+#include "ft2_plugin_ui.h"
 #include "../ft2_instance.h"
 
 #ifndef M_PI
@@ -253,6 +254,10 @@ static void setupWidgets(void)
 	if (inst == NULL)
 		return;
 	
+	ft2_widgets_t *widgets = (inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets == NULL)
+		return;
+	
 	pushButton_t *p;
 	
 	/* OK button */
@@ -264,7 +269,7 @@ static void setupWidgets(void)
 	p->w = 80;
 	p->h = 16;
 	p->callbackFuncOnUp = onOKClick;
-	p->visible = true;
+	widgets->pushButtonVisible[PB_RES_1] = true;
 	
 	/* Cancel button */
 	p = &pushButtons[PB_RES_2];
@@ -275,13 +280,18 @@ static void setupWidgets(void)
 	p->w = 80;
 	p->h = 16;
 	p->callbackFuncOnUp = onCancelClick;
-	p->visible = true;
+	widgets->pushButtonVisible[PB_RES_2] = true;
 }
 
 static void hideWidgets(void)
 {
+	ft2_instance_t *inst = state.instance;
+	ft2_widgets_t *widgets = (inst != NULL && inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets == NULL)
+		return;
+	
 	for (int i = 0; i < 8; i++)
-		hidePushButton(PB_RES_1 + i);
+		hidePushButton(widgets, PB_RES_1 + i);
 }
 
 /* Widget callbacks */
@@ -403,11 +413,16 @@ void ft2_wave_panel_draw(ft2_video_t *video, const ft2_bmp_t *bmp)
 	
 	drawFrame(video, bmp);
 	
+	ft2_widgets_t *widgets = (state.instance != NULL && state.instance->ui != NULL) ?
+		&((ft2_ui_t *)state.instance->ui)->widgets : NULL;
+	if (widgets == NULL)
+		return;
+	
 	/* Draw buttons */
 	for (int i = 0; i < 8; i++)
 	{
-		if (pushButtons[PB_RES_1 + i].visible)
-			drawPushButton(video, bmp, PB_RES_1 + i);
+		if (widgets->pushButtonVisible[PB_RES_1 + i])
+			drawPushButton(widgets, video, bmp, PB_RES_1 + i);
 	}
 }
 

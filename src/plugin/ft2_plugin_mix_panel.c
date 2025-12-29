@@ -13,6 +13,7 @@
 #include "ft2_plugin_scrollbars.h"
 #include "ft2_plugin_sample_ed.h"
 #include "ft2_plugin_replayer.h"
+#include "ft2_plugin_ui.h"
 #include "../ft2_instance.h"
 
 /* 3-digit decimal string lookup table */
@@ -56,6 +57,10 @@ static void setupWidgets(void)
 	if (inst == NULL)
 		return;
 	
+	ft2_widgets_t *widgets = (inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets == NULL)
+		return;
+	
 	pushButton_t *p;
 	scrollBar_t *s;
 	
@@ -68,7 +73,7 @@ static void setupWidgets(void)
 	p->w = 73;
 	p->h = 16;
 	p->callbackFuncOnUp = onMixClick;
-	p->visible = true;
+	widgets->pushButtonVisible[PB_RES_1] = true;
 	
 	/* "Exit" pushbutton */
 	p = &pushButtons[PB_RES_2];
@@ -79,7 +84,7 @@ static void setupWidgets(void)
 	p->w = 73;
 	p->h = 16;
 	p->callbackFuncOnUp = onExitClick;
-	p->visible = true;
+	widgets->pushButtonVisible[PB_RES_2] = true;
 	
 	/* Balance left arrow */
 	p = &pushButtons[PB_RES_3];
@@ -92,7 +97,7 @@ static void setupWidgets(void)
 	p->preDelay = 1;
 	p->delayFrames = 3;
 	p->callbackFuncOnDown = onBalanceDown;
-	p->visible = true;
+	widgets->pushButtonVisible[PB_RES_3] = true;
 	
 	/* Balance right arrow */
 	p = &pushButtons[PB_RES_4];
@@ -105,7 +110,7 @@ static void setupWidgets(void)
 	p->preDelay = 1;
 	p->delayFrames = 3;
 	p->callbackFuncOnDown = onBalanceUp;
-	p->visible = true;
+	widgets->pushButtonVisible[PB_RES_4] = true;
 	
 	/* Balance scrollbar */
 	s = &scrollBars[SB_RES_1];
@@ -115,19 +120,24 @@ static void setupWidgets(void)
 	s->w = 66;
 	s->h = 13;
 	s->callbackFunc = onBalanceScrollbar;
-	s->visible = true;
-	setScrollBarPageLength(inst, NULL, SB_RES_1, 1);
-	setScrollBarEnd(inst, NULL, SB_RES_1, 100);
-	setScrollBarPos(inst, NULL, SB_RES_1, (uint32_t)state.mixBalance, false);
+	widgets->scrollBarState[SB_RES_1].visible = true;
+	setScrollBarPageLength(inst, widgets, NULL, SB_RES_1, 1);
+	setScrollBarEnd(inst, widgets, NULL, SB_RES_1, 100);
+	setScrollBarPos(inst, widgets, NULL, SB_RES_1, (uint32_t)state.mixBalance, false);
 }
 
 static void hideWidgets(void)
 {
+	ft2_instance_t *inst = state.instance;
+	ft2_widgets_t *widgets = (inst != NULL && inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets == NULL)
+		return;
+	
 	for (int i = 0; i < 8; i++)
-		hidePushButton(PB_RES_1 + i);
+		hidePushButton(widgets, PB_RES_1 + i);
 	
 	for (int i = 0; i < 3; i++)
-		hideScrollBar(SB_RES_1 + i);
+		hideScrollBar(widgets, SB_RES_1 + i);
 }
 
 static void onMixClick(ft2_instance_t *inst)
@@ -387,17 +397,21 @@ void ft2_mix_panel_draw(ft2_video_t *video, const ft2_bmp_t *bmp)
 	
 	drawFrame(video, bmp);
 	
-	if (state.instance != NULL)
-		setScrollBarPos(state.instance, video, SB_RES_1, (uint32_t)state.mixBalance, false);
+	ft2_widgets_t *widgets = (state.instance != NULL && state.instance->ui != NULL) ?
+		&((ft2_ui_t *)state.instance->ui)->widgets : NULL;
+	if (widgets == NULL)
+		return;
+	
+	setScrollBarPos(state.instance, widgets, video, SB_RES_1, (uint32_t)state.mixBalance, false);
 	
 	for (int i = 0; i < 8; i++)
 	{
-		if (pushButtons[PB_RES_1 + i].visible)
-			drawPushButton(video, bmp, PB_RES_1 + i);
+		if (widgets->pushButtonVisible[PB_RES_1 + i])
+			drawPushButton(widgets, video, bmp, PB_RES_1 + i);
 	}
 	
-	if (scrollBars[SB_RES_1].visible)
-		drawScrollBar(video, SB_RES_1);
+	if (widgets->scrollBarState[SB_RES_1].visible)
+		drawScrollBar(widgets, video, SB_RES_1);
 }
 
 void ft2_mix_panel_apply(void)

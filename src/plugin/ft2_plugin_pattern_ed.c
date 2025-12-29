@@ -1425,21 +1425,23 @@ void ft2_pattern_ed_draw(ft2_pattern_editor_t *editor, const ft2_bmp_t *bmp, ft2
 	ft2_pattern_ed_write_pattern(editor, bmp);
 	
 	/* Show or hide channel scrollbar and buttons based on ptnChanScrollShown */
-	if (editor->ptnChanScrollShown && instance != NULL)
+	if (editor->ptnChanScrollShown && instance != NULL && instance->ui != NULL)
 	{
+		ft2_widgets_t *widgets = &((ft2_ui_t *)instance->ui)->widgets;
 		/* Scrollbar and buttons should be visible */
-		showScrollBar(editor->video, SB_CHAN_SCROLL);
-		showPushButton(editor->video, bmp, PB_CHAN_SCROLL_LEFT);
-		showPushButton(editor->video, bmp, PB_CHAN_SCROLL_RIGHT);
+		showScrollBar(widgets, editor->video, SB_CHAN_SCROLL);
+		showPushButton(widgets, editor->video, bmp, PB_CHAN_SCROLL_LEFT);
+		showPushButton(widgets, editor->video, bmp, PB_CHAN_SCROLL_RIGHT);
 		/* Update scrollbar range to reflect number of channels */
-		setScrollBarEnd(instance, editor->video, SB_CHAN_SCROLL, instance->replayer.song.numChannels);
-		setScrollBarPageLength(instance, editor->video, SB_CHAN_SCROLL, instance->uiState.numChannelsShown);
+		setScrollBarEnd(instance, widgets, editor->video, SB_CHAN_SCROLL, instance->replayer.song.numChannels);
+		setScrollBarPageLength(instance, widgets, editor->video, SB_CHAN_SCROLL, instance->uiState.numChannelsShown);
 	}
-	else
+	else if (instance != NULL && instance->ui != NULL)
 	{
-		hideScrollBar(SB_CHAN_SCROLL);
-		hidePushButton(PB_CHAN_SCROLL_LEFT);
-		hidePushButton(PB_CHAN_SCROLL_RIGHT);
+		ft2_widgets_t *widgets = &((ft2_ui_t *)instance->ui)->widgets;
+		hideScrollBar(widgets, SB_CHAN_SCROLL);
+		hidePushButton(widgets, PB_CHAN_SCROLL_LEFT);
+		hidePushButton(widgets, PB_CHAN_SCROLL_RIGHT);
 	}
 }
 
@@ -2418,9 +2420,13 @@ void hidePatternEditor(ft2_instance_t *inst)
 	if (inst == NULL)
 		return;
 
-	hideScrollBar(SB_CHAN_SCROLL);
-	hidePushButton(PB_CHAN_SCROLL_LEFT);
-	hidePushButton(PB_CHAN_SCROLL_RIGHT);
+	ft2_widgets_t *widgets = (inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets != NULL)
+	{
+		hideScrollBar(widgets, SB_CHAN_SCROLL);
+		hidePushButton(widgets, PB_CHAN_SCROLL_LEFT);
+		hidePushButton(widgets, PB_CHAN_SCROLL_RIGHT);
+	}
 
 	inst->uiState.patternEditorShown = false;
 }
@@ -2495,39 +2501,43 @@ void setAdvEditCheckBoxes(ft2_instance_t *inst, ft2_video_t *video, const ft2_bm
 	if (inst == NULL)
 		return;
 
-	checkBoxes[CB_ENABLE_MASKING].checked = inst->editor.copyMaskEnable;
-	checkBoxes[CB_COPY_MASK0].checked = inst->editor.copyMask[0];
-	checkBoxes[CB_COPY_MASK1].checked = inst->editor.copyMask[1];
-	checkBoxes[CB_COPY_MASK2].checked = inst->editor.copyMask[2];
-	checkBoxes[CB_COPY_MASK3].checked = inst->editor.copyMask[3];
-	checkBoxes[CB_COPY_MASK4].checked = inst->editor.copyMask[4];
-	checkBoxes[CB_PASTE_MASK0].checked = inst->editor.pasteMask[0];
-	checkBoxes[CB_PASTE_MASK1].checked = inst->editor.pasteMask[1];
-	checkBoxes[CB_PASTE_MASK2].checked = inst->editor.pasteMask[2];
-	checkBoxes[CB_PASTE_MASK3].checked = inst->editor.pasteMask[3];
-	checkBoxes[CB_PASTE_MASK4].checked = inst->editor.pasteMask[4];
-	checkBoxes[CB_TRANSP_MASK0].checked = inst->editor.transpMask[0];
-	checkBoxes[CB_TRANSP_MASK1].checked = inst->editor.transpMask[1];
-	checkBoxes[CB_TRANSP_MASK2].checked = inst->editor.transpMask[2];
-	checkBoxes[CB_TRANSP_MASK3].checked = inst->editor.transpMask[3];
-	checkBoxes[CB_TRANSP_MASK4].checked = inst->editor.transpMask[4];
+	ft2_widgets_t *widgets = (inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets == NULL)
+		return;
 
-	showCheckBox(video, bmp, CB_ENABLE_MASKING);
-	showCheckBox(video, bmp, CB_COPY_MASK0);
-	showCheckBox(video, bmp, CB_COPY_MASK1);
-	showCheckBox(video, bmp, CB_COPY_MASK2);
-	showCheckBox(video, bmp, CB_COPY_MASK3);
-	showCheckBox(video, bmp, CB_COPY_MASK4);
-	showCheckBox(video, bmp, CB_PASTE_MASK0);
-	showCheckBox(video, bmp, CB_PASTE_MASK1);
-	showCheckBox(video, bmp, CB_PASTE_MASK2);
-	showCheckBox(video, bmp, CB_PASTE_MASK3);
-	showCheckBox(video, bmp, CB_PASTE_MASK4);
-	showCheckBox(video, bmp, CB_TRANSP_MASK0);
-	showCheckBox(video, bmp, CB_TRANSP_MASK1);
-	showCheckBox(video, bmp, CB_TRANSP_MASK2);
-	showCheckBox(video, bmp, CB_TRANSP_MASK3);
-	showCheckBox(video, bmp, CB_TRANSP_MASK4);
+	widgets->checkBoxChecked[CB_ENABLE_MASKING] = inst->editor.copyMaskEnable;
+	widgets->checkBoxChecked[CB_COPY_MASK0] = inst->editor.copyMask[0];
+	widgets->checkBoxChecked[CB_COPY_MASK1] = inst->editor.copyMask[1];
+	widgets->checkBoxChecked[CB_COPY_MASK2] = inst->editor.copyMask[2];
+	widgets->checkBoxChecked[CB_COPY_MASK3] = inst->editor.copyMask[3];
+	widgets->checkBoxChecked[CB_COPY_MASK4] = inst->editor.copyMask[4];
+	widgets->checkBoxChecked[CB_PASTE_MASK0] = inst->editor.pasteMask[0];
+	widgets->checkBoxChecked[CB_PASTE_MASK1] = inst->editor.pasteMask[1];
+	widgets->checkBoxChecked[CB_PASTE_MASK2] = inst->editor.pasteMask[2];
+	widgets->checkBoxChecked[CB_PASTE_MASK3] = inst->editor.pasteMask[3];
+	widgets->checkBoxChecked[CB_PASTE_MASK4] = inst->editor.pasteMask[4];
+	widgets->checkBoxChecked[CB_TRANSP_MASK0] = inst->editor.transpMask[0];
+	widgets->checkBoxChecked[CB_TRANSP_MASK1] = inst->editor.transpMask[1];
+	widgets->checkBoxChecked[CB_TRANSP_MASK2] = inst->editor.transpMask[2];
+	widgets->checkBoxChecked[CB_TRANSP_MASK3] = inst->editor.transpMask[3];
+	widgets->checkBoxChecked[CB_TRANSP_MASK4] = inst->editor.transpMask[4];
+
+	showCheckBox(widgets, video, bmp, CB_ENABLE_MASKING);
+	showCheckBox(widgets, video, bmp, CB_COPY_MASK0);
+	showCheckBox(widgets, video, bmp, CB_COPY_MASK1);
+	showCheckBox(widgets, video, bmp, CB_COPY_MASK2);
+	showCheckBox(widgets, video, bmp, CB_COPY_MASK3);
+	showCheckBox(widgets, video, bmp, CB_COPY_MASK4);
+	showCheckBox(widgets, video, bmp, CB_PASTE_MASK0);
+	showCheckBox(widgets, video, bmp, CB_PASTE_MASK1);
+	showCheckBox(widgets, video, bmp, CB_PASTE_MASK2);
+	showCheckBox(widgets, video, bmp, CB_PASTE_MASK3);
+	showCheckBox(widgets, video, bmp, CB_PASTE_MASK4);
+	showCheckBox(widgets, video, bmp, CB_TRANSP_MASK0);
+	showCheckBox(widgets, video, bmp, CB_TRANSP_MASK1);
+	showCheckBox(widgets, video, bmp, CB_TRANSP_MASK2);
+	showCheckBox(widgets, video, bmp, CB_TRANSP_MASK3);
+	showCheckBox(widgets, video, bmp, CB_TRANSP_MASK4);
 }
 
 void updateAdvEdit(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t *bmp)
@@ -2567,11 +2577,15 @@ void drawAdvEdit(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t *bmp)
 	charOutShadow(video, bmp, 258, 95, PAL_FORGRND, PAL_DSKTOP2, 'P');
 	charOutShadow(video, bmp, 277, 95, PAL_FORGRND, PAL_DSKTOP2, 'T');
 
+	ft2_widgets_t *widgets = (inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets == NULL)
+		return;
+
 	/* Show remap buttons */
-	showPushButton(video, bmp, PB_REMAP_TRACK);
-	showPushButton(video, bmp, PB_REMAP_PATTERN);
-	showPushButton(video, bmp, PB_REMAP_SONG);
-	showPushButton(video, bmp, PB_REMAP_BLOCK);
+	showPushButton(widgets, video, bmp, PB_REMAP_TRACK);
+	showPushButton(widgets, video, bmp, PB_REMAP_PATTERN);
+	showPushButton(widgets, video, bmp, PB_REMAP_SONG);
+	showPushButton(widgets, video, bmp, PB_REMAP_BLOCK);
 
 	/* Set checkbox states and show them */
 	setAdvEditCheckBoxes(inst, video, bmp);
@@ -2619,34 +2633,38 @@ void hideAdvEdit(ft2_instance_t *inst)
 
 	inst->uiState.advEditShown = false;
 
-	/* Hide remap buttons */
-	hidePushButton(PB_REMAP_TRACK);
-	hidePushButton(PB_REMAP_PATTERN);
-	hidePushButton(PB_REMAP_SONG);
-	hidePushButton(PB_REMAP_BLOCK);
+	ft2_widgets_t *widgets = (inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets != NULL)
+	{
+		/* Hide remap buttons */
+		hidePushButton(widgets, PB_REMAP_TRACK);
+		hidePushButton(widgets, PB_REMAP_PATTERN);
+		hidePushButton(widgets, PB_REMAP_SONG);
+		hidePushButton(widgets, PB_REMAP_BLOCK);
 
-	/* Hide all masking checkboxes */
-	hideCheckBox(CB_ENABLE_MASKING);
-	hideCheckBox(CB_COPY_MASK0);
-	hideCheckBox(CB_COPY_MASK1);
-	hideCheckBox(CB_COPY_MASK2);
-	hideCheckBox(CB_COPY_MASK3);
-	hideCheckBox(CB_COPY_MASK4);
-	hideCheckBox(CB_PASTE_MASK0);
-	hideCheckBox(CB_PASTE_MASK1);
-	hideCheckBox(CB_PASTE_MASK2);
-	hideCheckBox(CB_PASTE_MASK3);
-	hideCheckBox(CB_PASTE_MASK4);
-	hideCheckBox(CB_TRANSP_MASK0);
-	hideCheckBox(CB_TRANSP_MASK1);
-	hideCheckBox(CB_TRANSP_MASK2);
-	hideCheckBox(CB_TRANSP_MASK3);
-	hideCheckBox(CB_TRANSP_MASK4);
+		/* Hide all masking checkboxes */
+		hideCheckBox(widgets, CB_ENABLE_MASKING);
+		hideCheckBox(widgets, CB_COPY_MASK0);
+		hideCheckBox(widgets, CB_COPY_MASK1);
+		hideCheckBox(widgets, CB_COPY_MASK2);
+		hideCheckBox(widgets, CB_COPY_MASK3);
+		hideCheckBox(widgets, CB_COPY_MASK4);
+		hideCheckBox(widgets, CB_PASTE_MASK0);
+		hideCheckBox(widgets, CB_PASTE_MASK1);
+		hideCheckBox(widgets, CB_PASTE_MASK2);
+		hideCheckBox(widgets, CB_PASTE_MASK3);
+		hideCheckBox(widgets, CB_PASTE_MASK4);
+		hideCheckBox(widgets, CB_TRANSP_MASK0);
+		hideCheckBox(widgets, CB_TRANSP_MASK1);
+		hideCheckBox(widgets, CB_TRANSP_MASK2);
+		hideCheckBox(widgets, CB_TRANSP_MASK3);
+		hideCheckBox(widgets, CB_TRANSP_MASK4);
+	}
 
 	inst->uiState.scopesShown = true;
 
 	/* Trigger scope framework redraw */
-	ft2_ui_t *ui = ft2_ui_get_current();
+	ft2_ui_t *ui = (inst->ui != NULL) ? (ft2_ui_t *)inst->ui : NULL;
 	if (ui != NULL)
 		ui->scopes.needsFrameworkRedraw = true;
 
@@ -2831,39 +2849,43 @@ void drawTranspose(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t *bm
 	textOutShadow(video, bmp, 4, 144, PAL_FORGRND, PAL_DSKTOP2, "Song");
 	textOutShadow(video, bmp, 4, 159, PAL_FORGRND, PAL_DSKTOP2, "Block");
 
+	ft2_widgets_t *widgets = (inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets == NULL)
+		return;
+
 	/* Show transpose pushbuttons */
-	showPushButton(video, bmp, PB_TRANSP_CUR_INS_TRK_UP);
-	showPushButton(video, bmp, PB_TRANSP_CUR_INS_TRK_DN);
-	showPushButton(video, bmp, PB_TRANSP_CUR_INS_TRK_12UP);
-	showPushButton(video, bmp, PB_TRANSP_CUR_INS_TRK_12DN);
-	showPushButton(video, bmp, PB_TRANSP_ALL_INS_TRK_UP);
-	showPushButton(video, bmp, PB_TRANSP_ALL_INS_TRK_DN);
-	showPushButton(video, bmp, PB_TRANSP_ALL_INS_TRK_12UP);
-	showPushButton(video, bmp, PB_TRANSP_ALL_INS_TRK_12DN);
-	showPushButton(video, bmp, PB_TRANSP_CUR_INS_PAT_UP);
-	showPushButton(video, bmp, PB_TRANSP_CUR_INS_PAT_DN);
-	showPushButton(video, bmp, PB_TRANSP_CUR_INS_PAT_12UP);
-	showPushButton(video, bmp, PB_TRANSP_CUR_INS_PAT_12DN);
-	showPushButton(video, bmp, PB_TRANSP_ALL_INS_PAT_UP);
-	showPushButton(video, bmp, PB_TRANSP_ALL_INS_PAT_DN);
-	showPushButton(video, bmp, PB_TRANSP_ALL_INS_PAT_12UP);
-	showPushButton(video, bmp, PB_TRANSP_ALL_INS_PAT_12DN);
-	showPushButton(video, bmp, PB_TRANSP_CUR_INS_SNG_UP);
-	showPushButton(video, bmp, PB_TRANSP_CUR_INS_SNG_DN);
-	showPushButton(video, bmp, PB_TRANSP_CUR_INS_SNG_12UP);
-	showPushButton(video, bmp, PB_TRANSP_CUR_INS_SNG_12DN);
-	showPushButton(video, bmp, PB_TRANSP_ALL_INS_SNG_UP);
-	showPushButton(video, bmp, PB_TRANSP_ALL_INS_SNG_DN);
-	showPushButton(video, bmp, PB_TRANSP_ALL_INS_SNG_12UP);
-	showPushButton(video, bmp, PB_TRANSP_ALL_INS_SNG_12DN);
-	showPushButton(video, bmp, PB_TRANSP_CUR_INS_BLK_UP);
-	showPushButton(video, bmp, PB_TRANSP_CUR_INS_BLK_DN);
-	showPushButton(video, bmp, PB_TRANSP_CUR_INS_BLK_12UP);
-	showPushButton(video, bmp, PB_TRANSP_CUR_INS_BLK_12DN);
-	showPushButton(video, bmp, PB_TRANSP_ALL_INS_BLK_UP);
-	showPushButton(video, bmp, PB_TRANSP_ALL_INS_BLK_DN);
-	showPushButton(video, bmp, PB_TRANSP_ALL_INS_BLK_12UP);
-	showPushButton(video, bmp, PB_TRANSP_ALL_INS_BLK_12DN);
+	showPushButton(widgets, video, bmp, PB_TRANSP_CUR_INS_TRK_UP);
+	showPushButton(widgets, video, bmp, PB_TRANSP_CUR_INS_TRK_DN);
+	showPushButton(widgets, video, bmp, PB_TRANSP_CUR_INS_TRK_12UP);
+	showPushButton(widgets, video, bmp, PB_TRANSP_CUR_INS_TRK_12DN);
+	showPushButton(widgets, video, bmp, PB_TRANSP_ALL_INS_TRK_UP);
+	showPushButton(widgets, video, bmp, PB_TRANSP_ALL_INS_TRK_DN);
+	showPushButton(widgets, video, bmp, PB_TRANSP_ALL_INS_TRK_12UP);
+	showPushButton(widgets, video, bmp, PB_TRANSP_ALL_INS_TRK_12DN);
+	showPushButton(widgets, video, bmp, PB_TRANSP_CUR_INS_PAT_UP);
+	showPushButton(widgets, video, bmp, PB_TRANSP_CUR_INS_PAT_DN);
+	showPushButton(widgets, video, bmp, PB_TRANSP_CUR_INS_PAT_12UP);
+	showPushButton(widgets, video, bmp, PB_TRANSP_CUR_INS_PAT_12DN);
+	showPushButton(widgets, video, bmp, PB_TRANSP_ALL_INS_PAT_UP);
+	showPushButton(widgets, video, bmp, PB_TRANSP_ALL_INS_PAT_DN);
+	showPushButton(widgets, video, bmp, PB_TRANSP_ALL_INS_PAT_12UP);
+	showPushButton(widgets, video, bmp, PB_TRANSP_ALL_INS_PAT_12DN);
+	showPushButton(widgets, video, bmp, PB_TRANSP_CUR_INS_SNG_UP);
+	showPushButton(widgets, video, bmp, PB_TRANSP_CUR_INS_SNG_DN);
+	showPushButton(widgets, video, bmp, PB_TRANSP_CUR_INS_SNG_12UP);
+	showPushButton(widgets, video, bmp, PB_TRANSP_CUR_INS_SNG_12DN);
+	showPushButton(widgets, video, bmp, PB_TRANSP_ALL_INS_SNG_UP);
+	showPushButton(widgets, video, bmp, PB_TRANSP_ALL_INS_SNG_DN);
+	showPushButton(widgets, video, bmp, PB_TRANSP_ALL_INS_SNG_12UP);
+	showPushButton(widgets, video, bmp, PB_TRANSP_ALL_INS_SNG_12DN);
+	showPushButton(widgets, video, bmp, PB_TRANSP_CUR_INS_BLK_UP);
+	showPushButton(widgets, video, bmp, PB_TRANSP_CUR_INS_BLK_DN);
+	showPushButton(widgets, video, bmp, PB_TRANSP_CUR_INS_BLK_12UP);
+	showPushButton(widgets, video, bmp, PB_TRANSP_CUR_INS_BLK_12DN);
+	showPushButton(widgets, video, bmp, PB_TRANSP_ALL_INS_BLK_UP);
+	showPushButton(widgets, video, bmp, PB_TRANSP_ALL_INS_BLK_DN);
+	showPushButton(widgets, video, bmp, PB_TRANSP_ALL_INS_BLK_12UP);
+	showPushButton(widgets, video, bmp, PB_TRANSP_ALL_INS_BLK_12DN);
 }
 
 void showTranspose(ft2_instance_t *inst)
@@ -2883,45 +2905,49 @@ void hideTranspose(ft2_instance_t *inst)
 	if (inst == NULL)
 		return;
 
-	/* Hide all transpose pushbuttons */
-	hidePushButton(PB_TRANSP_CUR_INS_TRK_UP);
-	hidePushButton(PB_TRANSP_CUR_INS_TRK_DN);
-	hidePushButton(PB_TRANSP_CUR_INS_TRK_12UP);
-	hidePushButton(PB_TRANSP_CUR_INS_TRK_12DN);
-	hidePushButton(PB_TRANSP_ALL_INS_TRK_UP);
-	hidePushButton(PB_TRANSP_ALL_INS_TRK_DN);
-	hidePushButton(PB_TRANSP_ALL_INS_TRK_12UP);
-	hidePushButton(PB_TRANSP_ALL_INS_TRK_12DN);
-	hidePushButton(PB_TRANSP_CUR_INS_PAT_UP);
-	hidePushButton(PB_TRANSP_CUR_INS_PAT_DN);
-	hidePushButton(PB_TRANSP_CUR_INS_PAT_12UP);
-	hidePushButton(PB_TRANSP_CUR_INS_PAT_12DN);
-	hidePushButton(PB_TRANSP_ALL_INS_PAT_UP);
-	hidePushButton(PB_TRANSP_ALL_INS_PAT_DN);
-	hidePushButton(PB_TRANSP_ALL_INS_PAT_12UP);
-	hidePushButton(PB_TRANSP_ALL_INS_PAT_12DN);
-	hidePushButton(PB_TRANSP_CUR_INS_SNG_UP);
-	hidePushButton(PB_TRANSP_CUR_INS_SNG_DN);
-	hidePushButton(PB_TRANSP_CUR_INS_SNG_12UP);
-	hidePushButton(PB_TRANSP_CUR_INS_SNG_12DN);
-	hidePushButton(PB_TRANSP_ALL_INS_SNG_UP);
-	hidePushButton(PB_TRANSP_ALL_INS_SNG_DN);
-	hidePushButton(PB_TRANSP_ALL_INS_SNG_12UP);
-	hidePushButton(PB_TRANSP_ALL_INS_SNG_12DN);
-	hidePushButton(PB_TRANSP_CUR_INS_BLK_UP);
-	hidePushButton(PB_TRANSP_CUR_INS_BLK_DN);
-	hidePushButton(PB_TRANSP_CUR_INS_BLK_12UP);
-	hidePushButton(PB_TRANSP_CUR_INS_BLK_12DN);
-	hidePushButton(PB_TRANSP_ALL_INS_BLK_UP);
-	hidePushButton(PB_TRANSP_ALL_INS_BLK_DN);
-	hidePushButton(PB_TRANSP_ALL_INS_BLK_12UP);
-	hidePushButton(PB_TRANSP_ALL_INS_BLK_12DN);
+	ft2_widgets_t *widgets = (inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets != NULL)
+	{
+		/* Hide all transpose pushbuttons */
+		hidePushButton(widgets, PB_TRANSP_CUR_INS_TRK_UP);
+		hidePushButton(widgets, PB_TRANSP_CUR_INS_TRK_DN);
+		hidePushButton(widgets, PB_TRANSP_CUR_INS_TRK_12UP);
+		hidePushButton(widgets, PB_TRANSP_CUR_INS_TRK_12DN);
+		hidePushButton(widgets, PB_TRANSP_ALL_INS_TRK_UP);
+		hidePushButton(widgets, PB_TRANSP_ALL_INS_TRK_DN);
+		hidePushButton(widgets, PB_TRANSP_ALL_INS_TRK_12UP);
+		hidePushButton(widgets, PB_TRANSP_ALL_INS_TRK_12DN);
+		hidePushButton(widgets, PB_TRANSP_CUR_INS_PAT_UP);
+		hidePushButton(widgets, PB_TRANSP_CUR_INS_PAT_DN);
+		hidePushButton(widgets, PB_TRANSP_CUR_INS_PAT_12UP);
+		hidePushButton(widgets, PB_TRANSP_CUR_INS_PAT_12DN);
+		hidePushButton(widgets, PB_TRANSP_ALL_INS_PAT_UP);
+		hidePushButton(widgets, PB_TRANSP_ALL_INS_PAT_DN);
+		hidePushButton(widgets, PB_TRANSP_ALL_INS_PAT_12UP);
+		hidePushButton(widgets, PB_TRANSP_ALL_INS_PAT_12DN);
+		hidePushButton(widgets, PB_TRANSP_CUR_INS_SNG_UP);
+		hidePushButton(widgets, PB_TRANSP_CUR_INS_SNG_DN);
+		hidePushButton(widgets, PB_TRANSP_CUR_INS_SNG_12UP);
+		hidePushButton(widgets, PB_TRANSP_CUR_INS_SNG_12DN);
+		hidePushButton(widgets, PB_TRANSP_ALL_INS_SNG_UP);
+		hidePushButton(widgets, PB_TRANSP_ALL_INS_SNG_DN);
+		hidePushButton(widgets, PB_TRANSP_ALL_INS_SNG_12UP);
+		hidePushButton(widgets, PB_TRANSP_ALL_INS_SNG_12DN);
+		hidePushButton(widgets, PB_TRANSP_CUR_INS_BLK_UP);
+		hidePushButton(widgets, PB_TRANSP_CUR_INS_BLK_DN);
+		hidePushButton(widgets, PB_TRANSP_CUR_INS_BLK_12UP);
+		hidePushButton(widgets, PB_TRANSP_CUR_INS_BLK_12DN);
+		hidePushButton(widgets, PB_TRANSP_ALL_INS_BLK_UP);
+		hidePushButton(widgets, PB_TRANSP_ALL_INS_BLK_DN);
+		hidePushButton(widgets, PB_TRANSP_ALL_INS_BLK_12UP);
+		hidePushButton(widgets, PB_TRANSP_ALL_INS_BLK_12DN);
+	}
 
 	inst->uiState.transposeShown = false;
 	inst->uiState.scopesShown = true;
 
 	/* Trigger scope framework redraw to clear the transpose panel area */
-	ft2_ui_t *ui = ft2_ui_get_current();
+	ft2_ui_t *ui = (inst->ui != NULL) ? (ft2_ui_t *)inst->ui : NULL;
 	if (ui != NULL)
 		ui->scopes.needsFrameworkRedraw = true;
 }

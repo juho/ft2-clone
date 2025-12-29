@@ -549,7 +549,7 @@ void pbInstEd(ft2_instance_t *inst)
 {
 	if (inst == NULL) return;
 	
-	ft2_ui_t *ui = ft2_ui_get_current();
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 	if (ui == NULL) return;
 	
 	toggleInstEditor(inst, &ui->video, &ui->bmp);
@@ -625,7 +625,7 @@ void pbHelp(ft2_instance_t *inst)
 		return;
 	
 	/* Get video/bmp from current UI */
-	ft2_ui_t *ui = ft2_ui_get_current();
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 	if (ui != NULL)
 	{
 		ft2_video_t *video = &ui->video;
@@ -646,7 +646,7 @@ void pbHelpExit(ft2_instance_t *inst)
 void cbHelpFeatures(ft2_instance_t *inst)
 {
 	if (inst == NULL) return;
-	ft2_ui_t *ui = ft2_ui_get_current();
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 	if (ui != NULL)
 	{
 		ft2_video_t *video = &ui->video;
@@ -658,7 +658,7 @@ void cbHelpFeatures(ft2_instance_t *inst)
 void cbHelpEffects(ft2_instance_t *inst)
 {
 	if (inst == NULL) return;
-	ft2_ui_t *ui = ft2_ui_get_current();
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 	if (ui != NULL)
 	{
 		ft2_video_t *video = &ui->video;
@@ -670,7 +670,7 @@ void cbHelpEffects(ft2_instance_t *inst)
 void cbHelpKeybindings(ft2_instance_t *inst)
 {
 	if (inst == NULL) return;
-	ft2_ui_t *ui = ft2_ui_get_current();
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 	if (ui != NULL)
 	{
 		ft2_video_t *video = &ui->video;
@@ -682,7 +682,7 @@ void cbHelpKeybindings(ft2_instance_t *inst)
 void cbHelpHowToUseFT2(ft2_instance_t *inst)
 {
 	if (inst == NULL) return;
-	ft2_ui_t *ui = ft2_ui_get_current();
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 	if (ui != NULL)
 	{
 		ft2_video_t *video = &ui->video;
@@ -694,7 +694,7 @@ void cbHelpHowToUseFT2(ft2_instance_t *inst)
 void cbHelpFAQ(ft2_instance_t *inst)
 {
 	if (inst == NULL) return;
-	ft2_ui_t *ui = ft2_ui_get_current();
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 	if (ui != NULL)
 	{
 		ft2_video_t *video = &ui->video;
@@ -706,7 +706,7 @@ void cbHelpFAQ(ft2_instance_t *inst)
 void cbHelpKnownBugs(ft2_instance_t *inst)
 {
 	if (inst == NULL) return;
-	ft2_ui_t *ui = ft2_ui_get_current();
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 	if (ui != NULL)
 	{
 		ft2_video_t *video = &ui->video;
@@ -719,7 +719,7 @@ void cbHelpKnownBugs(ft2_instance_t *inst)
 void pbHelpScrollUp(ft2_instance_t *inst)
 {
 	if (inst == NULL) return;
-	ft2_ui_t *ui = ft2_ui_get_current();
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 	if (ui != NULL)
 	{
 		ft2_video_t *video = &ui->video;
@@ -731,7 +731,7 @@ void pbHelpScrollUp(ft2_instance_t *inst)
 void pbHelpScrollDown(ft2_instance_t *inst)
 {
 	if (inst == NULL) return;
-	ft2_ui_t *ui = ft2_ui_get_current();
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 	if (ui != NULL)
 	{
 		ft2_video_t *video = &ui->video;
@@ -744,7 +744,7 @@ void pbHelpScrollDown(ft2_instance_t *inst)
 void sbHelpScroll(ft2_instance_t *inst, uint32_t pos)
 {
 	if (inst == NULL) return;
-	ft2_ui_t *ui = ft2_ui_get_current();
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 	if (ui != NULL)
 	{
 		ft2_video_t *video = &ui->video;
@@ -765,12 +765,12 @@ void pbAbout(ft2_instance_t *inst)
 	hideTopScreen(inst);
 	
 	/* Get video/bmp from current UI to draw framework and initialize starfield */
-	ft2_ui_t *ui = ft2_ui_get_current();
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 	if (ui != NULL)
 	{
 		ft2_video_t *video = &ui->video;
 		const ft2_bmp_t *bmp = ui->bmpLoaded ? &ui->bmp : NULL;
-		ft2_about_show(video, bmp);
+		ft2_about_show(&ui->widgets, video, bmp);
 	}
 	
 	/* Show about screen */
@@ -784,7 +784,9 @@ void pbExitAbout(ft2_instance_t *inst)
 	if (inst == NULL) return;
 	
 	/* Hide the exit button */
-	hidePushButton(PB_EXIT_ABOUT);
+	ft2_widgets_t *widgets = (inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets != NULL)
+		hidePushButton(widgets, PB_EXIT_ABOUT);
 	
 	inst->uiState.aboutScreenShown = false;
 	inst->uiState.scopesShown = true;
@@ -916,7 +918,7 @@ void pbKill(ft2_instance_t *inst)
 	if (inst == NULL)
 		return;
 	
-	ft2_ui_t *ui = ft2_ui_get_current();
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 	if (ui == NULL)
 		return;
 	
@@ -927,7 +929,7 @@ void pbKill(ft2_instance_t *inst)
 void pbTrim(ft2_instance_t *inst)
 {
 	if (inst == NULL) return;
-	ft2_ui_t *ui = ft2_ui_get_current();
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 	if (ui == NULL) return;
 	toggleTrimScreen(inst, &ui->video, &ui->bmp);
 }
@@ -1171,7 +1173,7 @@ void pbSmpEdExt(ft2_instance_t *inst)
 void pbAdvEdit(ft2_instance_t *inst)
 {
 	if (inst == NULL) return;
-	ft2_ui_t *ui = ft2_ui_get_current();
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 	if (ui == NULL) return;
 	toggleAdvEdit(inst, &ui->video, &ui->bmp);
 }
@@ -1242,24 +1244,24 @@ void pbLogo(ft2_instance_t *inst)
 {
 	if (inst == NULL) return;
 
-	ft2_ui_t *ui = ft2_ui_get_current();
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 	if (ui == NULL) return;
 
 	inst->config.id_FastLogo ^= 1;
-	changeLogoType(&ui->bmp, inst->config.id_FastLogo);
-	drawPushButton(&ui->video, &ui->bmp, PB_LOGO);
+	changeLogoType(&ui->widgets, &ui->bmp, inst->config.id_FastLogo);
+	drawPushButton(&ui->widgets, &ui->video, &ui->bmp, PB_LOGO);
 }
 
 void pbBadge(ft2_instance_t *inst)
 {
 	if (inst == NULL) return;
 
-	ft2_ui_t *ui = ft2_ui_get_current();
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 	if (ui == NULL) return;
 
 	inst->config.id_TritonProd ^= 1;
-	changeBadgeType(&ui->bmp, inst->config.id_TritonProd);
-	drawPushButton(&ui->video, &ui->bmp, PB_BADGE);
+	changeBadgeType(&ui->widgets, &ui->bmp, inst->config.id_TritonProd);
+	drawPushButton(&ui->widgets, &ui->video, &ui->bmp, PB_BADGE);
 }
 
 /* ========== INSTRUMENT SWITCHER CALLBACKS ========== */
@@ -2451,7 +2453,9 @@ void rbSampleNoLoop(ft2_instance_t *inst)
 
 	ft2_fix_sample(s);
 
-	checkRadioButtonNoRedraw(RB_SAMPLE_NO_LOOP);
+	ft2_widgets_t *widgets = (inst != NULL && inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets != NULL)
+		checkRadioButtonNoRedraw(widgets, RB_SAMPLE_NO_LOOP);
 
 	if (inst != NULL)
 	{
@@ -2484,7 +2488,9 @@ void rbSampleForwardLoop(ft2_instance_t *inst)
 
 	ft2_fix_sample(s);
 
-	checkRadioButtonNoRedraw(RB_SAMPLE_FWD_LOOP);
+	ft2_widgets_t *widgets = (inst != NULL && inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets != NULL)
+		checkRadioButtonNoRedraw(widgets, RB_SAMPLE_FWD_LOOP);
 
 	if (inst != NULL)
 	{
@@ -2517,7 +2523,9 @@ void rbSamplePingpongLoop(ft2_instance_t *inst)
 
 	ft2_fix_sample(s);
 
-	checkRadioButtonNoRedraw(RB_SAMPLE_BIDI_LOOP);
+	ft2_widgets_t *widgets2 = (inst != NULL && inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets2 != NULL)
+		checkRadioButtonNoRedraw(widgets2, RB_SAMPLE_BIDI_LOOP);
 
 	if (inst != NULL)
 	{
@@ -2572,8 +2580,10 @@ static void onConvert8BitResult(ft2_instance_t *inst, ft2_dialog_result_t result
 	}
 	
 	ft2_fix_sample(s);
-	checkRadioButtonNoRedraw(RB_SAMPLE_8BIT);
-		inst->uiState.updateSampleEditor = true;
+	ft2_widgets_t *widgets = (inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets != NULL)
+		checkRadioButtonNoRedraw(widgets, RB_SAMPLE_8BIT);
+	inst->uiState.updateSampleEditor = true;
 }
 
 /* Callback for 16-bit conversion dialog result */
@@ -2653,8 +2663,10 @@ static void onConvert16BitResult(ft2_instance_t *inst, ft2_dialog_result_t resul
 	}
 	
 	ft2_fix_sample(s);
-	checkRadioButtonNoRedraw(RB_SAMPLE_16BIT);
-		inst->uiState.updateSampleEditor = true;
+	ft2_widgets_t *widgets = (inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets != NULL)
+		checkRadioButtonNoRedraw(widgets, RB_SAMPLE_16BIT);
+	inst->uiState.updateSampleEditor = true;
 }
 
 void rbSample8bit(ft2_instance_t *inst)
@@ -2671,7 +2683,7 @@ void rbSample8bit(ft2_instance_t *inst)
 		return;
 
 	/* Show confirmation dialog */
-	ft2_ui_t *ui = ft2_ui_get_current();
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 	if (ui != NULL)
 	{
 		ft2_dialog_show_yesno_cb(&ui->dialog,
@@ -2694,7 +2706,7 @@ void rbSample16bit(ft2_instance_t *inst)
 		return;
 
 	/* Show confirmation dialog */
-	ft2_ui_t *ui = ft2_ui_get_current();
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 	if (ui != NULL)
 	{
 		ft2_dialog_show_yesno_cb(&ui->dialog,

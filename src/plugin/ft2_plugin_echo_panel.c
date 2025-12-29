@@ -13,6 +13,7 @@
 #include "ft2_plugin_scrollbars.h"
 #include "ft2_plugin_sample_ed.h"
 #include "ft2_plugin_replayer.h"
+#include "ft2_plugin_ui.h"
 #include "../ft2_instance.h"
 
 #define MAX_SAMPLE_LEN 0x3FFFFFFF
@@ -86,6 +87,10 @@ static void setupWidgets(void)
 	if (inst == NULL)
 		return;
 	
+	ft2_widgets_t *widgets = (inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets == NULL)
+		return;
+	
 	pushButton_t *p;
 	scrollBar_t *s;
 	
@@ -98,7 +103,7 @@ static void setupWidgets(void)
 	p->w = 56;
 	p->h = 16;
 	p->callbackFuncOnUp = onCreateClick;
-	p->visible = true;
+	widgets->pushButtonVisible[PB_RES_1] = true;
 	
 	/* "Exit" pushbutton */
 	p = &pushButtons[PB_RES_2];
@@ -109,7 +114,7 @@ static void setupWidgets(void)
 	p->w = 55;
 	p->h = 16;
 	p->callbackFuncOnUp = onExitClick;
-	p->visible = true;
+	widgets->pushButtonVisible[PB_RES_2] = true;
 	
 	/* Echo num left arrow */
 	p = &pushButtons[PB_RES_3];
@@ -122,7 +127,7 @@ static void setupWidgets(void)
 	p->preDelay = 1;
 	p->delayFrames = 3;
 	p->callbackFuncOnDown = onEchoNumDown;
-	p->visible = true;
+	widgets->pushButtonVisible[PB_RES_3] = true;
 	
 	/* Echo num right arrow */
 	p = &pushButtons[PB_RES_4];
@@ -135,7 +140,7 @@ static void setupWidgets(void)
 	p->preDelay = 1;
 	p->delayFrames = 3;
 	p->callbackFuncOnDown = onEchoNumUp;
-	p->visible = true;
+	widgets->pushButtonVisible[PB_RES_4] = true;
 	
 	/* Distance left arrow */
 	p = &pushButtons[PB_RES_5];
@@ -148,7 +153,7 @@ static void setupWidgets(void)
 	p->preDelay = 1;
 	p->delayFrames = 3;
 	p->callbackFuncOnDown = onEchoDistDown;
-	p->visible = true;
+	widgets->pushButtonVisible[PB_RES_5] = true;
 	
 	/* Distance right arrow */
 	p = &pushButtons[PB_RES_6];
@@ -161,7 +166,7 @@ static void setupWidgets(void)
 	p->preDelay = 1;
 	p->delayFrames = 3;
 	p->callbackFuncOnDown = onEchoDistUp;
-	p->visible = true;
+	widgets->pushButtonVisible[PB_RES_6] = true;
 	
 	/* Volume change left arrow */
 	p = &pushButtons[PB_RES_7];
@@ -174,7 +179,7 @@ static void setupWidgets(void)
 	p->preDelay = 1;
 	p->delayFrames = 3;
 	p->callbackFuncOnDown = onEchoVolDown;
-	p->visible = true;
+	widgets->pushButtonVisible[PB_RES_7] = true;
 	
 	/* Volume change right arrow */
 	p = &pushButtons[PB_RES_8];
@@ -187,7 +192,7 @@ static void setupWidgets(void)
 	p->preDelay = 1;
 	p->delayFrames = 3;
 	p->callbackFuncOnDown = onEchoVolUp;
-	p->visible = true;
+	widgets->pushButtonVisible[PB_RES_8] = true;
 	
 	/* Echo num scrollbar */
 	s = &scrollBars[SB_RES_1];
@@ -197,10 +202,10 @@ static void setupWidgets(void)
 	s->w = 64;
 	s->h = 13;
 	s->callbackFunc = onEchoNumScrollbar;
-	s->visible = true;
-	setScrollBarPageLength(inst, NULL, SB_RES_1, 1);
-	setScrollBarEnd(inst, NULL, SB_RES_1, 64);
-	setScrollBarPos(inst, NULL, SB_RES_1, (uint32_t)state.echoNum, false);
+	widgets->scrollBarState[SB_RES_1].visible = true;
+	setScrollBarPageLength(inst, widgets, NULL, SB_RES_1, 1);
+	setScrollBarEnd(inst, widgets, NULL, SB_RES_1, 64);
+	setScrollBarPos(inst, widgets, NULL, SB_RES_1, (uint32_t)state.echoNum, false);
 	
 	/* Distance scrollbar */
 	s = &scrollBars[SB_RES_2];
@@ -210,10 +215,10 @@ static void setupWidgets(void)
 	s->w = 64;
 	s->h = 13;
 	s->callbackFunc = onEchoDistScrollbar;
-	s->visible = true;
-	setScrollBarPageLength(inst, NULL, SB_RES_2, 1);
-	setScrollBarEnd(inst, NULL, SB_RES_2, 16384);
-	setScrollBarPos(inst, NULL, SB_RES_2, (uint32_t)state.echoDistance, false);
+	widgets->scrollBarState[SB_RES_2].visible = true;
+	setScrollBarPageLength(inst, widgets, NULL, SB_RES_2, 1);
+	setScrollBarEnd(inst, widgets, NULL, SB_RES_2, 16384);
+	setScrollBarPos(inst, widgets, NULL, SB_RES_2, (uint32_t)state.echoDistance, false);
 	
 	/* Volume change scrollbar */
 	s = &scrollBars[SB_RES_3];
@@ -223,19 +228,24 @@ static void setupWidgets(void)
 	s->w = 64;
 	s->h = 13;
 	s->callbackFunc = onEchoVolScrollbar;
-	s->visible = true;
-	setScrollBarPageLength(inst, NULL, SB_RES_3, 1);
-	setScrollBarEnd(inst, NULL, SB_RES_3, 100);
-	setScrollBarPos(inst, NULL, SB_RES_3, (uint32_t)state.echoVolChange, false);
+	widgets->scrollBarState[SB_RES_3].visible = true;
+	setScrollBarPageLength(inst, widgets, NULL, SB_RES_3, 1);
+	setScrollBarEnd(inst, widgets, NULL, SB_RES_3, 100);
+	setScrollBarPos(inst, widgets, NULL, SB_RES_3, (uint32_t)state.echoVolChange, false);
 }
 
 static void hideWidgets(void)
 {
+	ft2_instance_t *inst = state.instance;
+	ft2_widgets_t *widgets = (inst != NULL && inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets == NULL)
+		return;
+	
 	for (int i = 0; i < 8; i++)
-		hidePushButton(PB_RES_1 + i);
+		hidePushButton(widgets, PB_RES_1 + i);
 	
 	for (int i = 0; i < 3; i++)
-		hideScrollBar(SB_RES_1 + i);
+		hideScrollBar(widgets, SB_RES_1 + i);
 }
 
 static void onCreateClick(ft2_instance_t *inst)
@@ -548,23 +558,25 @@ void ft2_echo_panel_draw(ft2_video_t *video, const ft2_bmp_t *bmp)
 	
 	drawFrame(video, bmp);
 	
-	if (state.instance != NULL)
-	{
-		setScrollBarPos(state.instance, video, SB_RES_1, (uint32_t)state.echoNum, false);
-		setScrollBarPos(state.instance, video, SB_RES_2, (uint32_t)state.echoDistance, false);
-		setScrollBarPos(state.instance, video, SB_RES_3, (uint32_t)state.echoVolChange, false);
-	}
+	ft2_widgets_t *widgets = (state.instance != NULL && state.instance->ui != NULL) ?
+		&((ft2_ui_t *)state.instance->ui)->widgets : NULL;
+	if (widgets == NULL)
+		return;
+	
+	setScrollBarPos(state.instance, widgets, video, SB_RES_1, (uint32_t)state.echoNum, false);
+	setScrollBarPos(state.instance, widgets, video, SB_RES_2, (uint32_t)state.echoDistance, false);
+	setScrollBarPos(state.instance, widgets, video, SB_RES_3, (uint32_t)state.echoVolChange, false);
 	
 	for (int i = 0; i < 8; i++)
 	{
-		if (pushButtons[PB_RES_1 + i].visible)
-			drawPushButton(video, bmp, PB_RES_1 + i);
+		if (widgets->pushButtonVisible[PB_RES_1 + i])
+			drawPushButton(widgets, video, bmp, PB_RES_1 + i);
 	}
 	
 	for (int i = 0; i < 3; i++)
 	{
-		if (scrollBars[SB_RES_1 + i].visible)
-			drawScrollBar(video, SB_RES_1 + i);
+		if (widgets->scrollBarState[SB_RES_1 + i].visible)
+			drawScrollBar(widgets, video, SB_RES_1 + i);
 	}
 }
 

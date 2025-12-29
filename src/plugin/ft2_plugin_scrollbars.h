@@ -3,6 +3,8 @@
  * @brief Scrollbar definitions for the FT2 plugin UI.
  * 
  * Ported from ft2_scrollbars.h - all coordinates preserved exactly.
+ * Static global arrays contain constant widget definitions (position, callbacks).
+ * Per-instance state (visibility, position) is stored in ft2_widgets_t.
  */
 
 #pragma once
@@ -12,6 +14,7 @@
 
 struct ft2_video_t;
 struct ft2_instance_t;
+struct ft2_widgets_t;
 
 enum
 {
@@ -82,140 +85,154 @@ enum
 
 typedef void (*sbCallback_t)(struct ft2_instance_t *inst, uint32_t pos);
 
+/**
+ * Constant scrollbar definition (position, size, type, callback).
+ * The mutable state (visible, pos, thumb geometry) is stored in ft2_widgets_t.
+ */
 typedef struct scrollBar_t
 {
 	uint16_t x, y, w, h;
 	uint8_t type, thumbType;
 	sbCallback_t callbackFunc;
-
-	bool visible;
-	uint8_t state;
-	uint32_t pos, page, end;
-	uint16_t thumbX, thumbY, thumbW, thumbH, originalThumbSize;
 } scrollBar_t;
 
 extern scrollBar_t scrollBars[NUM_SCROLLBARS];
 
 /**
- * Initialize scrollbars array.
+ * Initialize scrollbar definitions.
+ * @param widgets Widget state container (if NULL, only initializes global definitions)
  */
-void initScrollBars(void);
+void initScrollBars(struct ft2_widgets_t *widgets);
 
 /**
  * Draw a scrollbar.
+ * @param widgets Widget state container
  * @param video Video context
  * @param scrollBarID Scrollbar ID
  */
-void drawScrollBar(struct ft2_video_t *video, uint16_t scrollBarID);
+void drawScrollBar(struct ft2_widgets_t *widgets, struct ft2_video_t *video, uint16_t scrollBarID);
 
 /**
  * Show a scrollbar.
+ * @param widgets Widget state container
  * @param video Video context
  * @param scrollBarID Scrollbar ID
  */
-void showScrollBar(struct ft2_video_t *video, uint16_t scrollBarID);
+void showScrollBar(struct ft2_widgets_t *widgets, struct ft2_video_t *video, uint16_t scrollBarID);
 
 /**
  * Hide a scrollbar.
+ * @param widgets Widget state container
  * @param scrollBarID Scrollbar ID
  */
-void hideScrollBar(uint16_t scrollBarID);
+void hideScrollBar(struct ft2_widgets_t *widgets, uint16_t scrollBarID);
 
 /**
  * Set scrollbar position.
  * @param inst FT2 instance
+ * @param widgets Widget state container
  * @param video Video context
  * @param scrollBarID Scrollbar ID
  * @param pos Position
  * @param triggerCallback Whether to trigger callback
  */
-void setScrollBarPos(struct ft2_instance_t *inst, struct ft2_video_t *video,
+void setScrollBarPos(struct ft2_instance_t *inst, struct ft2_widgets_t *widgets, struct ft2_video_t *video,
 	uint16_t scrollBarID, uint32_t pos, bool triggerCallback);
 
 /**
  * Get scrollbar position.
+ * @param widgets Widget state container
  * @param scrollBarID Scrollbar ID
  * @return Position
  */
-uint32_t getScrollBarPos(uint16_t scrollBarID);
+uint32_t getScrollBarPos(struct ft2_widgets_t *widgets, uint16_t scrollBarID);
 
 /**
  * Set scrollbar end value.
  * @param inst FT2 instance
+ * @param widgets Widget state container
  * @param video Video context
  * @param scrollBarID Scrollbar ID
  * @param end End value
  */
-void setScrollBarEnd(struct ft2_instance_t *inst, struct ft2_video_t *video,
+void setScrollBarEnd(struct ft2_instance_t *inst, struct ft2_widgets_t *widgets, struct ft2_video_t *video,
 	uint16_t scrollBarID, uint32_t end);
 
 /**
  * Set scrollbar page length.
  * @param inst FT2 instance
+ * @param widgets Widget state container
  * @param video Video context
  * @param scrollBarID Scrollbar ID
  * @param pageLength Page length
  */
-void setScrollBarPageLength(struct ft2_instance_t *inst, struct ft2_video_t *video,
+void setScrollBarPageLength(struct ft2_instance_t *inst, struct ft2_widgets_t *widgets, struct ft2_video_t *video,
 	uint16_t scrollBarID, uint32_t pageLength);
 
 /**
  * Scroll the scrollbar up/left by the specified amount.
  * @param inst FT2 instance
+ * @param widgets Widget state container
  * @param video Video context
  * @param scrollBarID Scrollbar ID
  * @param amount Amount to scroll
  */
-void scrollBarScrollUp(struct ft2_instance_t *inst, struct ft2_video_t *video,
+void scrollBarScrollUp(struct ft2_instance_t *inst, struct ft2_widgets_t *widgets, struct ft2_video_t *video,
 	uint16_t scrollBarID, uint32_t amount);
 
 /**
  * Scroll the scrollbar down/right by the specified amount.
  * @param inst FT2 instance
+ * @param widgets Widget state container
  * @param video Video context
  * @param scrollBarID Scrollbar ID
  * @param amount Amount to scroll
  */
-void scrollBarScrollDown(struct ft2_instance_t *inst, struct ft2_video_t *video,
+void scrollBarScrollDown(struct ft2_instance_t *inst, struct ft2_widgets_t *widgets, struct ft2_video_t *video,
 	uint16_t scrollBarID, uint32_t amount);
 
 /**
  * Alias for scrollBarScrollUp (for horizontal scrollbars).
  */
-void scrollBarScrollLeft(struct ft2_instance_t *inst, struct ft2_video_t *video,
+void scrollBarScrollLeft(struct ft2_instance_t *inst, struct ft2_widgets_t *widgets, struct ft2_video_t *video,
 	uint16_t scrollBarID, uint32_t amount);
 
 /**
  * Alias for scrollBarScrollDown (for horizontal scrollbars).
  */
-void scrollBarScrollRight(struct ft2_instance_t *inst, struct ft2_video_t *video,
+void scrollBarScrollRight(struct ft2_instance_t *inst, struct ft2_widgets_t *widgets, struct ft2_video_t *video,
 	uint16_t scrollBarID, uint32_t amount);
 
 /**
  * Test if mouse click is on a scrollbar.
+ * @param widgets Widget state container
+ * @param inst FT2 instance
+ * @param video Video context
  * @param mouseX Mouse X coordinate
  * @param mouseY Mouse Y coordinate
  * @param sysReqShown Whether system request is shown
  * @return Scrollbar ID if clicked, -1 otherwise
  */
-int16_t testScrollBarMouseDown(struct ft2_instance_t *inst, struct ft2_video_t *video,
+int16_t testScrollBarMouseDown(struct ft2_widgets_t *widgets, struct ft2_instance_t *inst, struct ft2_video_t *video,
 	int32_t mouseX, int32_t mouseY, bool sysReqShown);
 
 /**
  * Handle scrollbar mouse release.
+ * @param widgets Widget state container
  * @param video Video context
  * @param lastScrollBarID Last scrollbar that was pressed
  */
-void testScrollBarMouseRelease(struct ft2_video_t *video, int16_t lastScrollBarID);
+void testScrollBarMouseRelease(struct ft2_widgets_t *widgets, struct ft2_video_t *video, int16_t lastScrollBarID);
 
 /**
  * Handle continuous scrollbar interaction while mouse is held down.
+ * @param widgets Widget state container
  * @param inst FT2 instance
  * @param video Video context
  * @param mouseX Mouse X coordinate
  * @param mouseY Mouse Y coordinate
  * @param scrollBarID Scrollbar ID being held
  */
-void handleScrollBarWhileMouseDown(struct ft2_instance_t *inst, struct ft2_video_t *video,
+void handleScrollBarWhileMouseDown(struct ft2_widgets_t *widgets, struct ft2_instance_t *inst, struct ft2_video_t *video,
 	int32_t mouseX, int32_t mouseY, int16_t scrollBarID);
 

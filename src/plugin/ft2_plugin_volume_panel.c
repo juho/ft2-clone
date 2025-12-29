@@ -12,6 +12,7 @@
 #include "ft2_plugin_scrollbars.h"
 #include "ft2_plugin_sample_ed.h"
 #include "ft2_plugin_replayer.h"
+#include "ft2_plugin_ui.h"
 #include "../ft2_instance.h"
 
 /* Panel state */
@@ -64,6 +65,10 @@ static void setupWidgets(void)
 	if (inst == NULL)
 		return;
 	
+	ft2_widgets_t *widgets = (inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets == NULL)
+		return;
+	
 	pushButton_t *p;
 	scrollBar_t *s;
 	
@@ -76,7 +81,7 @@ static void setupWidgets(void)
 	p->w = 73;
 	p->h = 16;
 	p->callbackFuncOnUp = onApplyClick;
-	p->visible = true;
+	widgets->pushButtonVisible[PB_RES_1] = true;
 	
 	/* "Get maximum scale" pushbutton */
 	p = &pushButtons[PB_RES_2];
@@ -87,7 +92,7 @@ static void setupWidgets(void)
 	p->w = 143;
 	p->h = 16;
 	p->callbackFuncOnUp = onGetMaxScaleClick;
-	p->visible = true;
+	widgets->pushButtonVisible[PB_RES_2] = true;
 	
 	/* "Exit" pushbutton */
 	p = &pushButtons[PB_RES_3];
@@ -98,7 +103,7 @@ static void setupWidgets(void)
 	p->w = 73;
 	p->h = 16;
 	p->callbackFuncOnUp = onExitClick;
-	p->visible = true;
+	widgets->pushButtonVisible[PB_RES_3] = true;
 	
 	/* Start volume left arrow */
 	p = &pushButtons[PB_RES_4];
@@ -111,7 +116,7 @@ static void setupWidgets(void)
 	p->preDelay = 1;
 	p->delayFrames = 3;
 	p->callbackFuncOnDown = onStartVolDown;
-	p->visible = true;
+	widgets->pushButtonVisible[PB_RES_4] = true;
 	
 	/* Start volume right arrow */
 	p = &pushButtons[PB_RES_5];
@@ -124,7 +129,7 @@ static void setupWidgets(void)
 	p->preDelay = 1;
 	p->delayFrames = 3;
 	p->callbackFuncOnDown = onStartVolUp;
-	p->visible = true;
+	widgets->pushButtonVisible[PB_RES_5] = true;
 	
 	/* End volume left arrow */
 	p = &pushButtons[PB_RES_6];
@@ -137,7 +142,7 @@ static void setupWidgets(void)
 	p->preDelay = 1;
 	p->delayFrames = 3;
 	p->callbackFuncOnDown = onEndVolDown;
-	p->visible = true;
+	widgets->pushButtonVisible[PB_RES_6] = true;
 	
 	/* End volume right arrow */
 	p = &pushButtons[PB_RES_7];
@@ -150,7 +155,7 @@ static void setupWidgets(void)
 	p->preDelay = 1;
 	p->delayFrames = 3;
 	p->callbackFuncOnDown = onEndVolUp;
-	p->visible = true;
+	widgets->pushButtonVisible[PB_RES_7] = true;
 	
 	/* Start volume scrollbar */
 	s = &scrollBars[SB_RES_1];
@@ -160,10 +165,10 @@ static void setupWidgets(void)
 	s->w = 124;
 	s->h = 13;
 	s->callbackFunc = onStartVolScrollbar;
-	s->visible = true;
-	setScrollBarPageLength(inst, NULL, SB_RES_1, 1);
-	setScrollBarEnd(inst, NULL, SB_RES_1, 400);
-	setScrollBarPos(inst, NULL, SB_RES_1, (uint32_t)(state.startVol + 200), false);
+	widgets->scrollBarState[SB_RES_1].visible = true;
+	setScrollBarPageLength(inst, widgets, NULL, SB_RES_1, 1);
+	setScrollBarEnd(inst, widgets, NULL, SB_RES_1, 400);
+	setScrollBarPos(inst, widgets, NULL, SB_RES_1, (uint32_t)(state.startVol + 200), false);
 	
 	/* End volume scrollbar */
 	s = &scrollBars[SB_RES_2];
@@ -173,20 +178,25 @@ static void setupWidgets(void)
 	s->w = 124;
 	s->h = 13;
 	s->callbackFunc = onEndVolScrollbar;
-	s->visible = true;
-	setScrollBarPageLength(inst, NULL, SB_RES_2, 1);
-	setScrollBarEnd(inst, NULL, SB_RES_2, 400);
-	setScrollBarPos(inst, NULL, SB_RES_2, (uint32_t)(state.endVol + 200), false);
+	widgets->scrollBarState[SB_RES_2].visible = true;
+	setScrollBarPageLength(inst, widgets, NULL, SB_RES_2, 1);
+	setScrollBarEnd(inst, widgets, NULL, SB_RES_2, 400);
+	setScrollBarPos(inst, widgets, NULL, SB_RES_2, (uint32_t)(state.endVol + 200), false);
 }
 
 /* Hide widgets when panel closes */
 static void hideWidgets(void)
 {
+	ft2_instance_t *inst = state.instance;
+	ft2_widgets_t *widgets = (inst != NULL && inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets == NULL)
+		return;
+	
 	for (int i = 0; i < 8; i++)
-		hidePushButton(PB_RES_1 + i);
+		hidePushButton(widgets, PB_RES_1 + i);
 	
 	for (int i = 0; i < 3; i++)
-		hideScrollBar(SB_RES_1 + i);
+		hideScrollBar(widgets, SB_RES_1 + i);
 }
 
 /* Widget callbacks */
@@ -583,24 +593,26 @@ void ft2_volume_panel_draw(ft2_video_t *video, const ft2_bmp_t *bmp)
 	
 	drawFrame(video, bmp);
 	
+	ft2_widgets_t *widgets = (state.instance != NULL && state.instance->ui != NULL) ?
+		&((ft2_ui_t *)state.instance->ui)->widgets : NULL;
+	if (widgets == NULL)
+		return;
+	
 	/* Update scrollbar positions */
-	if (state.instance != NULL)
-	{
-		setScrollBarPos(state.instance, video, SB_RES_1, (uint32_t)(state.startVol + 200), false);
-		setScrollBarPos(state.instance, video, SB_RES_2, (uint32_t)(state.endVol + 200), false);
-	}
+	setScrollBarPos(state.instance, widgets, video, SB_RES_1, (uint32_t)(state.startVol + 200), false);
+	setScrollBarPos(state.instance, widgets, video, SB_RES_2, (uint32_t)(state.endVol + 200), false);
 	
 	/* Draw widgets */
 	for (int i = 0; i < 8; i++)
 	{
-		if (pushButtons[PB_RES_1 + i].visible)
-			drawPushButton(video, bmp, PB_RES_1 + i);
+		if (widgets->pushButtonVisible[PB_RES_1 + i])
+			drawPushButton(widgets, video, bmp, PB_RES_1 + i);
 	}
 	
 	for (int i = 0; i < 2; i++)
 	{
-		if (scrollBars[SB_RES_1 + i].visible)
-			drawScrollBar(video, SB_RES_1 + i);
+		if (widgets->scrollBarState[SB_RES_1 + i].visible)
+			drawScrollBar(widgets, video, SB_RES_1 + i);
 	}
 }
 

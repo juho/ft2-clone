@@ -193,11 +193,14 @@ void ft2_config_apply(ft2_instance_t *inst, ft2_plugin_config_t *config)
 
 /* ============ SET RADIO BUTTON STATES ============ */
 
-static void setConfigRadioButtonStates(ft2_plugin_config_t *config)
+static void setConfigRadioButtonStates(ft2_widgets_t *widgets, ft2_plugin_config_t *config)
 {
+	if (widgets == NULL)
+		return;
+
 	uint16_t tmpID;
 
-	uncheckRadioButtonGroup(RB_GROUP_CONFIG_SELECT);
+	uncheckRadioButtonGroup(widgets, RB_GROUP_CONFIG_SELECT);
 	switch (config->currConfigScreen)
 	{
 		default:
@@ -207,51 +210,57 @@ static void setConfigRadioButtonStates(ft2_plugin_config_t *config)
 		case CONFIG_SCREEN_IO_ROUTING:    tmpID = RB_CONFIG_IO_ROUTING; break;
 		case CONFIG_SCREEN_MIDI_INPUT:    tmpID = RB_CONFIG_MIDI; break;
 	}
-	radioButtons[tmpID].state = RADIOBUTTON_CHECKED;
+	widgets->radioButtonState[tmpID] = RADIOBUTTON_CHECKED;
 }
 
-static void setAudioConfigRadioButtonStates(ft2_plugin_config_t *config)
+static void setAudioConfigRadioButtonStates(ft2_widgets_t *widgets, ft2_plugin_config_t *config)
 {
-	uncheckRadioButtonGroup(RB_GROUP_CONFIG_AUDIO_INTERPOLATION);
+	if (widgets == NULL)
+		return;
+
+	uncheckRadioButtonGroup(widgets, RB_GROUP_CONFIG_AUDIO_INTERPOLATION);
 	switch (config->interpolation)
 	{
-		case INTERPOLATION_DISABLED:  radioButtons[RB_CONFIG_AUDIO_INTRP_NONE].state = RADIOBUTTON_CHECKED; break;
-		case INTERPOLATION_LINEAR:    radioButtons[RB_CONFIG_AUDIO_INTRP_LINEAR].state = RADIOBUTTON_CHECKED; break;
-		case INTERPOLATION_QUADRATIC: radioButtons[RB_CONFIG_AUDIO_INTRP_QUADRATIC].state = RADIOBUTTON_CHECKED; break;
-		case INTERPOLATION_CUBIC:     radioButtons[RB_CONFIG_AUDIO_INTRP_CUBIC].state = RADIOBUTTON_CHECKED; break;
-		case INTERPOLATION_SINC8:     radioButtons[RB_CONFIG_AUDIO_INTRP_SINC8].state = RADIOBUTTON_CHECKED; break;
+		case INTERPOLATION_DISABLED:  widgets->radioButtonState[RB_CONFIG_AUDIO_INTRP_NONE] = RADIOBUTTON_CHECKED; break;
+		case INTERPOLATION_LINEAR:    widgets->radioButtonState[RB_CONFIG_AUDIO_INTRP_LINEAR] = RADIOBUTTON_CHECKED; break;
+		case INTERPOLATION_QUADRATIC: widgets->radioButtonState[RB_CONFIG_AUDIO_INTRP_QUADRATIC] = RADIOBUTTON_CHECKED; break;
+		case INTERPOLATION_CUBIC:     widgets->radioButtonState[RB_CONFIG_AUDIO_INTRP_CUBIC] = RADIOBUTTON_CHECKED; break;
+		case INTERPOLATION_SINC8:     widgets->radioButtonState[RB_CONFIG_AUDIO_INTRP_SINC8] = RADIOBUTTON_CHECKED; break;
 		default:
-		case INTERPOLATION_SINC16:    radioButtons[RB_CONFIG_AUDIO_INTRP_SINC16].state = RADIOBUTTON_CHECKED; break;
+		case INTERPOLATION_SINC16:    widgets->radioButtonState[RB_CONFIG_AUDIO_INTRP_SINC16] = RADIOBUTTON_CHECKED; break;
 	}
 }
 
-static void setLayoutConfigRadioButtonStates(ft2_plugin_config_t *config)
+static void setLayoutConfigRadioButtonStates(ft2_widgets_t *widgets, ft2_plugin_config_t *config)
 {
-	uncheckRadioButtonGroup(RB_GROUP_CONFIG_PATTERN_CHANS);
+	if (widgets == NULL)
+		return;
+
+	uncheckRadioButtonGroup(widgets, RB_GROUP_CONFIG_PATTERN_CHANS);
 	switch (config->ptnMaxChannels)
 	{
-		case MAX_CHANS_SHOWN_4:  radioButtons[RB_CONFIG_PATT_4CHANS].state = RADIOBUTTON_CHECKED; break;
-		case MAX_CHANS_SHOWN_6:  radioButtons[RB_CONFIG_PATT_6CHANS].state = RADIOBUTTON_CHECKED; break;
+		case MAX_CHANS_SHOWN_4:  widgets->radioButtonState[RB_CONFIG_PATT_4CHANS] = RADIOBUTTON_CHECKED; break;
+		case MAX_CHANS_SHOWN_6:  widgets->radioButtonState[RB_CONFIG_PATT_6CHANS] = RADIOBUTTON_CHECKED; break;
 		default:
-		case MAX_CHANS_SHOWN_8:  radioButtons[RB_CONFIG_PATT_8CHANS].state = RADIOBUTTON_CHECKED; break;
-		case MAX_CHANS_SHOWN_12: radioButtons[RB_CONFIG_PATT_12CHANS].state = RADIOBUTTON_CHECKED; break;
+		case MAX_CHANS_SHOWN_8:  widgets->radioButtonState[RB_CONFIG_PATT_8CHANS] = RADIOBUTTON_CHECKED; break;
+		case MAX_CHANS_SHOWN_12: widgets->radioButtonState[RB_CONFIG_PATT_12CHANS] = RADIOBUTTON_CHECKED; break;
 	}
 
-	uncheckRadioButtonGroup(RB_GROUP_CONFIG_FONT);
+	uncheckRadioButtonGroup(widgets, RB_GROUP_CONFIG_FONT);
 	switch (config->ptnFont)
 	{
 		default:
-		case PATT_FONT_CAPITALS:  radioButtons[RB_CONFIG_FONT_CAPITALS].state = RADIOBUTTON_CHECKED; break;
-		case PATT_FONT_LOWERCASE: radioButtons[RB_CONFIG_FONT_LOWERCASE].state = RADIOBUTTON_CHECKED; break;
-		case PATT_FONT_FUTURE:    radioButtons[RB_CONFIG_FONT_FUTURE].state = RADIOBUTTON_CHECKED; break;
-		case PATT_FONT_BOLD:      radioButtons[RB_CONFIG_FONT_BOLD].state = RADIOBUTTON_CHECKED; break;
+		case PATT_FONT_CAPITALS:  widgets->radioButtonState[RB_CONFIG_FONT_CAPITALS] = RADIOBUTTON_CHECKED; break;
+		case PATT_FONT_LOWERCASE: widgets->radioButtonState[RB_CONFIG_FONT_LOWERCASE] = RADIOBUTTON_CHECKED; break;
+		case PATT_FONT_FUTURE:    widgets->radioButtonState[RB_CONFIG_FONT_FUTURE] = RADIOBUTTON_CHECKED; break;
+		case PATT_FONT_BOLD:      widgets->radioButtonState[RB_CONFIG_FONT_BOLD] = RADIOBUTTON_CHECKED; break;
 	}
 
-	uncheckRadioButtonGroup(RB_GROUP_CONFIG_SCOPE);
+	uncheckRadioButtonGroup(widgets, RB_GROUP_CONFIG_SCOPE);
 	if (config->linedScopes)
-		radioButtons[RB_CONFIG_SCOPE_LINED].state = RADIOBUTTON_CHECKED;
+		widgets->radioButtonState[RB_CONFIG_SCOPE_LINED] = RADIOBUTTON_CHECKED;
 	else
-		radioButtons[RB_CONFIG_SCOPE_STANDARD].state = RADIOBUTTON_CHECKED;
+		widgets->radioButtonState[RB_CONFIG_SCOPE_STANDARD] = RADIOBUTTON_CHECKED;
 }
 
 /* ============ HIDE CONFIG SCREEN ============ */
@@ -261,96 +270,103 @@ void hideConfigScreen(ft2_instance_t *inst)
 	if (inst == NULL)
 		return;
 
+	ft2_widgets_t *widgets = (inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets == NULL)
+	{
+		inst->uiState.configScreenShown = false;
+		return;
+	}
+
 	/* CONFIG LEFT SIDE */
-	hideRadioButtonGroup(RB_GROUP_CONFIG_SELECT);
-	hideCheckBox(CB_CONF_AUTOSAVE);
-	hidePushButton(PB_CONFIG_RESET);
-	hidePushButton(PB_CONFIG_LOAD);
-	hidePushButton(PB_CONFIG_SAVE);
-	hidePushButton(PB_CONFIG_EXIT);
+	hideRadioButtonGroup(widgets, RB_GROUP_CONFIG_SELECT);
+	hideCheckBox(widgets, CB_CONF_AUTOSAVE);
+	hidePushButton(widgets, PB_CONFIG_RESET);
+	hidePushButton(widgets, PB_CONFIG_LOAD);
+	hidePushButton(widgets, PB_CONFIG_SAVE);
+	hidePushButton(widgets, PB_CONFIG_EXIT);
 
 	/* CONFIG AUDIO */
-	hideRadioButtonGroup(RB_GROUP_CONFIG_SOUND_BUFF_SIZE);
-	hideRadioButtonGroup(RB_GROUP_CONFIG_AUDIO_BIT_DEPTH);
-	hideRadioButtonGroup(RB_GROUP_CONFIG_AUDIO_INTERPOLATION);
-	hideRadioButtonGroup(RB_GROUP_CONFIG_AUDIO_FREQ);
-	hideRadioButtonGroup(RB_GROUP_CONFIG_AUDIO_INPUT_FREQ);
-	hideRadioButtonGroup(RB_GROUP_CONFIG_FREQ_SLIDES);
-	hideCheckBox(CB_CONF_VOLRAMP);
-	hideCheckBox(CB_CONF_SYNC_BPM);
-	hideCheckBox(CB_CONF_SYNC_TRANSPORT);
-	hideCheckBox(CB_CONF_SYNC_POSITION);
-	hideCheckBox(CB_CONF_ALLOW_FXX_SPEED);
-	hidePushButton(PB_CONFIG_AMP_DOWN);
-	hidePushButton(PB_CONFIG_AMP_UP);
-	hidePushButton(PB_CONFIG_MASTVOL_DOWN);
-	hidePushButton(PB_CONFIG_MASTVOL_UP);
-	hideScrollBar(SB_AMP_SCROLL);
-	hideScrollBar(SB_MASTERVOL_SCROLL);
+	hideRadioButtonGroup(widgets, RB_GROUP_CONFIG_SOUND_BUFF_SIZE);
+	hideRadioButtonGroup(widgets, RB_GROUP_CONFIG_AUDIO_BIT_DEPTH);
+	hideRadioButtonGroup(widgets, RB_GROUP_CONFIG_AUDIO_INTERPOLATION);
+	hideRadioButtonGroup(widgets, RB_GROUP_CONFIG_AUDIO_FREQ);
+	hideRadioButtonGroup(widgets, RB_GROUP_CONFIG_AUDIO_INPUT_FREQ);
+	hideRadioButtonGroup(widgets, RB_GROUP_CONFIG_FREQ_SLIDES);
+	hideCheckBox(widgets, CB_CONF_VOLRAMP);
+	hideCheckBox(widgets, CB_CONF_SYNC_BPM);
+	hideCheckBox(widgets, CB_CONF_SYNC_TRANSPORT);
+	hideCheckBox(widgets, CB_CONF_SYNC_POSITION);
+	hideCheckBox(widgets, CB_CONF_ALLOW_FXX_SPEED);
+	hidePushButton(widgets, PB_CONFIG_AMP_DOWN);
+	hidePushButton(widgets, PB_CONFIG_AMP_UP);
+	hidePushButton(widgets, PB_CONFIG_MASTVOL_DOWN);
+	hidePushButton(widgets, PB_CONFIG_MASTVOL_UP);
+	hideScrollBar(widgets, SB_AMP_SCROLL);
+	hideScrollBar(widgets, SB_MASTERVOL_SCROLL);
 
 	/* CONFIG LAYOUT */
-	hideCheckBox(CB_CONF_PATTSTRETCH);
-	hideCheckBox(CB_CONF_HEXCOUNT);
-	hideCheckBox(CB_CONF_ACCIDENTAL);
-	hideCheckBox(CB_CONF_SHOWZEROS);
-	hideCheckBox(CB_CONF_FRAMEWORK);
-	hideCheckBox(CB_CONF_LINECOLORS);
-	hideCheckBox(CB_CONF_CHANNUMS);
-	hideCheckBox(CB_CONF_SHOWVOLCOL);
-	hideCheckBox(CB_CONF_SOFTMOUSE);
-	hideCheckBox(CB_CONF_USENICEPTR);
-	hideRadioButtonGroup(RB_GROUP_CONFIG_MOUSE);
-	hideRadioButtonGroup(RB_GROUP_CONFIG_MOUSE_BUSY);
-	hideRadioButtonGroup(RB_GROUP_CONFIG_SCOPE);
-	hideRadioButtonGroup(RB_GROUP_CONFIG_PATTERN_CHANS);
-	hideRadioButtonGroup(RB_GROUP_CONFIG_FONT);
-	hideRadioButtonGroup(RB_GROUP_CONFIG_PAL_ENTRIES);
-	hideRadioButtonGroup(RB_GROUP_CONFIG_PAL_PRESET);
-	hideScrollBar(SB_PAL_R);
-	hideScrollBar(SB_PAL_G);
-	hideScrollBar(SB_PAL_B);
-	hideScrollBar(SB_PAL_CONTRAST);
-	hidePushButton(PB_CONFIG_PAL_R_DOWN);
-	hidePushButton(PB_CONFIG_PAL_R_UP);
-	hidePushButton(PB_CONFIG_PAL_G_DOWN);
-	hidePushButton(PB_CONFIG_PAL_G_UP);
-	hidePushButton(PB_CONFIG_PAL_B_DOWN);
-	hidePushButton(PB_CONFIG_PAL_B_UP);
-	hidePushButton(PB_CONFIG_PAL_CONT_DOWN);
-	hidePushButton(PB_CONFIG_PAL_CONT_UP);
+	hideCheckBox(widgets, CB_CONF_PATTSTRETCH);
+	hideCheckBox(widgets, CB_CONF_HEXCOUNT);
+	hideCheckBox(widgets, CB_CONF_ACCIDENTAL);
+	hideCheckBox(widgets, CB_CONF_SHOWZEROS);
+	hideCheckBox(widgets, CB_CONF_FRAMEWORK);
+	hideCheckBox(widgets, CB_CONF_LINECOLORS);
+	hideCheckBox(widgets, CB_CONF_CHANNUMS);
+	hideCheckBox(widgets, CB_CONF_SHOWVOLCOL);
+	hideCheckBox(widgets, CB_CONF_SOFTMOUSE);
+	hideCheckBox(widgets, CB_CONF_USENICEPTR);
+	hideRadioButtonGroup(widgets, RB_GROUP_CONFIG_MOUSE);
+	hideRadioButtonGroup(widgets, RB_GROUP_CONFIG_MOUSE_BUSY);
+	hideRadioButtonGroup(widgets, RB_GROUP_CONFIG_SCOPE);
+	hideRadioButtonGroup(widgets, RB_GROUP_CONFIG_PATTERN_CHANS);
+	hideRadioButtonGroup(widgets, RB_GROUP_CONFIG_FONT);
+	hideRadioButtonGroup(widgets, RB_GROUP_CONFIG_PAL_ENTRIES);
+	hideRadioButtonGroup(widgets, RB_GROUP_CONFIG_PAL_PRESET);
+	hideScrollBar(widgets, SB_PAL_R);
+	hideScrollBar(widgets, SB_PAL_G);
+	hideScrollBar(widgets, SB_PAL_B);
+	hideScrollBar(widgets, SB_PAL_CONTRAST);
+	hidePushButton(widgets, PB_CONFIG_PAL_R_DOWN);
+	hidePushButton(widgets, PB_CONFIG_PAL_R_UP);
+	hidePushButton(widgets, PB_CONFIG_PAL_G_DOWN);
+	hidePushButton(widgets, PB_CONFIG_PAL_G_UP);
+	hidePushButton(widgets, PB_CONFIG_PAL_B_DOWN);
+	hidePushButton(widgets, PB_CONFIG_PAL_B_UP);
+	hidePushButton(widgets, PB_CONFIG_PAL_CONT_DOWN);
+	hidePushButton(widgets, PB_CONFIG_PAL_CONT_UP);
 
 	/* CONFIG MISCELLANEOUS */
-	hideRadioButtonGroup(RB_GROUP_CONFIG_FILESORT);
-	hideRadioButtonGroup(RB_GROUP_CONFIG_WIN_SIZE);
-	hideCheckBox(CB_CONF_SAMPCUTBUF);
-	hideCheckBox(CB_CONF_PATTCUTBUF);
-	hideCheckBox(CB_CONF_KILLNOTES);
-	hideCheckBox(CB_CONF_OVERWRITE_WARN);
-	hideCheckBox(CB_CONF_MULTICHAN_REC);
-	hideCheckBox(CB_CONF_MULTICHAN_KEYJAZZ);
-	hideCheckBox(CB_CONF_MULTICHAN_EDIT);
-	hideCheckBox(CB_CONF_REC_KEYOFF);
-	hideCheckBox(CB_CONF_QUANTIZE);
-	hideCheckBox(CB_CONF_CHANGE_PATTLEN);
-	hideCheckBox(CB_CONF_OLDABOUTLOGO);
-	hideCheckBox(CB_CONF_MIDI_ENABLE);
-	hideCheckBox(CB_CONF_MIDI_ALLCHN);
-	hideCheckBox(CB_CONF_MIDI_TRANSP);
-	hideCheckBox(CB_CONF_MIDI_VELOCITY);
-	hideCheckBox(CB_CONF_MIDI_AFTERTOUCH);
-	hideCheckBox(CB_CONF_VSYNC_OFF);
-	hideCheckBox(CB_CONF_FULLSCREEN);
-	hideCheckBox(CB_CONF_STRETCH);
-	hideCheckBox(CB_CONF_PIXELFILTER);
-	hidePushButton(PB_CONFIG_QUANTIZE_UP);
-	hidePushButton(PB_CONFIG_QUANTIZE_DOWN);
+	hideRadioButtonGroup(widgets, RB_GROUP_CONFIG_FILESORT);
+	hideRadioButtonGroup(widgets, RB_GROUP_CONFIG_WIN_SIZE);
+	hideCheckBox(widgets, CB_CONF_SAMPCUTBUF);
+	hideCheckBox(widgets, CB_CONF_PATTCUTBUF);
+	hideCheckBox(widgets, CB_CONF_KILLNOTES);
+	hideCheckBox(widgets, CB_CONF_OVERWRITE_WARN);
+	hideCheckBox(widgets, CB_CONF_MULTICHAN_REC);
+	hideCheckBox(widgets, CB_CONF_MULTICHAN_KEYJAZZ);
+	hideCheckBox(widgets, CB_CONF_MULTICHAN_EDIT);
+	hideCheckBox(widgets, CB_CONF_REC_KEYOFF);
+	hideCheckBox(widgets, CB_CONF_QUANTIZE);
+	hideCheckBox(widgets, CB_CONF_CHANGE_PATTLEN);
+	hideCheckBox(widgets, CB_CONF_OLDABOUTLOGO);
+	hideCheckBox(widgets, CB_CONF_MIDI_ENABLE);
+	hideCheckBox(widgets, CB_CONF_MIDI_ALLCHN);
+	hideCheckBox(widgets, CB_CONF_MIDI_TRANSP);
+	hideCheckBox(widgets, CB_CONF_MIDI_VELOCITY);
+	hideCheckBox(widgets, CB_CONF_MIDI_AFTERTOUCH);
+	hideCheckBox(widgets, CB_CONF_VSYNC_OFF);
+	hideCheckBox(widgets, CB_CONF_FULLSCREEN);
+	hideCheckBox(widgets, CB_CONF_STRETCH);
+	hideCheckBox(widgets, CB_CONF_PIXELFILTER);
+	hidePushButton(widgets, PB_CONFIG_QUANTIZE_UP);
+	hidePushButton(widgets, PB_CONFIG_QUANTIZE_DOWN);
 
 	/* CONFIG I/O ROUTING */
 	for (int i = 0; i < 32; i++)
 	{
-		hidePushButton(PB_CONFIG_ROUTING_CH1_UP + (i * 2));
-		hidePushButton(PB_CONFIG_ROUTING_CH1_DOWN + (i * 2));
-		hideCheckBox(CB_CONF_ROUTING_CH1_TOMAIN + i);
+		hidePushButton(widgets, PB_CONFIG_ROUTING_CH1_UP + (i * 2));
+		hidePushButton(widgets, PB_CONFIG_ROUTING_CH1_DOWN + (i * 2));
+		hideCheckBox(widgets, CB_CONF_ROUTING_CH1_TOMAIN + i);
 	}
 
 	inst->uiState.configScreenShown = false;
@@ -378,6 +394,9 @@ void exitConfigScreen(ft2_instance_t *inst)
 static void showConfigAudio(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t *bmp)
 {
 	ft2_plugin_config_t *cfg = &inst->config;
+	ft2_widgets_t *widgets = (inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets == NULL)
+		return;
 
 	/* Framework sections matching standalone layout */
 	drawFramework(video, 110, 0, 276, 87, FRAMEWORK_TYPE1);   /* Audio output devices area */
@@ -395,23 +414,23 @@ static void showConfigAudio(ft2_instance_t *inst, ft2_video_t *video, const ft2_
 	textOutShadow(video, bmp, 114, 4, PAL_FORGRND, PAL_DSKTOP2, "DAW Sync:");
 
 	/* Sync BPM checkbox */
-	checkBoxes[CB_CONF_SYNC_BPM].checked = cfg->syncBpmFromDAW;
-	showCheckBox(video, bmp, CB_CONF_SYNC_BPM);
+	widgets->checkBoxChecked[CB_CONF_SYNC_BPM] = cfg->syncBpmFromDAW;
+	showCheckBox(widgets, video, bmp, CB_CONF_SYNC_BPM);
 	textOutShadow(video, bmp, 131, 21, PAL_FORGRND, PAL_DSKTOP2, "Sync BPM");
 
 	/* Sync transport checkbox */
-	checkBoxes[CB_CONF_SYNC_TRANSPORT].checked = cfg->syncTransportFromDAW;
-	showCheckBox(video, bmp, CB_CONF_SYNC_TRANSPORT);
+	widgets->checkBoxChecked[CB_CONF_SYNC_TRANSPORT] = cfg->syncTransportFromDAW;
+	showCheckBox(widgets, video, bmp, CB_CONF_SYNC_TRANSPORT);
 	textOutShadow(video, bmp, 131, 37, PAL_FORGRND, PAL_DSKTOP2, "Sync transport (start/stop)");
 
 	/* Sync position checkbox */
-	checkBoxes[CB_CONF_SYNC_POSITION].checked = cfg->syncPositionFromDAW;
-	showCheckBox(video, bmp, CB_CONF_SYNC_POSITION);
+	widgets->checkBoxChecked[CB_CONF_SYNC_POSITION] = cfg->syncPositionFromDAW;
+	showCheckBox(widgets, video, bmp, CB_CONF_SYNC_POSITION);
 	textOutShadow(video, bmp, 131, 53, PAL_FORGRND, PAL_DSKTOP2, "Sync position (seek)");
 
 	/* Allow Fxx speed changes checkbox */
-	checkBoxes[CB_CONF_ALLOW_FXX_SPEED].checked = cfg->allowFxxSpeedChanges;
-	showCheckBox(video, bmp, CB_CONF_ALLOW_FXX_SPEED);
+	widgets->checkBoxChecked[CB_CONF_ALLOW_FXX_SPEED] = cfg->allowFxxSpeedChanges;
+	showCheckBox(widgets, video, bmp, CB_CONF_ALLOW_FXX_SPEED);
 	textOutShadow(video, bmp, 131, 69, PAL_FORGRND, PAL_DSKTOP2, "Allow Fxx speed changes");
 
 	/* Audio buffer size - grayed out (DAW controls this) */
@@ -426,8 +445,8 @@ static void showConfigAudio(ft2_instance_t *inst, ft2_video_t *video, const ft2_
 	textOutShadow(video, bmp, 468, 74, PAL_DSKTOP2, PAL_DSKTOP2, "32-bit");
 
 	/* Interpolation - ACTIVE */
-	setAudioConfigRadioButtonStates(cfg);
-	showRadioButtonGroup(video, bmp, RB_GROUP_CONFIG_AUDIO_INTERPOLATION);
+	setAudioConfigRadioButtonStates(widgets, cfg);
+	showRadioButtonGroup(widgets, video, bmp, RB_GROUP_CONFIG_AUDIO_INTERPOLATION);
 	textOutShadow(video, bmp, 405, 91, PAL_FORGRND, PAL_DSKTOP2, "No interpolation");
 	textOutShadow(video, bmp, 405, 105, PAL_FORGRND, PAL_DSKTOP2, "Linear (FT2)");
 	textOutShadow(video, bmp, 405, 119, PAL_FORGRND, PAL_DSKTOP2, "Quadratic spline");
@@ -451,24 +470,24 @@ static void showConfigAudio(ft2_instance_t *inst, ft2_video_t *video, const ft2_
 	char ampStr[8];
 	snprintf(ampStr, sizeof(ampStr), "%2dx", cfg->boostLevel);
 	textOutShadow(video, bmp, 601, 105, PAL_FORGRND, PAL_DSKTOP2, ampStr);
-	setScrollBarPos(inst, video, SB_AMP_SCROLL, cfg->boostLevel - 1, false);
-	showScrollBar(video, SB_AMP_SCROLL);
-	showPushButton(video, bmp, PB_CONFIG_AMP_DOWN);
-	showPushButton(video, bmp, PB_CONFIG_AMP_UP);
+	setScrollBarPos(inst, widgets, video, SB_AMP_SCROLL, cfg->boostLevel - 1, false);
+	showScrollBar(widgets, video, SB_AMP_SCROLL);
+	showPushButton(widgets, video, bmp, PB_CONFIG_AMP_DOWN);
+	showPushButton(widgets, video, bmp, PB_CONFIG_AMP_UP);
 
 	/* Master volume - ACTIVE */
 	textOutShadow(video, bmp, 513, 133, PAL_FORGRND, PAL_DSKTOP2, "Master volume:");
 	char volStr[8];
 	snprintf(volStr, sizeof(volStr), "%3d", cfg->masterVol);
 	textOutShadow(video, bmp, 601, 133, PAL_FORGRND, PAL_DSKTOP2, volStr);
-	setScrollBarPos(inst, video, SB_MASTERVOL_SCROLL, cfg->masterVol, false);
-	showScrollBar(video, SB_MASTERVOL_SCROLL);
-	showPushButton(video, bmp, PB_CONFIG_MASTVOL_DOWN);
-	showPushButton(video, bmp, PB_CONFIG_MASTVOL_UP);
+	setScrollBarPos(inst, widgets, video, SB_MASTERVOL_SCROLL, cfg->masterVol, false);
+	showScrollBar(widgets, video, SB_MASTERVOL_SCROLL);
+	showPushButton(widgets, video, bmp, PB_CONFIG_MASTVOL_DOWN);
+	showPushButton(widgets, video, bmp, PB_CONFIG_MASTVOL_UP);
 
 	/* Volume ramping - ACTIVE */
-	checkBoxes[CB_CONF_VOLRAMP].checked = cfg->volumeRamp;
-	showCheckBox(video, bmp, CB_CONF_VOLRAMP);
+	widgets->checkBoxChecked[CB_CONF_VOLRAMP] = cfg->volumeRamp;
+	showCheckBox(widgets, video, bmp, CB_CONF_VOLRAMP);
 	textOutShadow(video, bmp, 529, 160, PAL_FORGRND, PAL_DSKTOP2, "Volume ramping");
 }
 
@@ -477,6 +496,9 @@ static void showConfigAudio(ft2_instance_t *inst, ft2_video_t *video, const ft2_
 static void showConfigLayout(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t *bmp)
 {
 	ft2_plugin_config_t *cfg = &inst->config;
+	ft2_widgets_t *widgets = (inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets == NULL)
+		return;
 
 	/* Framework sections matching standalone layout */
 	drawFramework(video, 110, 0, 142, 106, FRAMEWORK_TYPE1);   /* Pattern layout */
@@ -490,32 +512,32 @@ static void showConfigLayout(ft2_instance_t *inst, ft2_video_t *video, const ft2
 	/* Pattern layout section - ACTIVE */
 	textOutShadow(video, bmp, 114, 3, PAL_FORGRND, PAL_DSKTOP2, "Pattern layout:");
 
-	checkBoxes[CB_CONF_PATTSTRETCH].checked = cfg->ptnStretch;
-	showCheckBox(video, bmp, CB_CONF_PATTSTRETCH);
+	widgets->checkBoxChecked[CB_CONF_PATTSTRETCH] = cfg->ptnStretch;
+	showCheckBox(widgets, video, bmp, CB_CONF_PATTSTRETCH);
 	textOutShadow(video, bmp, 130, 16, PAL_FORGRND, PAL_DSKTOP2, "Pattern stretch");
 
-	checkBoxes[CB_CONF_HEXCOUNT].checked = cfg->ptnHex;
-	showCheckBox(video, bmp, CB_CONF_HEXCOUNT);
+	widgets->checkBoxChecked[CB_CONF_HEXCOUNT] = cfg->ptnHex;
+	showCheckBox(widgets, video, bmp, CB_CONF_HEXCOUNT);
 	textOutShadow(video, bmp, 130, 29, PAL_FORGRND, PAL_DSKTOP2, "Hex line numbers");
 
-	checkBoxes[CB_CONF_ACCIDENTAL].checked = cfg->ptnAcc;
-	showCheckBox(video, bmp, CB_CONF_ACCIDENTAL);
+	widgets->checkBoxChecked[CB_CONF_ACCIDENTAL] = cfg->ptnAcc;
+	showCheckBox(widgets, video, bmp, CB_CONF_ACCIDENTAL);
 	textOutShadow(video, bmp, 130, 42, PAL_FORGRND, PAL_DSKTOP2, "Accidential");
 
-	checkBoxes[CB_CONF_SHOWZEROS].checked = cfg->ptnInstrZero;
-	showCheckBox(video, bmp, CB_CONF_SHOWZEROS);
+	widgets->checkBoxChecked[CB_CONF_SHOWZEROS] = cfg->ptnInstrZero;
+	showCheckBox(widgets, video, bmp, CB_CONF_SHOWZEROS);
 	textOutShadow(video, bmp, 130, 55, PAL_FORGRND, PAL_DSKTOP2, "Show zeroes");
 
-	checkBoxes[CB_CONF_FRAMEWORK].checked = cfg->ptnFrmWrk;
-	showCheckBox(video, bmp, CB_CONF_FRAMEWORK);
+	widgets->checkBoxChecked[CB_CONF_FRAMEWORK] = cfg->ptnFrmWrk;
+	showCheckBox(widgets, video, bmp, CB_CONF_FRAMEWORK);
 	textOutShadow(video, bmp, 130, 68, PAL_FORGRND, PAL_DSKTOP2, "Framework");
 
-	checkBoxes[CB_CONF_LINECOLORS].checked = cfg->ptnLineLight;
-	showCheckBox(video, bmp, CB_CONF_LINECOLORS);
+	widgets->checkBoxChecked[CB_CONF_LINECOLORS] = cfg->ptnLineLight;
+	showCheckBox(widgets, video, bmp, CB_CONF_LINECOLORS);
 	textOutShadow(video, bmp, 130, 81, PAL_FORGRND, PAL_DSKTOP2, "Line number colors");
 
-	checkBoxes[CB_CONF_CHANNUMS].checked = cfg->ptnChnNumbers;
-	showCheckBox(video, bmp, CB_CONF_CHANNUMS);
+	widgets->checkBoxChecked[CB_CONF_CHANNUMS] = cfg->ptnChnNumbers;
+	showCheckBox(widgets, video, bmp, CB_CONF_CHANNUMS);
 	textOutShadow(video, bmp, 130, 94, PAL_FORGRND, PAL_DSKTOP2, "Channel numbering");
 
 	/* Mouse shape - grayed out (not applicable for plugin) */
@@ -531,14 +553,14 @@ static void showConfigLayout(ft2_instance_t *inst, ft2_video_t *video, const ft2
 	/* Pattern modes section - ACTIVE */
 	textOutShadow(video, bmp, 256, 3, PAL_FORGRND, PAL_DSKTOP2, "Pattern modes:");
 
-	checkBoxes[CB_CONF_SHOWVOLCOL].checked = cfg->ptnShowVolColumn;
-	showCheckBox(video, bmp, CB_CONF_SHOWVOLCOL);
+	widgets->checkBoxChecked[CB_CONF_SHOWVOLCOL] = cfg->ptnShowVolColumn;
+	showCheckBox(widgets, video, bmp, CB_CONF_SHOWVOLCOL);
 	textOutShadow(video, bmp, 271, 16, PAL_FORGRND, PAL_DSKTOP2, "Show volume column");
 
 	textOutShadow(video, bmp, 256, 30, PAL_FORGRND, PAL_DSKTOP2, "Maximum visible chn.:");
 
-	setLayoutConfigRadioButtonStates(cfg);
-	showRadioButtonGroup(video, bmp, RB_GROUP_CONFIG_PATTERN_CHANS);
+	setLayoutConfigRadioButtonStates(widgets, cfg);
+	showRadioButtonGroup(widgets, video, bmp, RB_GROUP_CONFIG_PATTERN_CHANS);
 	textOutShadow(video, bmp, 272, 43, PAL_FORGRND, PAL_DSKTOP2, "4 channels");
 	textOutShadow(video, bmp, 272, 57, PAL_FORGRND, PAL_DSKTOP2, "6 channels");
 	textOutShadow(video, bmp, 272, 71, PAL_FORGRND, PAL_DSKTOP2, "8 channels");
@@ -546,7 +568,7 @@ static void showConfigLayout(ft2_instance_t *inst, ft2_video_t *video, const ft2
 
 	/* Pattern font section - ACTIVE */
 	textOutShadow(video, bmp, 257, 101, PAL_FORGRND, PAL_DSKTOP2, "Pattern font:");
-	showRadioButtonGroup(video, bmp, RB_GROUP_CONFIG_FONT);
+	showRadioButtonGroup(widgets, video, bmp, RB_GROUP_CONFIG_FONT);
 	textOutShadow(video, bmp, 272, 115, PAL_FORGRND, PAL_DSKTOP2, "Capitals");
 	textOutShadow(video, bmp, 338, 114, PAL_FORGRND, PAL_DSKTOP2, "Lower-c.");
 	textOutShadow(video, bmp, 272, 130, PAL_FORGRND, PAL_DSKTOP2, "Future");
@@ -554,7 +576,7 @@ static void showConfigLayout(ft2_instance_t *inst, ft2_video_t *video, const ft2
 
 	/* Scopes section - ACTIVE */
 	textOutShadow(video, bmp, 256, 146, PAL_FORGRND, PAL_DSKTOP2, "Scopes:");
-	showRadioButtonGroup(video, bmp, RB_GROUP_CONFIG_SCOPE);
+	showRadioButtonGroup(widgets, video, bmp, RB_GROUP_CONFIG_SCOPE);
 	textOutShadow(video, bmp, 319, 146, PAL_FORGRND, PAL_DSKTOP2, "FT2");
 	textOutShadow(video, bmp, 360, 146, PAL_FORGRND, PAL_DSKTOP2, "Lined");
 
@@ -592,6 +614,9 @@ static void showConfigLayout(ft2_instance_t *inst, ft2_video_t *video, const ft2
 static void showConfigMiscellaneous(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t *bmp)
 {
 	ft2_plugin_config_t *cfg = &inst->config;
+	ft2_widgets_t *widgets = (inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets == NULL)
+		return;
 
 	/* Framework sections matching standalone layout */
 	drawFramework(video, 110, 0, 99, 43, FRAMEWORK_TYPE1);     /* Dir sorting */
@@ -611,17 +636,17 @@ static void showConfigMiscellaneous(ft2_instance_t *inst, ft2_video_t *video, co
 	textOutShadow(video, bmp, 130, 30, PAL_DSKTOP2, PAL_DSKTOP2, "Name");
 
 	/* Sample/Pattern cut to buffer - ACTIVE */
-	checkBoxes[CB_CONF_SAMPCUTBUF].checked = cfg->smpCutToBuffer;
-	showCheckBox(video, bmp, CB_CONF_SAMPCUTBUF);
+	widgets->checkBoxChecked[CB_CONF_SAMPCUTBUF] = cfg->smpCutToBuffer;
+	showCheckBox(widgets, video, bmp, CB_CONF_SAMPCUTBUF);
 	textOutShadow(video, bmp, 228, 4, PAL_FORGRND, PAL_DSKTOP2, "Sample \"cut to buffer\"");
 
-	checkBoxes[CB_CONF_PATTCUTBUF].checked = cfg->ptnCutToBuffer;
-	showCheckBox(video, bmp, CB_CONF_PATTCUTBUF);
+	widgets->checkBoxChecked[CB_CONF_PATTCUTBUF] = cfg->ptnCutToBuffer;
+	showCheckBox(widgets, video, bmp, CB_CONF_PATTCUTBUF);
 	textOutShadow(video, bmp, 228, 17, PAL_FORGRND, PAL_DSKTOP2, "Pattern \"cut to buffer\"");
 
 	/* Kill voices at music stop - ACTIVE */
-	checkBoxes[CB_CONF_KILLNOTES].checked = cfg->killNotesOnStopPlay;
-	showCheckBox(video, bmp, CB_CONF_KILLNOTES);
+	widgets->checkBoxChecked[CB_CONF_KILLNOTES] = cfg->killNotesOnStopPlay;
+	showCheckBox(widgets, video, bmp, CB_CONF_KILLNOTES);
 	textOutShadow(video, bmp, 228, 30, PAL_FORGRND, PAL_DSKTOP2, "Kill voices at music stop");
 
 	/* File-overwrite warning - grayed out */
@@ -660,24 +685,24 @@ static void showConfigMiscellaneous(ft2_instance_t *inst, ft2_video_t *video, co
 	/* Rec./Edit/Play section - ACTIVE */
 	textOutShadow(video, bmp, 213, 57, PAL_FORGRND, PAL_DSKTOP2, "Rec./Edit/Play:");
 
-	checkBoxes[CB_CONF_MULTICHAN_REC].checked = cfg->multiRec;
-	showCheckBox(video, bmp, CB_CONF_MULTICHAN_REC);
+	widgets->checkBoxChecked[CB_CONF_MULTICHAN_REC] = cfg->multiRec;
+	showCheckBox(widgets, video, bmp, CB_CONF_MULTICHAN_REC);
 	textOutShadow(video, bmp, 228, 70, PAL_FORGRND, PAL_DSKTOP2, "Multichannel record");
 
-	checkBoxes[CB_CONF_MULTICHAN_KEYJAZZ].checked = cfg->multiKeyJazz;
-	showCheckBox(video, bmp, CB_CONF_MULTICHAN_KEYJAZZ);
+	widgets->checkBoxChecked[CB_CONF_MULTICHAN_KEYJAZZ] = cfg->multiKeyJazz;
+	showCheckBox(widgets, video, bmp, CB_CONF_MULTICHAN_KEYJAZZ);
 	textOutShadow(video, bmp, 228, 83, PAL_FORGRND, PAL_DSKTOP2, "Multichannel \"key jazz\"");
 
-	checkBoxes[CB_CONF_MULTICHAN_EDIT].checked = cfg->multiEdit;
-	showCheckBox(video, bmp, CB_CONF_MULTICHAN_EDIT);
+	widgets->checkBoxChecked[CB_CONF_MULTICHAN_EDIT] = cfg->multiEdit;
+	showCheckBox(widgets, video, bmp, CB_CONF_MULTICHAN_EDIT);
 	textOutShadow(video, bmp, 228, 96, PAL_FORGRND, PAL_DSKTOP2, "Multichannel edit");
 
-	checkBoxes[CB_CONF_REC_KEYOFF].checked = cfg->recRelease;
-	showCheckBox(video, bmp, CB_CONF_REC_KEYOFF);
+	widgets->checkBoxChecked[CB_CONF_REC_KEYOFF] = cfg->recRelease;
+	showCheckBox(widgets, video, bmp, CB_CONF_REC_KEYOFF);
 	textOutShadow(video, bmp, 228, 109, PAL_FORGRND, PAL_DSKTOP2, "Record key-off notes");
 
-	checkBoxes[CB_CONF_QUANTIZE].checked = cfg->recQuant;
-	showCheckBox(video, bmp, CB_CONF_QUANTIZE);
+	widgets->checkBoxChecked[CB_CONF_QUANTIZE] = cfg->recQuant;
+	showCheckBox(widgets, video, bmp, CB_CONF_QUANTIZE);
 	textOutShadow(video, bmp, 228, 122, PAL_FORGRND, PAL_DSKTOP2, "Quantization");
 
 	/* Quantization value */
@@ -686,8 +711,8 @@ static void showConfigMiscellaneous(ft2_instance_t *inst, ft2_video_t *video, co
 	snprintf(quantStr, sizeof(quantStr), "%d", cfg->recQuantRes);
 	textOutShadow(video, bmp, 350, 122, PAL_FORGRND, PAL_DSKTOP2, quantStr);
 
-	checkBoxes[CB_CONF_CHANGE_PATTLEN].checked = cfg->recTrueInsert;
-	showCheckBox(video, bmp, CB_CONF_CHANGE_PATTLEN);
+	widgets->checkBoxChecked[CB_CONF_CHANGE_PATTLEN] = cfg->recTrueInsert;
+	showCheckBox(widgets, video, bmp, CB_CONF_CHANGE_PATTLEN);
 	textOutShadow(video, bmp, 228, 135, PAL_FORGRND, PAL_DSKTOP2, "Change pattern length when");
 	textOutShadow(video, bmp, 228, 146, PAL_FORGRND, PAL_DSKTOP2, "inserting/deleting line.");
 
@@ -712,6 +737,9 @@ static void showConfigIORouting(ft2_instance_t *inst, ft2_video_t *video, const 
 		return;
 
 	ft2_plugin_config_t *cfg = &inst->config;
+	ft2_widgets_t *widgets = (inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets == NULL)
+		return;
 
 	/* Draw main content framework */
 	drawFramework(video, 110, 0, 522, 173, FRAMEWORK_TYPE1);
@@ -749,12 +777,12 @@ static void showConfigIORouting(ft2_instance_t *inst, ft2_video_t *video, const 
 		textOutShadow(video, bmp, baseX + 32, baseY, PAL_FORGRND, PAL_DSKTOP2, buf);
 
 		/* Show up/down buttons */
-		showPushButton(video, bmp, PB_CONFIG_ROUTING_CH1_UP + (i * 2));
-		showPushButton(video, bmp, PB_CONFIG_ROUTING_CH1_DOWN + (i * 2));
+		showPushButton(widgets, video, bmp, PB_CONFIG_ROUTING_CH1_UP + (i * 2));
+		showPushButton(widgets, video, bmp, PB_CONFIG_ROUTING_CH1_DOWN + (i * 2));
 
 		/* Show "to main" checkbox */
-		checkBoxes[CB_CONF_ROUTING_CH1_TOMAIN + i].checked = cfg->channelToMain[i];
-		showCheckBox(video, bmp, CB_CONF_ROUTING_CH1_TOMAIN + i);
+		widgets->checkBoxChecked[CB_CONF_ROUTING_CH1_TOMAIN + i] = cfg->channelToMain[i];
+		showCheckBox(widgets, video, bmp, CB_CONF_ROUTING_CH1_TOMAIN + i);
 	}
 }
 
@@ -764,6 +792,9 @@ static void showConfigMidiInput(ft2_instance_t *inst, ft2_video_t *video, const 
 		return;
 
 	ft2_plugin_config_t *cfg = &inst->config;
+	ft2_widgets_t *widgets = (inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets == NULL)
+		return;
 
 	/* Draw main content framework */
 	drawFramework(video, 110, 0, 522, 173, FRAMEWORK_TYPE1);
@@ -773,13 +804,13 @@ static void showConfigMidiInput(ft2_instance_t *inst, ft2_video_t *video, const 
 
 	/* MIDI Enable checkbox */
 	textOutShadow(video, bmp, 138, 20, PAL_FORGRND, PAL_DSKTOP2, "Enable MIDI input");
-	checkBoxes[CB_CONF_MIDI_ENABLE].checked = cfg->midiEnabled;
-	showCheckBox(video, bmp, CB_CONF_MIDI_ENABLE);
+	widgets->checkBoxChecked[CB_CONF_MIDI_ENABLE] = cfg->midiEnabled;
+	showCheckBox(widgets, video, bmp, CB_CONF_MIDI_ENABLE);
 
 	/* All channels checkbox */
 	textOutShadow(video, bmp, 138, 34, PAL_FORGRND, PAL_DSKTOP2, "Receive all channels");
-	checkBoxes[CB_CONF_MIDI_ALLCHN].checked = cfg->midiAllChannels;
-	showCheckBox(video, bmp, CB_CONF_MIDI_ALLCHN);
+	widgets->checkBoxChecked[CB_CONF_MIDI_ALLCHN] = cfg->midiAllChannels;
+	showCheckBox(widgets, video, bmp, CB_CONF_MIDI_ALLCHN);
 
 	/* Channel number */
 	textOutShadow(video, bmp, 116, 52, PAL_FORGRND, PAL_DSKTOP2, "Channel:");
@@ -796,8 +827,8 @@ static void showConfigMidiInput(ft2_instance_t *inst, ft2_video_t *video, const 
 
 	/* Record velocity checkbox */
 	textOutShadow(video, bmp, 138, 104, PAL_FORGRND, PAL_DSKTOP2, "Record velocity as volume");
-	checkBoxes[CB_CONF_MIDI_VELOCITY].checked = cfg->midiRecordVelocity;
-	showCheckBox(video, bmp, CB_CONF_MIDI_VELOCITY);
+	widgets->checkBoxChecked[CB_CONF_MIDI_VELOCITY] = cfg->midiRecordVelocity;
+	showCheckBox(widgets, video, bmp, CB_CONF_MIDI_VELOCITY);
 
 	/* Info text */
 	textOutShadow(video, bmp, 116, 130, PAL_DSKTOP2, PAL_DSKTOP2, "Note: MIDI output is enabled per-instrument in");
@@ -811,6 +842,10 @@ void drawConfigScreen(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t 
 	if (inst == NULL || video == NULL)
 		return;
 
+	ft2_widgets_t *widgets = (inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets == NULL)
+		return;
+
 	/* Clear the top screen area (0-173 pixels) */
 	clearRect(video, 0, 0, 632, 173);
 
@@ -818,14 +853,14 @@ void drawConfigScreen(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t 
 	drawFramework(video, 0, 0, 110, 173, FRAMEWORK_TYPE1);
 	
 	/* Set and show config tab radio buttons */
-	setConfigRadioButtonStates(&inst->config);
-	showRadioButtonGroup(video, bmp, RB_GROUP_CONFIG_SELECT);
+	setConfigRadioButtonStates(widgets, &inst->config);
+	showRadioButtonGroup(widgets, video, bmp, RB_GROUP_CONFIG_SELECT);
 
 	/* Show push buttons */
-	showPushButton(video, bmp, PB_CONFIG_RESET);
-	showPushButton(video, bmp, PB_CONFIG_LOAD);
-	showPushButton(video, bmp, PB_CONFIG_SAVE);
-	showPushButton(video, bmp, PB_CONFIG_EXIT);
+	showPushButton(widgets, video, bmp, PB_CONFIG_RESET);
+	showPushButton(widgets, video, bmp, PB_CONFIG_LOAD);
+	showPushButton(widgets, video, bmp, PB_CONFIG_SAVE);
+	showPushButton(widgets, video, bmp, PB_CONFIG_EXIT);
 
 	/* Draw text labels for tabs */
 	textOutShadow(video, bmp, 4, 4, PAL_FORGRND, PAL_DSKTOP2, "Configuration:");
@@ -928,7 +963,9 @@ void rbConfigIntrpNone(ft2_instance_t *inst)
 	if (inst == NULL)
 		return;
 	setInterpolationType(inst, INTERPOLATION_DISABLED);
-	checkRadioButtonNoRedraw(RB_CONFIG_AUDIO_INTRP_NONE);
+	ft2_widgets_t *widgets = (inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets != NULL)
+		checkRadioButtonNoRedraw(widgets, RB_CONFIG_AUDIO_INTRP_NONE);
 }
 
 void rbConfigIntrpLinear(ft2_instance_t *inst)
@@ -936,7 +973,9 @@ void rbConfigIntrpLinear(ft2_instance_t *inst)
 	if (inst == NULL)
 		return;
 	setInterpolationType(inst, INTERPOLATION_LINEAR);
-	checkRadioButtonNoRedraw(RB_CONFIG_AUDIO_INTRP_LINEAR);
+	ft2_widgets_t *widgets = (inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets != NULL)
+		checkRadioButtonNoRedraw(widgets, RB_CONFIG_AUDIO_INTRP_LINEAR);
 }
 
 void rbConfigIntrpQuadratic(ft2_instance_t *inst)
@@ -944,7 +983,9 @@ void rbConfigIntrpQuadratic(ft2_instance_t *inst)
 	if (inst == NULL)
 		return;
 	setInterpolationType(inst, INTERPOLATION_QUADRATIC);
-	checkRadioButtonNoRedraw(RB_CONFIG_AUDIO_INTRP_QUADRATIC);
+	ft2_widgets_t *widgets = (inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets != NULL)
+		checkRadioButtonNoRedraw(widgets, RB_CONFIG_AUDIO_INTRP_QUADRATIC);
 }
 
 void rbConfigIntrpCubic(ft2_instance_t *inst)
@@ -952,7 +993,9 @@ void rbConfigIntrpCubic(ft2_instance_t *inst)
 	if (inst == NULL)
 		return;
 	setInterpolationType(inst, INTERPOLATION_CUBIC);
-	checkRadioButtonNoRedraw(RB_CONFIG_AUDIO_INTRP_CUBIC);
+	ft2_widgets_t *widgets = (inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets != NULL)
+		checkRadioButtonNoRedraw(widgets, RB_CONFIG_AUDIO_INTRP_CUBIC);
 }
 
 void rbConfigIntrpSinc8(ft2_instance_t *inst)
@@ -960,7 +1003,9 @@ void rbConfigIntrpSinc8(ft2_instance_t *inst)
 	if (inst == NULL)
 		return;
 	setInterpolationType(inst, INTERPOLATION_SINC8);
-	checkRadioButtonNoRedraw(RB_CONFIG_AUDIO_INTRP_SINC8);
+	ft2_widgets_t *widgets = (inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets != NULL)
+		checkRadioButtonNoRedraw(widgets, RB_CONFIG_AUDIO_INTRP_SINC8);
 }
 
 void rbConfigIntrpSinc16(ft2_instance_t *inst)
@@ -968,7 +1013,9 @@ void rbConfigIntrpSinc16(ft2_instance_t *inst)
 	if (inst == NULL)
 		return;
 	setInterpolationType(inst, INTERPOLATION_SINC16);
-	checkRadioButtonNoRedraw(RB_CONFIG_AUDIO_INTRP_SINC16);
+	ft2_widgets_t *widgets = (inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets != NULL)
+		checkRadioButtonNoRedraw(widgets, RB_CONFIG_AUDIO_INTRP_SINC16);
 }
 
 /* ============ SCOPE STYLE CALLBACKS ============ */
@@ -978,7 +1025,9 @@ void rbConfigScopeFT2(ft2_instance_t *inst)
 	if (inst == NULL)
 		return;
 	inst->config.linedScopes = false;
-	checkRadioButtonNoRedraw(RB_CONFIG_SCOPE_STANDARD);
+	ft2_widgets_t *widgets = (inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets != NULL)
+		checkRadioButtonNoRedraw(widgets, RB_CONFIG_SCOPE_STANDARD);
 }
 
 void rbConfigScopeLined(ft2_instance_t *inst)
@@ -986,7 +1035,9 @@ void rbConfigScopeLined(ft2_instance_t *inst)
 	if (inst == NULL)
 		return;
 	inst->config.linedScopes = true;
-	checkRadioButtonNoRedraw(RB_CONFIG_SCOPE_LINED);
+	ft2_widgets_t *widgets = (inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets != NULL)
+		checkRadioButtonNoRedraw(widgets, RB_CONFIG_SCOPE_LINED);
 }
 
 /* ============ CHANNEL COUNT CALLBACKS ============ */
@@ -1000,7 +1051,9 @@ void rbConfigPatt4Chans(ft2_instance_t *inst)
 	inst->uiState.maxVisibleChannels = 4;
 	updateChanNums(inst);
 	inst->uiState.updatePatternEditor = true;
-	checkRadioButtonNoRedraw(RB_CONFIG_PATT_4CHANS);
+	ft2_widgets_t *widgets = (inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets != NULL)
+		checkRadioButtonNoRedraw(widgets, RB_CONFIG_PATT_4CHANS);
 }
 
 void rbConfigPatt6Chans(ft2_instance_t *inst)
@@ -1012,7 +1065,9 @@ void rbConfigPatt6Chans(ft2_instance_t *inst)
 	inst->uiState.maxVisibleChannels = 6;
 	updateChanNums(inst);
 	inst->uiState.updatePatternEditor = true;
-	checkRadioButtonNoRedraw(RB_CONFIG_PATT_6CHANS);
+	ft2_widgets_t *widgets = (inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets != NULL)
+		checkRadioButtonNoRedraw(widgets, RB_CONFIG_PATT_6CHANS);
 }
 
 void rbConfigPatt8Chans(ft2_instance_t *inst)
@@ -1024,7 +1079,9 @@ void rbConfigPatt8Chans(ft2_instance_t *inst)
 	inst->uiState.maxVisibleChannels = 8;
 	updateChanNums(inst);
 	inst->uiState.updatePatternEditor = true;
-	checkRadioButtonNoRedraw(RB_CONFIG_PATT_8CHANS);
+	ft2_widgets_t *widgets = (inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets != NULL)
+		checkRadioButtonNoRedraw(widgets, RB_CONFIG_PATT_8CHANS);
 }
 
 void rbConfigPatt12Chans(ft2_instance_t *inst)
@@ -1036,7 +1093,9 @@ void rbConfigPatt12Chans(ft2_instance_t *inst)
 	inst->uiState.maxVisibleChannels = 12;
 	updateChanNums(inst);
 	inst->uiState.updatePatternEditor = true;
-	checkRadioButtonNoRedraw(RB_CONFIG_PATT_12CHANS);
+	ft2_widgets_t *widgets = (inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets != NULL)
+		checkRadioButtonNoRedraw(widgets, RB_CONFIG_PATT_12CHANS);
 }
 
 /* ============ FONT CALLBACKS ============ */
@@ -1049,7 +1108,9 @@ void rbConfigFontCapitals(ft2_instance_t *inst)
 	inst->config.ptnFont = PATT_FONT_CAPITALS;
 	inst->uiState.ptnFont = PATT_FONT_CAPITALS;
 	inst->uiState.updatePatternEditor = true;
-	checkRadioButtonNoRedraw(RB_CONFIG_FONT_CAPITALS);
+	ft2_widgets_t *widgets = (inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets != NULL)
+		checkRadioButtonNoRedraw(widgets, RB_CONFIG_FONT_CAPITALS);
 }
 
 void rbConfigFontLowerCase(ft2_instance_t *inst)
@@ -1060,7 +1121,9 @@ void rbConfigFontLowerCase(ft2_instance_t *inst)
 	inst->config.ptnFont = PATT_FONT_LOWERCASE;
 	inst->uiState.ptnFont = PATT_FONT_LOWERCASE;
 	inst->uiState.updatePatternEditor = true;
-	checkRadioButtonNoRedraw(RB_CONFIG_FONT_LOWERCASE);
+	ft2_widgets_t *widgets = (inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets != NULL)
+		checkRadioButtonNoRedraw(widgets, RB_CONFIG_FONT_LOWERCASE);
 }
 
 void rbConfigFontFuture(ft2_instance_t *inst)
@@ -1071,7 +1134,9 @@ void rbConfigFontFuture(ft2_instance_t *inst)
 	inst->config.ptnFont = PATT_FONT_FUTURE;
 	inst->uiState.ptnFont = PATT_FONT_FUTURE;
 	inst->uiState.updatePatternEditor = true;
-	checkRadioButtonNoRedraw(RB_CONFIG_FONT_FUTURE);
+	ft2_widgets_t *widgets = (inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets != NULL)
+		checkRadioButtonNoRedraw(widgets, RB_CONFIG_FONT_FUTURE);
 }
 
 void rbConfigFontBold(ft2_instance_t *inst)
@@ -1082,7 +1147,9 @@ void rbConfigFontBold(ft2_instance_t *inst)
 	inst->config.ptnFont = PATT_FONT_BOLD;
 	inst->uiState.ptnFont = PATT_FONT_BOLD;
 	inst->uiState.updatePatternEditor = true;
-	checkRadioButtonNoRedraw(RB_CONFIG_FONT_BOLD);
+	ft2_widgets_t *widgets = (inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
+	if (widgets != NULL)
+		checkRadioButtonNoRedraw(widgets, RB_CONFIG_FONT_BOLD);
 }
 
 /* ============ PATTERN EDITOR CHECKBOXES ============ */
@@ -1294,7 +1361,7 @@ void cbSyncPositionFromDAW(ft2_instance_t *inst)
 	/* Position sync requires BPM sync to be enabled */
 	if (!inst->config.syncBpmFromDAW && !inst->config.syncPositionFromDAW)
 	{
-		ft2_ui_t *ui = ft2_ui_get_current();
+		ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 		if (ui != NULL)
 		{
 			ft2_dialog_show_message(&ui->dialog, "System message",
@@ -1341,10 +1408,11 @@ void configAmpDown(ft2_instance_t *inst)
 	if (inst == NULL)
 		return;
 	
-	ft2_ui_t *ui = ft2_ui_get_current();
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 	ft2_video_t *video = (ui != NULL) ? &ui->video : NULL;
+	ft2_widgets_t *widgets = (ui != NULL) ? &ui->widgets : NULL;
 	
-	scrollBarScrollLeft(inst, video, SB_AMP_SCROLL, 1);
+	scrollBarScrollLeft(inst, widgets, video, SB_AMP_SCROLL, 1);
 }
 
 void configAmpUp(ft2_instance_t *inst)
@@ -1352,10 +1420,11 @@ void configAmpUp(ft2_instance_t *inst)
 	if (inst == NULL)
 		return;
 	
-	ft2_ui_t *ui = ft2_ui_get_current();
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 	ft2_video_t *video = (ui != NULL) ? &ui->video : NULL;
+	ft2_widgets_t *widgets = (ui != NULL) ? &ui->widgets : NULL;
 	
-	scrollBarScrollRight(inst, video, SB_AMP_SCROLL, 1);
+	scrollBarScrollRight(inst, widgets, video, SB_AMP_SCROLL, 1);
 }
 
 void configMasterVolDown(ft2_instance_t *inst)
@@ -1363,10 +1432,11 @@ void configMasterVolDown(ft2_instance_t *inst)
 	if (inst == NULL)
 		return;
 	
-	ft2_ui_t *ui = ft2_ui_get_current();
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 	ft2_video_t *video = (ui != NULL) ? &ui->video : NULL;
+	ft2_widgets_t *widgets = (ui != NULL) ? &ui->widgets : NULL;
 	
-	scrollBarScrollLeft(inst, video, SB_MASTERVOL_SCROLL, 1);
+	scrollBarScrollLeft(inst, widgets, video, SB_MASTERVOL_SCROLL, 1);
 }
 
 void configMasterVolUp(ft2_instance_t *inst)
@@ -1374,10 +1444,11 @@ void configMasterVolUp(ft2_instance_t *inst)
 	if (inst == NULL)
 		return;
 	
-	ft2_ui_t *ui = ft2_ui_get_current();
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 	ft2_video_t *video = (ui != NULL) ? &ui->video : NULL;
+	ft2_widgets_t *widgets = (ui != NULL) ? &ui->widgets : NULL;
 	
-	scrollBarScrollRight(inst, video, SB_MASTERVOL_SCROLL, 1);
+	scrollBarScrollRight(inst, widgets, video, SB_MASTERVOL_SCROLL, 1);
 }
 
 /* Scrollbar position callbacks - these are called when the scrollbar is moved */
@@ -1396,7 +1467,7 @@ void sbAmpPos(ft2_instance_t *inst, uint32_t pos)
 		ft2_instance_set_audio_amp(inst, inst->config.boostLevel, inst->config.masterVol);
 		
 		/* Redraw amp value */
-		ft2_ui_t *ui = ft2_ui_get_current();
+		ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 		if (ui != NULL && inst->uiState.configScreenShown && inst->config.currConfigScreen == CONFIG_SCREEN_AUDIO)
 		{
 			char ampStr[8];
@@ -1421,7 +1492,7 @@ void sbMasterVolPos(ft2_instance_t *inst, uint32_t pos)
 		ft2_instance_set_audio_amp(inst, inst->config.boostLevel, inst->config.masterVol);
 		
 		/* Redraw master vol value */
-		ft2_ui_t *ui = ft2_ui_get_current();
+		ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 		if (ui != NULL && inst->uiState.configScreenShown && inst->config.currConfigScreen == CONFIG_SCREEN_AUDIO)
 		{
 			char volStr[8];
@@ -1451,7 +1522,7 @@ void pbConfigReset(ft2_instance_t *inst)
 	if (inst == NULL)
 		return;
 
-	ft2_ui_t *ui = ft2_ui_get_current();
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 	if (ui != NULL)
 	{
 		ft2_dialog_show_yesno_cb(&ui->dialog,
@@ -1477,7 +1548,7 @@ void pbConfigLoad(ft2_instance_t *inst)
 	if (inst == NULL)
 		return;
 
-	ft2_ui_t *ui = ft2_ui_get_current();
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 	if (ui != NULL)
 	{
 		ft2_dialog_show_yesno_cb(&ui->dialog,
@@ -1503,7 +1574,7 @@ void pbConfigSave(ft2_instance_t *inst)
 	if (inst == NULL)
 		return;
 
-	ft2_ui_t *ui = ft2_ui_get_current();
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
 	if (ui != NULL)
 	{
 		ft2_dialog_show_yesno_cb(&ui->dialog,
@@ -1584,11 +1655,16 @@ void cbRoutingToMain(ft2_instance_t *inst)
 	if (inst == NULL)
 		return;
 
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
+	if (ui == NULL)
+		return;
+	ft2_widgets_t *widgets = &ui->widgets;
+
 	/* Sync all 32 checkbox states to config */
 	for (int i = 0; i < 32; i++)
 	{
 		uint16_t cbId = CB_CONF_ROUTING_CH1_TOMAIN + i;
-		if (checkBoxes[cbId].visible)
-			inst->config.channelToMain[i] = checkBoxes[cbId].checked;
+		if (widgets->checkBoxVisible[cbId])
+			inst->config.channelToMain[i] = widgets->checkBoxChecked[cbId];
 	}
 }

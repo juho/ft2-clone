@@ -3,12 +3,15 @@
  * @brief Checkbox implementation for the FT2 plugin UI.
  * 
  * Ported from ft2_checkboxes.c - exact coordinates preserved.
+ * Modified for multi-instance support: visibility/state stored per-instance.
  */
 
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include "ft2_plugin_checkboxes.h"
+#include "ft2_plugin_widgets.h"
+#include "ft2_plugin_ui.h"
 #include "ft2_plugin_video.h"
 #include "ft2_plugin_bmp.h"
 #include "ft2_plugin_config.h"
@@ -166,12 +169,7 @@ checkBox_t checkBoxes[NUM_CHECKBOXES] =
 
 void initCheckBoxes(void)
 {
-	for (int i = 0; i < NUM_CHECKBOXES; i++)
-	{
-		checkBoxes[i].visible = false;
-		checkBoxes[i].checked = false;
-		checkBoxes[i].state = CHECKBOX_UNPRESSED;
-	}
+	/* Initialize callbacks only (visibility/state now per-instance in ft2_widgets_t) */
 
 	/* Wire up volume ramping callback */
 	checkBoxes[CB_CONF_VOLRAMP].callbackFunc = cbConfigVolRamp;
@@ -208,14 +206,17 @@ void initCheckBoxes(void)
 		checkBoxes[CB_CONF_ROUTING_CH1_TOMAIN + i].callbackFunc = cbRoutingToMain;
 }
 
-void drawCheckBox(struct ft2_video_t *video, const struct ft2_bmp_t *bmp, uint16_t checkBoxID)
+void drawCheckBox(struct ft2_widgets_t *widgets, struct ft2_video_t *video, const struct ft2_bmp_t *bmp, uint16_t checkBoxID)
 {
-	if (checkBoxID >= NUM_CHECKBOXES)
+	if (widgets == NULL || checkBoxID >= NUM_CHECKBOXES)
+		return;
+
+	if (!widgets->checkBoxVisible[checkBoxID])
 		return;
 
 	checkBox_t *cb = &checkBoxes[checkBoxID];
-	if (!cb->visible)
-		return;
+	bool checked = widgets->checkBoxChecked[checkBoxID];
+	uint8_t state = widgets->checkBoxState[checkBoxID];
 
 	if (bmp == NULL || bmp->checkboxGfx == NULL)
 	{
@@ -226,7 +227,7 @@ void drawCheckBox(struct ft2_video_t *video, const struct ft2_bmp_t *bmp, uint16
 		hLine(video, cb->x, cb->y + CHECKBOX_H - 1, CHECKBOX_W, PAL_BUTTON1);
 		vLine(video, cb->x + CHECKBOX_W - 1, cb->y, CHECKBOX_H, PAL_BUTTON1);
 
-		if (cb->checked)
+		if (checked)
 		{
 			/* Draw X */
 			line(video, cb->x + 2, cb->y + 2, cb->x + CHECKBOX_W - 3, cb->y + CHECKBOX_H - 3, PAL_FORGRND);
@@ -242,58 +243,62 @@ void drawCheckBox(struct ft2_video_t *video, const struct ft2_bmp_t *bmp, uint16
 	if (checkBoxID == CB_CONF_ACCIDENTAL)
 		gfxPtr += 4 * (CHECKBOX_W * CHECKBOX_H);
 
-	if (cb->checked)
+	if (checked)
 		gfxPtr += 2 * (CHECKBOX_W * CHECKBOX_H);
 
-	if (cb->state == CHECKBOX_PRESSED)
+	if (state == CHECKBOX_PRESSED)
 		gfxPtr += 1 * (CHECKBOX_W * CHECKBOX_H);
 
 	blitFast(video, cb->x, cb->y, gfxPtr, CHECKBOX_W, CHECKBOX_H);
 }
 
-void showCheckBox(struct ft2_video_t *video, const struct ft2_bmp_t *bmp, uint16_t checkBoxID)
+void showCheckBox(struct ft2_widgets_t *widgets, struct ft2_video_t *video, const struct ft2_bmp_t *bmp, uint16_t checkBoxID)
 {
-	if (checkBoxID >= NUM_CHECKBOXES)
+	if (widgets == NULL || checkBoxID >= NUM_CHECKBOXES)
 		return;
 
-	checkBoxes[checkBoxID].visible = true;
-	drawCheckBox(video, bmp, checkBoxID);
+	widgets->checkBoxVisible[checkBoxID] = true;
+	drawCheckBox(widgets, video, bmp, checkBoxID);
 }
 
-void hideCheckBox(uint16_t checkBoxID)
+void hideCheckBox(struct ft2_widgets_t *widgets, uint16_t checkBoxID)
 {
-	if (checkBoxID >= NUM_CHECKBOXES)
+	if (widgets == NULL || checkBoxID >= NUM_CHECKBOXES)
 		return;
 
-	checkBoxes[checkBoxID].state = CHECKBOX_UNPRESSED;
-	checkBoxes[checkBoxID].visible = false;
+	widgets->checkBoxState[checkBoxID] = CHECKBOX_UNPRESSED;
+	widgets->checkBoxVisible[checkBoxID] = false;
 }
 
-void handleCheckBoxesWhileMouseDown(ft2_video_t *video, const ft2_bmp_t *bmp,
+void handleCheckBoxesWhileMouseDown(struct ft2_widgets_t *widgets, ft2_video_t *video, const ft2_bmp_t *bmp,
 	int32_t mouseX, int32_t mouseY, int32_t lastMouseX, int32_t lastMouseY, int16_t lastCheckBoxID)
 {
-	if (lastCheckBoxID < 0 || lastCheckBoxID >= NUM_CHECKBOXES)
+	if (widgets == NULL || lastCheckBoxID < 0 || lastCheckBoxID >= NUM_CHECKBOXES)
+		return;
+
+	if (!widgets->checkBoxVisible[lastCheckBoxID])
 		return;
 
 	checkBox_t *cb = &checkBoxes[lastCheckBoxID];
-	if (!cb->visible)
-		return;
 
-	cb->state = CHECKBOX_UNPRESSED;
+	widgets->checkBoxState[lastCheckBoxID] = CHECKBOX_UNPRESSED;
 	if (mouseX >= cb->x && mouseX < cb->x + cb->clickAreaWidth &&
 	    mouseY >= cb->y && mouseY < cb->y + cb->clickAreaHeight)
 	{
-		cb->state = CHECKBOX_PRESSED;
+		widgets->checkBoxState[lastCheckBoxID] = CHECKBOX_PRESSED;
 	}
 
 	if (lastMouseX != mouseX || lastMouseY != mouseY)
 	{
-		drawCheckBox(video, bmp, lastCheckBoxID);
+		drawCheckBox(widgets, video, bmp, lastCheckBoxID);
 	}
 }
 
-int16_t testCheckBoxMouseDown(int32_t mouseX, int32_t mouseY, bool sysReqShown)
+int16_t testCheckBoxMouseDown(struct ft2_widgets_t *widgets, int32_t mouseX, int32_t mouseY, bool sysReqShown)
 {
+	if (widgets == NULL)
+		return -1;
+
 	uint16_t start, end;
 
 	if (sysReqShown)
@@ -309,14 +314,14 @@ int16_t testCheckBoxMouseDown(int32_t mouseX, int32_t mouseY, bool sysReqShown)
 
 	for (uint16_t i = start; i < end; i++)
 	{
-		checkBox_t *cb = &checkBoxes[i];
-		if (!cb->visible)
+		if (!widgets->checkBoxVisible[i])
 			continue;
 
+		checkBox_t *cb = &checkBoxes[i];
 		if (mouseX >= cb->x && mouseX < cb->x + cb->clickAreaWidth &&
 		    mouseY >= cb->y && mouseY < cb->y + cb->clickAreaHeight)
 		{
-			cb->state = CHECKBOX_PRESSED;
+			widgets->checkBoxState[i] = CHECKBOX_PRESSED;
 			return (int16_t)i;
 		}
 	}
@@ -324,22 +329,23 @@ int16_t testCheckBoxMouseDown(int32_t mouseX, int32_t mouseY, bool sysReqShown)
 	return -1;
 }
 
-void testCheckBoxMouseRelease(struct ft2_instance_t *inst, struct ft2_video_t *video, const struct ft2_bmp_t *bmp,
+void testCheckBoxMouseRelease(struct ft2_widgets_t *widgets, struct ft2_instance_t *inst, struct ft2_video_t *video, const struct ft2_bmp_t *bmp,
 	int32_t mouseX, int32_t mouseY, int16_t lastCheckBoxID)
 {
-	if (lastCheckBoxID < 0 || lastCheckBoxID >= NUM_CHECKBOXES)
+	if (widgets == NULL || lastCheckBoxID < 0 || lastCheckBoxID >= NUM_CHECKBOXES)
+		return;
+
+	if (!widgets->checkBoxVisible[lastCheckBoxID])
 		return;
 
 	checkBox_t *cb = &checkBoxes[lastCheckBoxID];
-	if (!cb->visible)
-		return;
 
 	if (mouseX >= cb->x && mouseX < cb->x + cb->clickAreaWidth &&
 	    mouseY >= cb->y && mouseY < cb->y + cb->clickAreaHeight)
 	{
-		cb->checked = !cb->checked;
-		cb->state = CHECKBOX_UNPRESSED;
-		drawCheckBox(video, bmp, lastCheckBoxID);
+		widgets->checkBoxChecked[lastCheckBoxID] = !widgets->checkBoxChecked[lastCheckBoxID];
+		widgets->checkBoxState[lastCheckBoxID] = CHECKBOX_UNPRESSED;
+		drawCheckBox(widgets, video, bmp, lastCheckBoxID);
 
 		if (cb->callbackFunc != NULL)
 			cb->callbackFunc(inst);
@@ -350,22 +356,25 @@ void testCheckBoxMouseRelease(struct ft2_instance_t *inst, struct ft2_video_t *v
 
 static void cbMidiEnable(struct ft2_instance_t *inst)
 {
-	if (inst == NULL)
+	if (inst == NULL || inst->ui == NULL)
 		return;
-	inst->config.midiEnabled = checkBoxes[CB_CONF_MIDI_ENABLE].checked;
+	ft2_widgets_t *widgets = &((ft2_ui_t *)inst->ui)->widgets;
+	inst->config.midiEnabled = widgets->checkBoxChecked[CB_CONF_MIDI_ENABLE];
 }
 
 static void cbMidiAllChannels(struct ft2_instance_t *inst)
 {
-	if (inst == NULL)
+	if (inst == NULL || inst->ui == NULL)
 		return;
-	inst->config.midiAllChannels = checkBoxes[CB_CONF_MIDI_ALLCHN].checked;
+	ft2_widgets_t *widgets = &((ft2_ui_t *)inst->ui)->widgets;
+	inst->config.midiAllChannels = widgets->checkBoxChecked[CB_CONF_MIDI_ALLCHN];
 }
 
 static void cbMidiRecVelocity(struct ft2_instance_t *inst)
 {
-	if (inst == NULL)
+	if (inst == NULL || inst->ui == NULL)
 		return;
-	inst->config.midiRecordVelocity = checkBoxes[CB_CONF_MIDI_VELOCITY].checked;
+	ft2_widgets_t *widgets = &((ft2_ui_t *)inst->ui)->widgets;
+	inst->config.midiRecordVelocity = widgets->checkBoxChecked[CB_CONF_MIDI_VELOCITY];
 }
 

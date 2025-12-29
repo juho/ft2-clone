@@ -51,28 +51,12 @@ static const char *screenNames[FT2_NUM_SCREENS] = {
 };
 #endif
 
-/* Current UI instance for global access (like currentSampleEditor pattern) */
-static ft2_ui_t *currentUI = NULL;
-
-void ft2_ui_set_current(ft2_ui_t *ui)
-{
-	currentUI = ui;
-}
-
-ft2_ui_t *ft2_ui_get_current(void)
-{
-	return currentUI;
-}
-
 void ft2_ui_init(ft2_ui_t *ui)
 {
 	if (ui == NULL)
 		return;
 
 	memset(ui, 0, sizeof(ft2_ui_t));
-
-	/* Set as current UI for global access */
-	ft2_ui_set_current(ui);
 
 	/* Initialize video */
 	ft2_video_init(&ui->video);
@@ -92,7 +76,7 @@ void ft2_ui_init(ft2_ui_t *ui)
 	ft2_about_init();
 	ft2_textbox_init();
 	ft2_dialog_init(&ui->dialog);
-	setInitialTrimFlags();
+	setInitialTrimFlags(NULL); /* inst not available yet; only sets boolean flags */
 
 	/* Default state */
 	ui->currentScreen = FT2_SCREEN_PATTERN;
@@ -326,19 +310,19 @@ static void handleRedrawing(ft2_ui_t *ui, ft2_instance_t *inst)
 					drawSongSpeed(inst, video, bmp);
 					drawIDAdd(inst, video, bmp);
 					drawGlobalVol(inst, video, bmp);
-					drawSongName(inst, video, bmp);
+				drawSongName(inst, video, bmp);
 
 					/* Always update scrollbar position (matches standalone behavior) */
-						setScrollBarPos(inst, video, SB_POS_ED, inst->replayer.song.songPos, false);
-				}
+						setScrollBarPos(inst, &ui->widgets, video, SB_POS_ED, inst->replayer.song.songPos, false);
 			}
+		}
 
-			if (inst->uiState.updatePosEdScrollBar)
-			{
-				inst->uiState.updatePosEdScrollBar = false;
-				setScrollBarPos(inst, video, SB_POS_ED, inst->replayer.song.songPos, false);
-				setScrollBarEnd(inst, video, SB_POS_ED, (inst->replayer.song.songLength - 1) + 5);
-			}
+		if (inst->uiState.updatePosEdScrollBar)
+		{
+			inst->uiState.updatePosEdScrollBar = false;
+			setScrollBarPos(inst, &ui->widgets, video, SB_POS_ED, inst->replayer.song.songPos, false);
+			setScrollBarEnd(inst, &ui->widgets, video, SB_POS_ED, (inst->replayer.song.songLength - 1) + 5);
+		}
 
 			if (!inst->uiState.diskOpShown)
 			{
@@ -390,12 +374,12 @@ static void handleRedrawing(ft2_ui_t *ui, ft2_instance_t *inst)
 				inst->uiState.instrBankSwapPending = false;
 				if (inst->uiState.instrSwitcherShown)
 				{
-					/* Hide the old bank buttons, show the new bank buttons */
-					for (uint16_t i = 0; i < 8; i++)
-					{
-						hidePushButton(PB_RANGE1 + i + (!inst->editor.instrBankSwapped * 8));
-						showPushButton(video, bmp, PB_RANGE1 + i + (inst->editor.instrBankSwapped * 8));
-					}
+			/* Hide the old bank buttons, show the new bank buttons */
+				for (uint16_t i = 0; i < 8; i++)
+				{
+					hidePushButton(&ui->widgets, PB_RANGE1 + i + (!inst->editor.instrBankSwapped * 8));
+					showPushButton(&ui->widgets, video, bmp, PB_RANGE1 + i + (inst->editor.instrBankSwapped * 8));
+				}
 				}
 			}
 		}
@@ -406,7 +390,7 @@ static void handleRedrawing(ft2_ui_t *ui, ft2_instance_t *inst)
 	{
 		inst->uiState.updateChanScrollPos = false;
 		if (inst->uiState.pattChanScrollShown)
-			setScrollBarPos(inst, video, SB_CHAN_SCROLL, inst->uiState.channelOffset, false);
+			setScrollBarPos(inst, &ui->widgets, video, SB_CHAN_SCROLL, inst->uiState.channelOffset, false);
 	}
 
 	/* Update pattern editor if needed */

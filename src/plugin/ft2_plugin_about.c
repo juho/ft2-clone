@@ -13,6 +13,7 @@
 #include "ft2_plugin_bmp.h"
 #include "ft2_plugin_pushbuttons.h"
 #include "ft2_plugin_about.h"
+#include "ft2_plugin_ui.h"
 
 /* Constants from original ft2_about.c */
 #define OLD_NUM_STARS 1000
@@ -356,7 +357,7 @@ void ft2_about_init(void)
 	initialized = true;
 }
 
-void ft2_about_show(ft2_video_t *video, const ft2_bmp_t *bmp)
+void ft2_about_show(ft2_widgets_t *widgets, ft2_video_t *video, const ft2_bmp_t *bmp)
 {
 	if (video == NULL)
 		return;
@@ -369,7 +370,8 @@ void ft2_about_show(ft2_video_t *video, const ft2_bmp_t *bmp)
 	drawFramework(video, 2, 2, 628, 169, FRAMEWORK_TYPE2);
 
 	/* Show exit button */
-	showPushButton(video, bmp, PB_EXIT_ABOUT);
+	if (widgets != NULL)
+		showPushButton(widgets, video, bmp, PB_EXIT_ABOUT);
 
 	if (!useNewAboutScreen)
 	{
