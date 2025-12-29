@@ -568,6 +568,12 @@ void pbSmpEd(ft2_instance_t *inst)
 	/* Toggle sample editor - use proper show/hide to set widget visibility */
 	if (inst->uiState.sampleEditorShown)
 	{
+		/* Also hide S.E.Ext if open */
+		if (inst->uiState.sampleEditorExtShown)
+		{
+			hideSampleEditorExtButtons(inst);
+			inst->uiState.sampleEditorExtShown = false;
+		}
 		hideSampleEditor(inst);
 		inst->uiState.patternEditorShown = true;
 	}

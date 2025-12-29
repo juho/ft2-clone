@@ -1872,6 +1872,13 @@ void hideInstEditorExt(ft2_instance_t *inst)
 	hidePushButton(widgets, PB_INST_EXT_MIDI_PRG_UP);
 	hidePushButton(widgets, PB_INST_EXT_MIDI_BEND_DOWN);
 	hidePushButton(widgets, PB_INST_EXT_MIDI_BEND_UP);
+
+	/* Show scopes again and trigger framework redraw */
+	inst->uiState.scopesShown = true;
+
+	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
+	if (ui != NULL)
+		ui->scopes.needsFrameworkRedraw = true;
 }
 
 void toggleInstEditorExt(ft2_instance_t *inst)
