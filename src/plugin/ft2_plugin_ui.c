@@ -310,10 +310,13 @@ static void handleRedrawing(ft2_ui_t *ui, ft2_instance_t *inst)
 					drawSongSpeed(inst, video, bmp);
 					drawIDAdd(inst, video, bmp);
 					drawGlobalVol(inst, video, bmp);
-				drawSongName(inst, video, bmp);
+					
+					/* Song name only exists in normal mode (not extended) */
+					if (!inst->uiState.extendedPatternEditor)
+						drawSongName(inst, video, bmp);
 
 					/* Always update scrollbar position (matches standalone behavior) */
-						setScrollBarPos(inst, &ui->widgets, video, SB_POS_ED, inst->replayer.song.songPos, false);
+					setScrollBarPos(inst, &ui->widgets, video, SB_POS_ED, inst->replayer.song.songPos, false);
 			}
 		}
 
@@ -363,7 +366,7 @@ static void handleRedrawing(ft2_ui_t *ui, ft2_instance_t *inst)
 						inst->uiState.updateInstrSwitcher = true;
 					else if (needsRedraw >= TB_SAMP1 && needsRedraw <= TB_SAMP5)
 						inst->uiState.updateInstrSwitcher = true;
-					else if (needsRedraw == TB_SONG_NAME)
+					else if (needsRedraw == TB_SONG_NAME && !inst->uiState.extendedPatternEditor)
 						drawSongName(inst, video, bmp);
 				}
 			}

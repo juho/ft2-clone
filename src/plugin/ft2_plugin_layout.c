@@ -359,6 +359,10 @@ void drawSongName(struct ft2_instance_t *inst, struct ft2_video_t *video,
 	if (inst == NULL || video == NULL)
 		return;
 
+	/* Song name area doesn't exist in extended pattern editor mode */
+	if (inst->uiState.extendedPatternEditor)
+		return;
+
 	/* Song name - exact match of original ft2_pattern_ed.c drawSongName() */
 	drawFramework(video, 421, 155, 166, 18, FRAMEWORK_TYPE1);
 	drawFramework(video, 423, 157, 162, 14, FRAMEWORK_TYPE2);

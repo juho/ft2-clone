@@ -1,5 +1,9 @@
 # Changelog for Fasttracker II Plugin
 
+## 1.0.10 (Dec 29, 2025)
+
+- Feat: Enable Extend GUI mode.
+
 ## 1.0.9 (Dec 29, 2025)
 
 - Fix: Better multi-instance access.

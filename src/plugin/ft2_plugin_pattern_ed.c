@@ -1415,6 +1415,7 @@ void ft2_pattern_ed_draw(ft2_pattern_editor_t *editor, const ft2_bmp_t *bmp, ft2
 		editor->ptnFrmWrk = instance->uiState.ptnFrmWrk;
 		editor->ptnFont = instance->uiState.ptnFont;
 		editor->maxVisibleChannels = instance->uiState.maxVisibleChannels;
+		editor->extendedPatternEditor = instance->uiState.extendedPatternEditor;
 		
 		/* Sync cursor position from instance */
 		editor->cursor.ch = instance->cursor.ch;
@@ -2569,6 +2570,7 @@ void patternEditorExtended(ft2_instance_t *inst)
 	inst->uiState._advEditShown = inst->uiState.advEditShown;
 	inst->uiState._trimScreenShown = inst->uiState.trimScreenShown;
 	inst->uiState._nibblesShown = inst->uiState.nibblesShown;
+	inst->uiState._patternEditorShown = inst->uiState.patternEditorShown;
 
 	/* Hide all top screen widgets */
 	hideTopScreen(inst);
