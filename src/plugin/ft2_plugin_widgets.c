@@ -83,21 +83,25 @@ void ft2_widgets_init(ft2_widgets_t *widgets)
 	for (int i = 0; i < NUM_PUSHBUTTONS; i++)
 	{
 		widgets->pushButtonVisible[i] = false;
+		widgets->pushButtonDisabled[i] = false;
 		widgets->pushButtonState[i] = 0;
 	}
 	for (int i = 0; i < NUM_CHECKBOXES; i++)
 	{
 		widgets->checkBoxVisible[i] = false;
+		widgets->checkBoxDisabled[i] = false;
 		widgets->checkBoxChecked[i] = false;
 		widgets->checkBoxState[i] = 0;
 	}
 	for (int i = 0; i < NUM_RADIOBUTTONS; i++)
 	{
 		widgets->radioButtonVisible[i] = false;
+		widgets->radioButtonDisabled[i] = false;
 		widgets->radioButtonState[i] = 0;
 	}
 	for (int i = 0; i < NUM_SCROLLBARS; i++)
 	{
+		widgets->scrollBarDisabled[i] = false;
 		widgets->scrollBarState[i].visible = false;
 		widgets->scrollBarState[i].state = 0;
 		widgets->scrollBarState[i].pos = 0;

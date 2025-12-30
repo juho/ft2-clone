@@ -317,6 +317,9 @@ int16_t testCheckBoxMouseDown(struct ft2_widgets_t *widgets, int32_t mouseX, int
 		if (!widgets->checkBoxVisible[i])
 			continue;
 
+		if (widgets->checkBoxDisabled[i])
+			continue;
+
 		checkBox_t *cb = &checkBoxes[i];
 		if (mouseX >= cb->x && mouseX < cb->x + cb->clickAreaWidth &&
 		    mouseY >= cb->y && mouseY < cb->y + cb->clickAreaHeight)

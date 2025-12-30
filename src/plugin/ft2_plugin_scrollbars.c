@@ -593,6 +593,9 @@ int16_t testScrollBarMouseDown(ft2_widgets_t *widgets, struct ft2_instance_t *in
 		if (!state->visible)
 			continue;
 
+		if (widgets->scrollBarDisabled[i])
+			continue;
+
 		if (mouseX >= sb->x && mouseX < sb->x + sb->w &&
 		    mouseY >= sb->y && mouseY < sb->y + sb->h)
 		{

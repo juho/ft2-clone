@@ -443,6 +443,9 @@ int16_t testRadioButtonMouseDown(struct ft2_widgets_t *widgets, int32_t mouseX, 
 		if (!widgets->radioButtonVisible[i] || widgets->radioButtonState[i] == RADIOBUTTON_CHECKED)
 			continue;
 
+		if (widgets->radioButtonDisabled[i])
+			continue;
+
 		radioButton_t *rb = &radioButtons[i];
 		if (mouseX >= rb->x && mouseX < rb->x + rb->clickAreaWidth &&
 		    mouseY >= rb->y && mouseY < rb->y + RADIOBUTTON_H + 1)

@@ -594,6 +594,9 @@ int16_t testPushButtonMouseDown(struct ft2_widgets_t *widgets, struct ft2_instan
 		if (!widgets->pushButtonVisible[i])
 			continue;
 
+		if (widgets->pushButtonDisabled[i])
+			continue;
+
 		pushButton_t *pb = &widgets->pushButtons[i];
 		if (mouseX >= pb->x && mouseX < pb->x + pb->w &&
 		    mouseY >= pb->y && mouseY < pb->y + pb->h)

@@ -56,18 +56,22 @@ typedef struct ft2_widgets_t
 
 	/* Per-instance push button state */
 	bool pushButtonVisible[NUM_PUSHBUTTONS];
+	bool pushButtonDisabled[NUM_PUSHBUTTONS];
 	uint8_t pushButtonState[NUM_PUSHBUTTONS];
 
 	/* Per-instance checkbox state */
 	bool checkBoxVisible[NUM_CHECKBOXES];
+	bool checkBoxDisabled[NUM_CHECKBOXES];
 	bool checkBoxChecked[NUM_CHECKBOXES];
 	uint8_t checkBoxState[NUM_CHECKBOXES];
 
 	/* Per-instance radio button state */
 	bool radioButtonVisible[NUM_RADIOBUTTONS];
+	bool radioButtonDisabled[NUM_RADIOBUTTONS];
 	uint8_t radioButtonState[NUM_RADIOBUTTONS];
 
 	/* Per-instance scrollbar state */
+	bool scrollBarDisabled[NUM_SCROLLBARS];
 	ft2_scrollbar_state_t scrollBarState[NUM_SCROLLBARS];
 } ft2_widgets_t;
 

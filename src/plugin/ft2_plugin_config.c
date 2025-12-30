@@ -826,6 +826,7 @@ static void showConfigMidiInput(ft2_instance_t *inst, ft2_video_t *video, const 
 	/* MIDI Enable checkbox - always active */
 	textOutShadow(video, bmp, 131, 20, PAL_FORGRND, PAL_DSKTOP2, "Enable MIDI input");
 	widgets->checkBoxChecked[CB_CONF_MIDI_ENABLE] = cfg->midiEnabled;
+	widgets->checkBoxDisabled[CB_CONF_MIDI_ENABLE] = false;
 	showCheckBox(widgets, video, bmp, CB_CONF_MIDI_ENABLE);
 
 	/* Notes trigger mode (moved up, below Enable) - active if MIDI enabled */
@@ -835,46 +836,40 @@ static void showConfigMidiInput(ft2_instance_t *inst, ft2_video_t *video, const 
 		widgets->radioButtonState[RB_CONFIG_MIDI_PATTERNS] = RADIOBUTTON_CHECKED;
 	else
 		widgets->radioButtonState[RB_CONFIG_MIDI_NOTES] = RADIOBUTTON_CHECKED;
-	if (midiEnabled)
-	{
-		showRadioButtonGroup(widgets, video, bmp, RB_GROUP_CONFIG_MIDI_TRIGGER);
-		textOutShadow(video, bmp, 233, 36, PAL_FORGRND, PAL_DSKTOP2, "Notes");
-		textOutShadow(video, bmp, 296, 36, PAL_FORGRND, PAL_DSKTOP2, "Patterns");
-	}
-	else
-	{
-		textOutShadow(video, bmp, 233, 36, PAL_DSKTOP2, PAL_DSKTOP2, "Notes");
-		textOutShadow(video, bmp, 296, 36, PAL_DSKTOP2, PAL_DSKTOP2, "Patterns");
-	}
+	widgets->radioButtonDisabled[RB_CONFIG_MIDI_NOTES] = !midiEnabled;
+	widgets->radioButtonDisabled[RB_CONFIG_MIDI_PATTERNS] = !midiEnabled;
+	showRadioButtonGroup(widgets, video, bmp, RB_GROUP_CONFIG_MIDI_TRIGGER);
+	textOutShadow(video, bmp, 233, 36, triggerColor, PAL_DSKTOP2, "Notes");
+	textOutShadow(video, bmp, 296, 36, triggerColor, PAL_DSKTOP2, "Patterns");
 
 	/* All channels checkbox - active if MIDI enabled AND notes mode */
 	textOutShadow(video, bmp, 131, 50, noteSettingsColor, PAL_DSKTOP2, "Receive all channels");
 	widgets->checkBoxChecked[CB_CONF_MIDI_ALLCHN] = cfg->midiAllChannels;
-	if (noteSettingsEnabled)
-		showCheckBox(widgets, video, bmp, CB_CONF_MIDI_ALLCHN);
+	widgets->checkBoxDisabled[CB_CONF_MIDI_ALLCHN] = !noteSettingsEnabled;
+	showCheckBox(widgets, video, bmp, CB_CONF_MIDI_ALLCHN);
 
 	/* Channel number with scrollbar - active if MIDI enabled AND notes mode */
 	textOutShadow(video, bmp, 116, 68, noteSettingsColor, PAL_DSKTOP2, "Channel:");
-	if (noteSettingsEnabled)
-	{
-		setScrollBarPos(inst, widgets, video, SB_MIDI_CHANNEL, cfg->midiChannel - 1, false);
-		showScrollBar(widgets, video, SB_MIDI_CHANNEL);
-		showPushButton(widgets, video, bmp, PB_CONFIG_MIDICHN_DOWN);
-		showPushButton(widgets, video, bmp, PB_CONFIG_MIDICHN_UP);
-	}
+	setScrollBarPos(inst, widgets, video, SB_MIDI_CHANNEL, cfg->midiChannel - 1, false);
+	widgets->scrollBarDisabled[SB_MIDI_CHANNEL] = !noteSettingsEnabled;
+	showScrollBar(widgets, video, SB_MIDI_CHANNEL);
+	widgets->pushButtonDisabled[PB_CONFIG_MIDICHN_DOWN] = !noteSettingsEnabled;
+	widgets->pushButtonDisabled[PB_CONFIG_MIDICHN_UP] = !noteSettingsEnabled;
+	showPushButton(widgets, video, bmp, PB_CONFIG_MIDICHN_DOWN);
+	showPushButton(widgets, video, bmp, PB_CONFIG_MIDICHN_UP);
 	char chnStr[8];
 	snprintf(chnStr, sizeof(chnStr), "%2d", cfg->midiChannel);
 	textOutShadow(video, bmp, 304, 68, noteSettingsColor, PAL_DSKTOP2, chnStr);
 
 	/* Transpose with scrollbar - active if MIDI enabled AND notes mode */
 	textOutShadow(video, bmp, 116, 84, noteSettingsColor, PAL_DSKTOP2, "Transpose:");
-	if (noteSettingsEnabled)
-	{
-		setScrollBarPos(inst, widgets, video, SB_MIDI_TRANSPOSE, cfg->midiTranspose + 48, false);
-		showScrollBar(widgets, video, SB_MIDI_TRANSPOSE);
-		showPushButton(widgets, video, bmp, PB_CONFIG_MIDITRANS_DOWN);
-		showPushButton(widgets, video, bmp, PB_CONFIG_MIDITRANS_UP);
-	}
+	setScrollBarPos(inst, widgets, video, SB_MIDI_TRANSPOSE, cfg->midiTranspose + 48, false);
+	widgets->scrollBarDisabled[SB_MIDI_TRANSPOSE] = !noteSettingsEnabled;
+	showScrollBar(widgets, video, SB_MIDI_TRANSPOSE);
+	widgets->pushButtonDisabled[PB_CONFIG_MIDITRANS_DOWN] = !noteSettingsEnabled;
+	widgets->pushButtonDisabled[PB_CONFIG_MIDITRANS_UP] = !noteSettingsEnabled;
+	showPushButton(widgets, video, bmp, PB_CONFIG_MIDITRANS_DOWN);
+	showPushButton(widgets, video, bmp, PB_CONFIG_MIDITRANS_UP);
 	char transStr[8];
 	if (cfg->midiTranspose >= 0)
 		snprintf(transStr, sizeof(transStr), "+%d", cfg->midiTranspose);
@@ -884,13 +879,13 @@ static void showConfigMidiInput(ft2_instance_t *inst, ft2_video_t *video, const 
 
 	/* Velocity sensitivity with scrollbar - active if MIDI enabled AND notes mode */
 	textOutShadow(video, bmp, 116, 100, noteSettingsColor, PAL_DSKTOP2, "Velocity sens.:");
-	if (noteSettingsEnabled)
-	{
-		setScrollBarPos(inst, widgets, video, SB_MIDI_SENS, cfg->midiVelocitySens, false);
-		showScrollBar(widgets, video, SB_MIDI_SENS);
-		showPushButton(widgets, video, bmp, PB_CONFIG_MIDISENS_DOWN);
-		showPushButton(widgets, video, bmp, PB_CONFIG_MIDISENS_UP);
-	}
+	setScrollBarPos(inst, widgets, video, SB_MIDI_SENS, cfg->midiVelocitySens, false);
+	widgets->scrollBarDisabled[SB_MIDI_SENS] = !noteSettingsEnabled;
+	showScrollBar(widgets, video, SB_MIDI_SENS);
+	widgets->pushButtonDisabled[PB_CONFIG_MIDISENS_DOWN] = !noteSettingsEnabled;
+	widgets->pushButtonDisabled[PB_CONFIG_MIDISENS_UP] = !noteSettingsEnabled;
+	showPushButton(widgets, video, bmp, PB_CONFIG_MIDISENS_DOWN);
+	showPushButton(widgets, video, bmp, PB_CONFIG_MIDISENS_UP);
 	char sensStr[8];
 	snprintf(sensStr, sizeof(sensStr), "%3d", cfg->midiVelocitySens);
 	textOutShadow(video, bmp, 304, 100, noteSettingsColor, PAL_DSKTOP2, sensStr);
@@ -899,8 +894,8 @@ static void showConfigMidiInput(ft2_instance_t *inst, ft2_video_t *video, const 
 	/* Record velocity checkbox - active if MIDI enabled AND notes mode */
 	textOutShadow(video, bmp, 131, 114, noteSettingsColor, PAL_DSKTOP2, "Record velocity as volume");
 	widgets->checkBoxChecked[CB_CONF_MIDI_VELOCITY] = cfg->midiRecordVelocity;
-	if (noteSettingsEnabled)
-		showCheckBox(widgets, video, bmp, CB_CONF_MIDI_VELOCITY);
+	widgets->checkBoxDisabled[CB_CONF_MIDI_VELOCITY] = !noteSettingsEnabled;
+	showCheckBox(widgets, video, bmp, CB_CONF_MIDI_VELOCITY);
 }
 
 /* ============ MAIN DRAW FUNCTION ============ */
