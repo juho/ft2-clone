@@ -543,20 +543,14 @@ void ft2_instance_stop(ft2_instance_t *inst)
 	inst->replayer.songPlaying = false;
 	inst->replayer.playMode = FT2_PLAYMODE_IDLE;
 
-	for (int32_t i = 0; i < FT2_MAX_CHANNELS * 2; i++)
-	{
-		memset(&inst->voice[i], 0, sizeof(ft2_voice_t));
-		inst->voice[i].panning = 128;
-	}
+	/* Fadeout all voices smoothly instead of immediate cutoff to prevent clicks */
+	ft2_fadeout_all_voices(inst);
 
 	for (int32_t i = 0; i < FT2_MAX_CHANNELS; i++)
 	{
 		inst->replayer.channel[i].status = 0;
 		inst->replayer.channel[i].keyOff = false;
 	}
-
-	/* Request scope clear (matches standalone stopVoices -> stopAllScopes) */
-	inst->scopesClearRequested = true;
 
 	/* Update UI (matches standalone stopPlaying) */
 	inst->uiState.updatePosSections = true;

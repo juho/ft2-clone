@@ -81,6 +81,13 @@ void ft2_stop_voice(ft2_instance_t *inst, int32_t voiceNum);
 void ft2_stop_all_voices(ft2_instance_t *inst);
 
 /**
+ * @brief Fades out all voices smoothly using the quick volume ramp.
+ * Copies active voices to fadeout slots and sets up volume ramps to zero.
+ * @param inst The instance.
+ */
+void ft2_fadeout_all_voices(ft2_instance_t *inst);
+
+/**
  * @brief Stops all voices playing a specific sample.
  * @param inst The instance.
  * @param smp The sample to stop.

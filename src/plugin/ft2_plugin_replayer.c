@@ -77,6 +77,38 @@ void ft2_stop_all_voices(ft2_instance_t *inst)
 	inst->scopesClearRequested = true;
 }
 
+void ft2_fadeout_all_voices(ft2_instance_t *inst)
+{
+	if (inst == NULL)
+		return;
+
+	for (int32_t i = 0; i < FT2_MAX_CHANNELS; i++)
+	{
+		ft2_voice_t *v = &inst->voice[i];
+		if (!v->active || (v->fCurrVolumeL == 0.0f && v->fCurrVolumeR == 0.0f))
+			continue;
+
+		/* Copy to fadeout slot */
+		ft2_voice_t *f = &inst->voice[FT2_MAX_CHANNELS + i];
+		*f = *v;
+
+		/* Setup volume ramp to zero */
+		f->volumeRampLength = inst->audio.quickVolRampSamples;
+		f->fVolumeLDelta = -f->fCurrVolumeL * inst->audio.fQuickVolRampSamplesMul;
+		f->fVolumeRDelta = -f->fCurrVolumeR * inst->audio.fQuickVolRampSamplesMul;
+		f->fTargetVolumeL = 0.0f;
+		f->fTargetVolumeR = 0.0f;
+		f->isFadeOutVoice = true;
+
+		/* Clear main voice */
+		memset(v, 0, sizeof(ft2_voice_t));
+		v->panning = 128;
+	}
+
+	/* Request scope clear */
+	inst->scopesClearRequested = true;
+}
+
 void ft2_stop_sample_voices(ft2_instance_t *inst, ft2_sample_t *smp)
 {
 	if (inst == NULL || smp == NULL)

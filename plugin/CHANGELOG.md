@@ -3,12 +3,14 @@
 ## 1.0.12 (Dec 29, 2025)
 
 - Visual: Remove some superfluous text from config.
+- Feat: Trigger patterns with MIDI notes (change in MIDI settings).
+- Fix: Quickly ramp volume down when stopping instead of setting to 0 immediately to avoid clicks.
 
 ## 1.0.11 (Dec 29, 2025)
 
 - Fix: Better config buttons placement.
 - Fix: MIDI in note off works correctly.
-- Fix: Textbox background stays same size no matter the state
+- Fix: Textbox background stays same size no matter the state.
 
 ## 1.0.10 (Dec 29, 2025)
 
