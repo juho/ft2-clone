@@ -158,7 +158,30 @@ void FT2PluginProcessor::processBlock(juce::AudioBuffer<float>& buffer,
             processMidiInput(metadata.getMessage());
     }
 
-    /* DAW Transport Sync - read settings from instance config */
+    /* DAW BPM Sync (independent of transport sync) */
+    if (instance->config.syncBpmFromDAW)
+    {
+        if (auto* playHead = getPlayHead())
+        {
+            if (auto posInfo = playHead->getPosition())
+            {
+                if (auto bpm = posInfo->getBpm())
+                {
+                    uint16_t dawBPM = static_cast<uint16_t>(*bpm);
+                    if (dawBPM >= 32 && dawBPM <= 255)
+                    {
+                        if (instance->replayer.song.BPM != dawBPM)
+                        {
+                            ft2_set_bpm(instance, dawBPM);
+                            instance->uiState.updatePosSections = true;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /* DAW Transport Sync (start/stop) */
     if (instance->config.syncTransportFromDAW)
     {
         if (auto* playHead = getPlayHead())
@@ -182,23 +205,6 @@ void FT2PluginProcessor::processBlock(juce::AudioBuffer<float>& buffer,
                 }
                 
                 wasDAWPlaying = dawPlaying;
-                
-                /* Optionally sync BPM from DAW */
-                if (instance->config.syncBpmFromDAW)
-                {
-                    if (auto bpm = posInfo->getBpm())
-                    {
-                        uint16_t dawBPM = static_cast<uint16_t>(*bpm);
-                        if (dawBPM >= 32 && dawBPM <= 255)
-                        {
-                            if (instance->replayer.song.BPM != dawBPM)
-                            {
-                                ft2_set_bpm(instance, dawBPM);
-                                instance->uiState.updatePosSections = true;
-                            }
-                        }
-                    }
-                }
 
                 /* Optionally sync position from DAW */
                 if (instance->config.syncPositionFromDAW && dawPlaying)

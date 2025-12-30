@@ -1,6 +1,10 @@
 # Changelog for Fasttracker II Plugin
 
-## 1.0.12 (Dec 29, 2025)
+## 1.0.13 (Dec 30, 2025)
+
+- Fix: Completely separate BPM sync from transport sync (was coupled before).
+
+## 1.0.12 (Dec 30, 2025)
 
 - Visual: Remove some superfluous text from config.
 - Feat: Trigger patterns with MIDI notes (change in MIDI settings).
