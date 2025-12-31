@@ -966,18 +966,115 @@ one and not attempt to create config dirs for the OS user. (portable mode)
 END
 ;***************************************************************************
 ;***************************************************************************
-@LKnown bugs
+@LPlugin
+>@X020@C002
+>This section documents plugin-specific features and configuration options
+>that differ from the standalone FT2 clone.
+
+@X020@C001Configuration, Audio (DAW Sync):
 >
->@X010@C001WAV exporting (rendering song to WAV):
+>@X040@C001Sync BPM from DAW:
+>@X060@C002
+>When enabled, the plugin uses the host DAW's tempo instead of the
+>module's BPM setting. Fxx effects that set BPM (values >= $20) will be
+>ignored. The module's original BPM is restored when this is disabled.
+
+>@X040@C001Sync transport (start/stop):
+>@X060@C002
+>When enabled, playback starts and stops with the DAW transport.
+>Pressing play in the DAW starts the module; pressing stop halts it.
+
+>@X040@C001Sync position (seek):
+>@X060@C002
+>When enabled, the pattern position follows the DAW playhead. Seeking
+>in the DAW will jump to the corresponding position in the module.
+>This uses a time-to-position mapping based on the module's tempo.
+
+>@X040@C001Allow Fxx speed changes:
+>@X060@C002
+>Controls whether Fxx effects with values < $20 can change the song
+>speed. This is independent of BPM sync. When disabled, the module
+>plays at constant speed regardless of Fxx speed commands.
+
+@X020@C001Configuration, MIDI Input:
 >
->@X010@C002- Songs that jump back to a previous pattern will render forever and ever,
->@X021and you need to press a key or click the mouse to abort the render when
->@X021you want it to.
+>@X040@C001Enable MIDI input:
+>@X060@C002
+>Toggles MIDI note processing. When disabled, no MIDI input is handled.
+
+>@X040@C001Notes trigger (Notes / Patterns):
+>@X060@C002
+>Selects what incoming MIDI notes do:
 >
->@X010@C001Video:
->@C002
->@X010- Fullscreen mode can have issues with the mouse pixel mapping on some
->@X021Linux systems.
->@X010- Fullscreen mode can have several problems on multi-monitor systems
+>@X052@C001Notes:
+>@X060@C002MIDI notes play through the currently selected instrument, like a
+>keyboard. Notes are allocated to available channels. This is useful for
+>live performance or recording note input.
+>
+>@X052@C001Patterns:
+>@X060@C002MIDI notes trigger pattern playback. Note number 0-127 plays pattern
+>0-127 for as long as the note is held. Releasing the note stops
+>playback. This is useful for live performance with pattern triggering.
+>When switching to this mode, a dialog offers to disable transport and
+>position sync for consistent triggering behavior.
+
+>@X040@C001Receive all channels:
+>@X060@C002
+>When enabled, MIDI input is accepted from all 16 MIDI channels.
+>When disabled, only the channel specified below is used.
+
+>@X040@C001Channel:
+>@X060@C002
+>The MIDI channel to listen on (1-16). Only used when "Receive all
+>channels" is disabled.
+
+>@X040@C001Transpose:
+>@X060@C002
+>Shifts incoming MIDI notes by the specified number of semitones.
+>Range is -48 to +48 (4 octaves up or down).
+
+>@X040@C001Velocity sensitivity:
+>@X060@C002
+>Controls how much MIDI velocity affects note volume. At 100%, full
+>velocity (127) produces full volume. At 200%, half velocity produces
+>full volume. At 0%, velocity is ignored and all notes play at full volume.
+
+>@X040@C001Record velocity as volume:
+>@X060@C002
+>When recording, stores the MIDI velocity in the volume column.
+
+@X020@C001Configuration, Miscellaneous:
+>
+>@X040@C001Automatic update check:
+>@X060@C002
+>When enabled, the plugin checks GitHub for new releases on startup.
+>If a newer version is available, a notification is shown once per release.
+
+@X020@C001Configuration, I/O Routing:
+>
+>@X040@C001Channel output routing:
+>@X060@C002
+>The plugin supports multi-output routing for DAWs that support it.
+>Each of the 32 channels can be routed to one of 15 stereo output pairs.
+>The "To Main" checkbox also sends that channel to the main stereo output.
+>This allows separating channels for external mixing or processing.
+
+@X020@C001Plugin State:
+>
+>@X040@C001How configuration is stored:
+>@X060@C002
+>The plugin has two types of configuration:
+>
+>@X052@C001Global config:
+>@X060@C002Settings like pattern editor preferences, interpolation, and visual
+>options can be saved to a global config file by clicking "Save config"
+>in the Config screen. New plugin instances load this global config on
+>startup. Changes made in one instance do not affect others until saved.
+>
+>@X052@C001Project state:
+>@X060@C002The loaded module data, current playback position, and any unsaved
+>changes are stored in the DAW project. This means each project can
+>have its own module loaded, and the state is restored when you reopen
+>the project.
 
 END
