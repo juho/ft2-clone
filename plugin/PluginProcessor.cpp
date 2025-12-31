@@ -627,7 +627,7 @@ void FT2PluginProcessor::loadNibblesHighScores()
 }
 
 // Global config version - increment when adding new fields that need migration
-static constexpr int GLOBAL_CONFIG_VERSION = 1;
+static constexpr int GLOBAL_CONFIG_VERSION = 2;
 
 void FT2PluginProcessor::saveGlobalConfig()
 {
@@ -746,13 +746,16 @@ void FT2PluginProcessor::loadGlobalConfig()
     
     // Read version (0 if not present = pre-versioning config)
     const int version = props->getIntValue("config_version", 0);
-    
-    // Future migration hooks:
-    // if (version < 2) { /* migrate from v1 to v2 */ }
-    // if (version < 3) { /* migrate from v2 to v3 */ }
-    (void)version; // Suppress unused warning until we need migrations
+    bool needsMigrationSave = false;
     
     auto& cfg = instance->config;
+    
+    // Migration from v1 to v2: autoUpdateCheck added with default true
+    if (version < 2)
+    {
+        cfg.autoUpdateCheck = true;
+        needsMigrationSave = true;
+    }
     
     // Pattern editor settings
     cfg.ptnStretch = props->getBoolValue("config_ptnStretch", cfg.ptnStretch);
@@ -843,6 +846,13 @@ void FT2PluginProcessor::loadGlobalConfig()
     
     // Update checker - last notified version
     lastNotifiedVersion = props->getValue("lastNotifiedVersion", "");
+    
+    // Persist migration version immediately (only the version, not entire config)
+    if (needsMigrationSave)
+    {
+        props->setValue("config_version", GLOBAL_CONFIG_VERSION);
+        props->saveIfNeeded();
+    }
 }
 
 void FT2PluginProcessor::setLastNotifiedVersion(const juce::String& version)

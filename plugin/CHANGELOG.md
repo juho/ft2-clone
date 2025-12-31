@@ -3,6 +3,8 @@
 ## 1.0.17 (Dec 31, 2025)
 
 - Feat: Add automatic update checking with a notification dialog.
+- Config: Bump config version to 2, defaulting the update check to enabled.
+- Help: Add Plugin section to help.
 
 ## 1.0.16 (Dec 30, 2025)
 
