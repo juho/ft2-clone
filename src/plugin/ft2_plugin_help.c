@@ -388,6 +388,7 @@ void drawHelpScreen(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t *b
 	showPushButton(widgets, video, bmp, PB_HELP_SCROLL_DOWN);
 
 	/* Set up radio buttons for current subject */
+	uncheckRadioButtonGroup(widgets, RB_GROUP_HELP);
 	switch (fHlp_Num)
 	{
 		default:
@@ -461,15 +462,10 @@ void helpScrollSetPos(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t 
 
 void showHelpScreen(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t *bmp)
 {
-	uint16_t tmpID;
+	(void)video; (void)bmp;  /* Unused - drawing handled by drawHelpScreen() */
 
-	if (inst == NULL || video == NULL)
+	if (inst == NULL)
 		return;
-
-	ft2_ui_t *ui = (ft2_ui_t*)inst->ui;
-	if (ui == NULL)
-		return;
-	ft2_widgets_t *widgets = &ui->widgets;
 
 	if (!helpInitialized)
 		initFTHelp();
@@ -477,46 +473,6 @@ void showHelpScreen(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t *b
 	hideTopScreen(inst);
 	inst->uiState.helpScreenShown = true;
 	inst->uiState.scopesShown = false;
-
-	/* Draw framework - exact match to standalone */
-	drawFramework(video, 0,   0, 128, 173, FRAMEWORK_TYPE1);
-	drawFramework(video, 128, 0, 504, 173, FRAMEWORK_TYPE1);
-	drawFramework(video, 130, 2, 479, 169, FRAMEWORK_TYPE2);
-
-	/* Show push buttons */
-	showPushButton(widgets, video, bmp, PB_HELP_EXIT);
-	showPushButton(widgets, video, bmp, PB_HELP_SCROLL_UP);
-	showPushButton(widgets, video, bmp, PB_HELP_SCROLL_DOWN);
-
-	/* Set up radio buttons for current subject */
-	uncheckRadioButtonGroup(widgets, RB_GROUP_HELP);
-	switch (fHlp_Num)
-	{
-		default:
-		case 0: tmpID = RB_HELP_FEATURES;    break;
-		case 1: tmpID = RB_HELP_EFFECTS;     break;
-		case 2: tmpID = RB_HELP_KEYBINDINGS; break;
-		case 3: tmpID = RB_HELP_HOWTO;       break;
-		case 4: tmpID = RB_HELP_PLUGIN;      break;
-	}
-	widgets->radioButtonState[tmpID] = RADIOBUTTON_CHECKED;
-
-	showRadioButtonGroup(widgets, video, bmp, RB_GROUP_HELP);
-
-	/* Set scrollbar range for current subject and show it */
-	setScrollBarEnd(inst, widgets, video, SB_HELP_SCROLL, subjLen[fHlp_Num]);
-	setScrollBarPos(inst, widgets, video, SB_HELP_SCROLL, fHlp_Line, false);
-	showScrollBar(widgets, video, SB_HELP_SCROLL);
-
-	/* Draw subject labels */
-	textOutShadow(video, bmp, 4,   4, PAL_FORGRND, PAL_DSKTOP2, "Subjects:");
-	textOutShadow(video, bmp, 21, 19, PAL_FORGRND, PAL_DSKTOP2, "Features");
-	textOutShadow(video, bmp, 21, 35, PAL_FORGRND, PAL_DSKTOP2, "Effects");
-	textOutShadow(video, bmp, 21, 51, PAL_FORGRND, PAL_DSKTOP2, "Keybindings");
-	textOutShadow(video, bmp, 21, 67, PAL_FORGRND, PAL_DSKTOP2, "How to use FT2");
-	textOutShadow(video, bmp, 21, 83, PAL_FORGRND, PAL_DSKTOP2, "Plugin");
-
-	writeHelp(video, bmp);
 }
 
 void hideHelpScreen(ft2_instance_t *inst)

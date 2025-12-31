@@ -1,5 +1,9 @@
 # Changelog for Fasttracker II Plugin
 
+## 1.0.18 (Dec 31, 2025)
+
+- Fix: Clean up code in help.
+
 ## 1.0.17 (Dec 31, 2025)
 
 - Feat: Add automatic update checking with a notification dialog.
