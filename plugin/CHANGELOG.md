@@ -4,6 +4,8 @@
 
 - Fix: Clean up code in help.
 - Visual: Remove some superfluous text from config.
+- Fix: Missing quantize up/down buttons in config.
+- Fix: Hook up 'Sample "Cut to buffer"', 'Pattern "Cut to buffer"', and 'Kill voices at music stop' buttons in config.
 
 ## 1.0.17 (Dec 31, 2025)
 

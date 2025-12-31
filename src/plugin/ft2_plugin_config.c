@@ -721,11 +721,13 @@ static void showConfigMiscellaneous(ft2_instance_t *inst, ft2_video_t *video, co
 	showCheckBox(widgets, video, bmp, CB_CONF_QUANTIZE);
 	textOutShadow(video, bmp, 228, 122, PAL_FORGRND, PAL_DSKTOP2, "Quantization");
 
-	/* Quantization value */
+	/* Quantization value and up/down buttons */
 	textOutShadow(video, bmp, 338, 122, PAL_FORGRND, PAL_DSKTOP2, "1/");
 	char quantStr[8];
 	snprintf(quantStr, sizeof(quantStr), "%d", cfg->recQuantRes);
 	textOutShadow(video, bmp, 350, 122, PAL_FORGRND, PAL_DSKTOP2, quantStr);
+	showPushButton(widgets, video, bmp, PB_CONFIG_QUANTIZE_UP);
+	showPushButton(widgets, video, bmp, PB_CONFIG_QUANTIZE_DOWN);
 
 	widgets->checkBoxChecked[CB_CONF_CHANGE_PATTLEN] = cfg->recTrueInsert;
 	showCheckBox(widgets, video, bmp, CB_CONF_CHANGE_PATTLEN);
@@ -1432,6 +1434,28 @@ void cbChangePattLen(ft2_instance_t *inst)
 	if (inst == NULL)
 		return;
 	inst->config.recTrueInsert = !inst->config.recTrueInsert;
+}
+
+void configQuantizeUp(ft2_instance_t *inst)
+{
+	if (inst == NULL)
+		return;
+	if (inst->config.recQuantRes <= 8)
+	{
+		inst->config.recQuantRes *= 2;
+		inst->uiState.needsFullRedraw = true;
+	}
+}
+
+void configQuantizeDown(ft2_instance_t *inst)
+{
+	if (inst == NULL)
+		return;
+	if (inst->config.recQuantRes > 1)
+	{
+		inst->config.recQuantRes /= 2;
+		inst->uiState.needsFullRedraw = true;
+	}
 }
 
 void cbAutoUpdateCheck(ft2_instance_t *inst)

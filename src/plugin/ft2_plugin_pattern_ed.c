@@ -2019,8 +2019,8 @@ void cutBlock(ft2_instance_t *inst)
 			{
 				ft2_note_t *n = &p[(y * FT2_MAX_CHANNELS) + x];
 
-				/* Always copy to buffer on cut */
-				copyNoteWithMask(inst, n, &blkCopyBuff[((y - markY1) * MAX_CHANNELS) + (x - markX1)]);
+				if (inst->config.ptnCutToBuffer)
+					copyNoteWithMask(inst, n, &blkCopyBuff[((y - markY1) * MAX_CHANNELS) + (x - markX1)]);
 
 				memset(n, 0, sizeof(ft2_note_t));
 			}
@@ -2028,11 +2028,14 @@ void cutBlock(ft2_instance_t *inst)
 
 		killPatternIfUnused(inst, curPattern);
 
-		markXSize = markX2 - markX1;
-		markYSize = markY2 - markY1;
-		blockCopied = true;
+		if (inst->config.ptnCutToBuffer)
+		{
+			markXSize = markX2 - markX1;
+			markYSize = markY2 - markY1;
+			blockCopied = true;
+		}
 
-	inst->uiState.updatePatternEditor = true;
+		inst->uiState.updatePatternEditor = true;
 	}
 }
 

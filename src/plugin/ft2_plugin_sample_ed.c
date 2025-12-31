@@ -1608,7 +1608,9 @@ void ft2_sample_ed_cut(ft2_sample_editor_t *editor)
 	if (editor == NULL || editor->rangeEnd == 0 || editor->rangeStart == editor->rangeEnd)
 		return;
 	
-	ft2_sample_ed_copy(editor);
+	if (editor->instance != NULL && editor->instance->config.smpCutToBuffer)
+		ft2_sample_ed_copy(editor);
+	
 	ft2_sample_ed_delete(editor);
 }
 

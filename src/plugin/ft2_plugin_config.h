@@ -238,6 +238,10 @@ void cbQuantize(struct ft2_instance_t *inst);
 void cbChangePattLen(struct ft2_instance_t *inst);
 void cbAutoUpdateCheck(struct ft2_instance_t *inst);
 
+/* Quantization arrow button callbacks */
+void configQuantizeUp(struct ft2_instance_t *inst);
+void configQuantizeDown(struct ft2_instance_t *inst);
+
 /* Amplification arrow button callbacks */
 void configAmpDown(struct ft2_instance_t *inst);
 void configAmpUp(struct ft2_instance_t *inst);

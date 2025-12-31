@@ -3452,6 +3452,10 @@ void initCallbacks(ft2_widgets_t *widgets)
 	widgets->pushButtons[PB_CONFIG_PAL_CONT_UP].preDelay = 1;
 	widgets->pushButtons[PB_CONFIG_PAL_CONT_UP].delayFrames = 4;
 
+	/* Config miscellaneous quantize arrow buttons */
+	widgets->pushButtons[PB_CONFIG_QUANTIZE_UP].callbackFuncOnDown = configQuantizeUp;
+	widgets->pushButtons[PB_CONFIG_QUANTIZE_DOWN].callbackFuncOnDown = configQuantizeDown;
+
 	/* Config MIDI input arrow buttons */
 	widgets->pushButtons[PB_CONFIG_MIDICHN_DOWN].callbackFuncOnDown = configMidiChnDown;
 	widgets->pushButtons[PB_CONFIG_MIDICHN_DOWN].preDelay = 1;
