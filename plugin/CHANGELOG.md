@@ -1,5 +1,9 @@
 # Changelog for Fasttracker II Plugin
 
+## 1.0.25 (Jan 3, 2026)
+
+- Fix: Set ft2_instr_ed_set_instance before drawing in instrument editor to avoid race condition.
+
 ## 1.0.23 (Jan 3, 2026)
 
 - Fix: sanitize instrument before loading.

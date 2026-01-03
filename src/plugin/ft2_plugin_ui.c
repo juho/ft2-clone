@@ -427,6 +427,7 @@ static void handleRedrawing(ft2_ui_t *ui, ft2_instance_t *inst)
 		if (inst->uiState.updateInstEditor)
 		{
 			inst->uiState.updateInstEditor = false;
+			ft2_instr_ed_set_instance(&ui->instrEditor, inst);
 			ft2_instr_ed_draw(&ui->instrEditor, bmp);
 		}
 	}
