@@ -1,5 +1,9 @@
 # Changelog for Fasttracker II Plugin
 
+## 1.0.22 (Jan 3, 2026)
+
+- Fix: Use macros for bounds checking, update inst. ed. buttons callbacks.
+
 ## 1.0.21 (Jan 3, 2026)
 
 - Fix: Heap corruption in instrument editor.
