@@ -5,9 +5,15 @@
 #include "PluginProcessor.h"
 #include "UpdateChecker.h"
 
+#if defined(_WIN32)
+#pragma pack(push, 8)
+#endif
 extern "C" {
 #include "ft2_plugin_ui.h"
 }
+#if defined(_WIN32)
+#pragma pack(pop)
+#endif
 
 //==============================================================================
 /**

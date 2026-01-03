@@ -2,9 +2,16 @@
 
 #include <juce_audio_processors/juce_audio_processors.h>
 
+#if defined(_WIN32)
+// Ensure C++ sees default packing for C structs (JUCE headers can change it on MSVC).
+#pragma pack(push, 8)
+#endif
 extern "C" {
 #include "ft2_instance.h"
 }
+#if defined(_WIN32)
+#pragma pack(pop)
+#endif
 
 /**
  * @class FT2PluginProcessor
@@ -150,4 +157,3 @@ private:
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FT2PluginProcessor)
 };
-

@@ -1,5 +1,9 @@
 # Changelog for Fasttracker II Plugin
 
+## 1.0.29 (Jan 3, 2026)
+
+- Fix: MSVC packing guards.
+
 ## 1.0.28 (Jan 3, 2026)
 
 - Cleanup: Structs in instrument editor.
