@@ -1515,15 +1515,15 @@ void showInstEditor(ft2_instance_t *inst, ft2_video_t *video, const ft2_bmp_t *b
 	/* Hide other bottom screens (matching standalone) */
 	if (inst->uiState.extendedPatternEditor)
 	{
-		inst->uiState.extendedPatternEditor = false;
+		exitPatternEditorExtended(inst);
 	}
 	if (inst->uiState.sampleEditorShown)
 	{
-	inst->uiState.sampleEditorShown = false;
+		hideSampleEditor(inst);
 	}
 	if (inst->uiState.sampleEditorExtShown)
 	{
-		inst->uiState.sampleEditorExtShown = false;
+		hideSampleEditorExt(inst);
 	}
 	
 	/* Hide pattern editor (including channel scrollbar) */
@@ -1728,7 +1728,7 @@ void exitInstEditor(ft2_instance_t *inst)
 		return;
 
 	hideInstEditor(inst);
-	inst->uiState.patternEditorShown = true;
+	showPatternEditor(inst);
 }
 
 /* ============ EXTENDED INSTRUMENT EDITOR ============ */
@@ -2006,7 +2006,7 @@ void pbVolEnvDel(ft2_instance_t *inst)
 		return;
 	
 	/* Shift all points after i up by one */
-	for (int16_t j = i; j < ins->volEnvLength; j++)
+	for (int16_t j = i; j < ins->volEnvLength - 1; j++)
 	{
 		ins->volEnvPoints[j][0] = ins->volEnvPoints[j+1][0];
 		ins->volEnvPoints[j][1] = ins->volEnvPoints[j+1][1];
@@ -2190,7 +2190,7 @@ void pbPanEnvDel(ft2_instance_t *inst)
 		return;
 	
 	/* Shift all points after i up by one */
-	for (int16_t j = i; j < ins->panEnvLength; j++)
+	for (int16_t j = i; j < ins->panEnvLength - 1; j++)
 	{
 		ins->panEnvPoints[j][0] = ins->panEnvPoints[j+1][0];
 		ins->panEnvPoints[j][1] = ins->panEnvPoints[j+1][1];
@@ -2757,4 +2757,3 @@ void rbInstWaveRampUp(ft2_instance_t *inst)
 	instr->autoVibType = 3;
 	ft2_song_mark_modified(inst);
 }
-

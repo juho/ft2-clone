@@ -334,7 +334,10 @@ void drawScrollBar(ft2_widgets_t *widgets, struct ft2_video_t *video, uint16_t s
 	/* Clear scrollbar background */
 	clearRect(video, sb->x, sb->y, sb->w, sb->h);
 
-	/* Draw thumb */
+	/* Draw thumb - validate dimensions to prevent underflow in border drawing */
+	if (thumbW <= 0 || thumbH <= 0)
+		return;
+
 	if (sb->thumbType == SCROLLBAR_DYNAMIC_THUMB_SIZE)
 	{
 		fillRect(video, thumbX, thumbY, thumbW, thumbH, PAL_PATTEXT);
@@ -344,21 +347,25 @@ void drawScrollBar(ft2_widgets_t *widgets, struct ft2_video_t *video, uint16_t s
 		/* Fixed thumb size */
 		fillRect(video, thumbX, thumbY, thumbW, thumbH, PAL_BUTTONS);
 
-		if (state->state == SCROLLBAR_UNPRESSED)
+		/* Only draw borders if thumb is large enough to prevent underflow */
+		if (thumbW >= 2 && thumbH >= 3)
 		{
-			/* Top left corner inner border */
-			hLine(video, thumbX, thumbY, thumbW - 1, PAL_BUTTON1);
-			vLine(video, thumbX, thumbY + 1, thumbH - 2, PAL_BUTTON1);
+			if (state->state == SCROLLBAR_UNPRESSED)
+			{
+				/* Top left corner inner border */
+				hLine(video, thumbX, thumbY, thumbW - 1, PAL_BUTTON1);
+				vLine(video, thumbX, thumbY + 1, thumbH - 2, PAL_BUTTON1);
 
-			/* Bottom right corner inner border */
-			hLine(video, thumbX, thumbY + thumbH - 1, thumbW - 1, PAL_BUTTON2);
-			vLine(video, thumbX + thumbW - 1, thumbY, thumbH, PAL_BUTTON2);
-		}
-		else
-		{
-			/* Top left corner inner border */
-			hLine(video, thumbX, thumbY, thumbW, PAL_BUTTON2);
-			vLine(video, thumbX, thumbY + 1, thumbH - 1, PAL_BUTTON2);
+				/* Bottom right corner inner border */
+				hLine(video, thumbX, thumbY + thumbH - 1, thumbW - 1, PAL_BUTTON2);
+				vLine(video, thumbX + thumbW - 1, thumbY, thumbH, PAL_BUTTON2);
+			}
+			else
+			{
+				/* Top left corner inner border */
+				hLine(video, thumbX, thumbY, thumbW, PAL_BUTTON2);
+				vLine(video, thumbX, thumbY + 1, thumbH - 1, PAL_BUTTON2);
+			}
 		}
 	}
 }

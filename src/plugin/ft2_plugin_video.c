@@ -12,6 +12,18 @@
 #include "ft2_plugin_video.h"
 #include "ft2_plugin_bmp.h"
 
+/*
+ * Runtime bounds checking macros.
+ * assert() is disabled in Release builds (NDEBUG defined), so we need
+ * explicit checks to prevent out-of-bounds framebuffer writes that
+ * corrupt heap memory and crash on Windows.
+ */
+#define VIDEO_CHECK(v) do { if ((v) == NULL || (v)->frameBuffer == NULL) return; } while(0)
+#define VIDEO_CHECK_RECT(x, y, w, h) do { \
+    if ((w) == 0 || (h) == 0 || (x) >= SCREEN_W || (y) >= SCREEN_H || \
+        (uint32_t)(x) + (w) > SCREEN_W || (uint32_t)(y) + (h) > SCREEN_H) return; \
+} while(0)
+
 /* Font width tables - exact FT2 values from ft2_tables.c */
 extern const uint8_t font1Widths[128];
 extern const uint8_t font2Widths[128];
@@ -107,6 +119,10 @@ void hLine(ft2_video_t *video, uint16_t x, uint16_t y, uint16_t w, uint8_t palet
 	assert(video != NULL && video->frameBuffer != NULL);
 	assert(x < SCREEN_W && y < SCREEN_H && (x + w) <= SCREEN_W);
 
+	VIDEO_CHECK(video);
+	if (w == 0 || x >= SCREEN_W || y >= SCREEN_H || (uint32_t)x + w > SCREEN_W)
+		return;
+
 	const uint32_t pixVal = video->palette[paletteIndex];
 
 	uint32_t *dstPtr = &video->frameBuffer[(y * SCREEN_W) + x];
@@ -118,6 +134,10 @@ void vLine(ft2_video_t *video, uint16_t x, uint16_t y, uint16_t h, uint8_t palet
 {
 	assert(video != NULL && video->frameBuffer != NULL);
 	assert(x < SCREEN_W && y < SCREEN_H && (y + h) <= SCREEN_H);
+
+	VIDEO_CHECK(video);
+	if (h == 0 || x >= SCREEN_W || y >= SCREEN_H || (uint32_t)y + h > SCREEN_H)
+		return;
 
 	const uint32_t pixVal = video->palette[paletteIndex];
 
@@ -208,6 +228,9 @@ void clearRect(ft2_video_t *video, uint16_t xPos, uint16_t yPos, uint16_t w, uin
 	assert(video != NULL && video->frameBuffer != NULL);
 	assert(xPos < SCREEN_W && yPos < SCREEN_H && (xPos + w) <= SCREEN_W && (yPos + h) <= SCREEN_H);
 
+	VIDEO_CHECK(video);
+	VIDEO_CHECK_RECT(xPos, yPos, w, h);
+
 	const uint32_t pitch = w * sizeof(int32_t);
 
 	uint32_t *dstPtr = &video->frameBuffer[(yPos * SCREEN_W) + xPos];
@@ -219,6 +242,9 @@ void fillRect(ft2_video_t *video, uint16_t xPos, uint16_t yPos, uint16_t w, uint
 {
 	assert(video != NULL && video->frameBuffer != NULL);
 	assert(xPos < SCREEN_W && yPos < SCREEN_H && (xPos + w) <= SCREEN_W && (yPos + h) <= SCREEN_H);
+
+	VIDEO_CHECK(video);
+	VIDEO_CHECK_RECT(xPos, yPos, w, h);
 
 	const uint32_t pixVal = video->palette[paletteIndex];
 	uint32_t *dstPtr = &video->frameBuffer[(yPos * SCREEN_W) + xPos];
@@ -236,6 +262,10 @@ void drawFramework(ft2_video_t *video, uint16_t x, uint16_t y, uint16_t w, uint1
 {
 	assert(video != NULL && video->frameBuffer != NULL);
 	assert(x < SCREEN_W && y < SCREEN_H && w >= 2 && h >= 2);
+
+	VIDEO_CHECK(video);
+	if (w < 2 || h < 2 || x >= SCREEN_W || y >= SCREEN_H)
+		return;
 
 	h--;
 	w--;
@@ -275,6 +305,10 @@ void blit32(ft2_video_t *video, uint16_t xPos, uint16_t yPos, const uint32_t *sr
 	assert(video != NULL && video->frameBuffer != NULL);
 	assert(srcPtr != NULL && xPos < SCREEN_W && yPos < SCREEN_H && (xPos + w) <= SCREEN_W && (yPos + h) <= SCREEN_H);
 
+	VIDEO_CHECK(video);
+	if (srcPtr == NULL) return;
+	VIDEO_CHECK_RECT(xPos, yPos, w, h);
+
 	uint32_t *dstPtr = &video->frameBuffer[(yPos * SCREEN_W) + xPos];
 	for (int32_t y = 0; y < h; y++)
 	{
@@ -293,6 +327,10 @@ void blit(ft2_video_t *video, uint16_t xPos, uint16_t yPos, const uint8_t *srcPt
 {
 	assert(video != NULL && video->frameBuffer != NULL);
 	assert(srcPtr != NULL && xPos < SCREEN_W && yPos < SCREEN_H && (xPos + w) <= SCREEN_W && (yPos + h) <= SCREEN_H);
+
+	VIDEO_CHECK(video);
+	if (srcPtr == NULL) return;
+	VIDEO_CHECK_RECT(xPos, yPos, w, h);
 
 	uint32_t *dstPtr = &video->frameBuffer[(yPos * SCREEN_W) + xPos];
 	for (int32_t y = 0; y < h; y++)
@@ -317,6 +355,10 @@ void blitClipX(ft2_video_t *video, uint16_t xPos, uint16_t yPos, const uint8_t *
 	assert(video != NULL && video->frameBuffer != NULL);
 	assert(srcPtr != NULL && xPos < SCREEN_W && yPos < SCREEN_H && (xPos + clipX) <= SCREEN_W && (yPos + h) <= SCREEN_H);
 
+	VIDEO_CHECK(video);
+	if (srcPtr == NULL) return;
+	VIDEO_CHECK_RECT(xPos, yPos, clipX, h);
+
 	uint32_t *dstPtr = &video->frameBuffer[(yPos * SCREEN_W) + xPos];
 	for (int32_t y = 0; y < h; y++)
 	{
@@ -337,6 +379,10 @@ void blitFast(ft2_video_t *video, uint16_t xPos, uint16_t yPos, const uint8_t *s
 	assert(video != NULL && video->frameBuffer != NULL);
 	assert(srcPtr != NULL && xPos < SCREEN_W && yPos < SCREEN_H && (xPos + w) <= SCREEN_W && (yPos + h) <= SCREEN_H);
 
+	VIDEO_CHECK(video);
+	if (srcPtr == NULL) return;
+	VIDEO_CHECK_RECT(xPos, yPos, w, h);
+
 	uint32_t *dstPtr = &video->frameBuffer[(yPos * SCREEN_W) + xPos];
 	for (int32_t y = 0; y < h; y++)
 	{
@@ -355,6 +401,10 @@ void blitFastClipX(ft2_video_t *video, uint16_t xPos, uint16_t yPos, const uint8
 
 	assert(video != NULL && video->frameBuffer != NULL);
 	assert(srcPtr != NULL && xPos < SCREEN_W && yPos < SCREEN_H && (xPos + clipX) <= SCREEN_W && (yPos + h) <= SCREEN_H);
+
+	VIDEO_CHECK(video);
+	if (srcPtr == NULL) return;
+	VIDEO_CHECK_RECT(xPos, yPos, clipX, h);
 
 	uint32_t *dstPtr = &video->frameBuffer[(yPos * SCREEN_W) + xPos];
 	for (int32_t y = 0; y < h; y++)

@@ -431,7 +431,7 @@ void initPushButtons(struct ft2_widgets_t *widgets)
 
 void drawPushButton(struct ft2_widgets_t *widgets, struct ft2_video_t *video, const struct ft2_bmp_t *bmp, uint16_t pushButtonID)
 {
-	if (widgets == NULL || pushButtonID >= NUM_PUSHBUTTONS)
+	if (widgets == NULL || video == NULL || video->frameBuffer == NULL || pushButtonID >= NUM_PUSHBUTTONS)
 		return;
 
 	if (!widgets->pushButtonVisible[pushButtonID])
@@ -506,20 +506,24 @@ void drawPushButton(struct ft2_widgets_t *widgets, struct ft2_video_t *video, co
 			}
 
 			/* Blit button graphics from buttonGfx */
-			if (bmp != NULL && bmp->buttonGfx != NULL)
+			if (bmp != NULL && bmp->buttonGfx != NULL && video != NULL && video->frameBuffer != NULL)
 			{
-				const uint8_t *src8 = &bmp->buttonGfx[(ch - 1) * 8];
-				uint32_t *dst32 = &video->frameBuffer[(textY * SCREEN_W) + textX];
-
-				for (int row = 0; row < 8; row++)
+				/* Bounds check for direct framebuffer access */
+				if (textX + textW <= SCREEN_W && textY + 8 <= SCREEN_H)
 				{
-					for (int col = 0; col < textW; col++)
+					const uint8_t *src8 = &bmp->buttonGfx[(ch - 1) * 8];
+					uint32_t *dst32 = &video->frameBuffer[(textY * SCREEN_W) + textX];
+
+					for (int row = 0; row < 8; row++)
 					{
-						if (src8[col] != 0)
-							dst32[col] = video->palette[PAL_BTNTEXT];
+						for (int col = 0; col < textW; col++)
+						{
+							if (src8[col] != 0)
+								dst32[col] = video->palette[PAL_BTNTEXT];
+						}
+						src8 += BUTTON_GFX_BMP_WIDTH;
+						dst32 += SCREEN_W;
 					}
-					src8 += BUTTON_GFX_BMP_WIDTH;
-					dst32 += SCREEN_W;
 				}
 			}
 		}
