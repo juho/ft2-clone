@@ -1,5 +1,9 @@
 # Changelog for Fasttracker II Plugin
 
+## 1.0.23 (Jan 3, 2026)
+
+- Fix: sanitize instrument before loading.
+
 ## 1.0.22 (Jan 3, 2026)
 
 - Fix: Use macros for bounds checking, update inst. ed. buttons callbacks.
