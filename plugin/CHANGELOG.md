@@ -1,5 +1,9 @@
 # Changelog for Fasttracker II Plugin
 
+## 1.0.21 (Jan 3, 2026)
+
+- Fix: Heap corruption in instrument editor.
+
 ## 1.0.20 (Jan 2, 2026)
 
 - Fix: Plugin state serialization is now forward-compatible (won't destroy song between versions).

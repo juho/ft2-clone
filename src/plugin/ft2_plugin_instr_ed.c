@@ -930,8 +930,10 @@ void updateInstEditor(ft2_instrument_editor_t *editor, const ft2_bmp_t *bmp)
 	fillRect(video, 600, 299, 8 * 3, 8, PAL_BCKGRND);
 	if (s != NULL)
 	{
-		int8_t note2 = 48 + s->relativeNote;
-		uint8_t note = note2 % 12;
+		int note2 = 48 + s->relativeNote;
+		if (note2 < 0) note2 = 0;
+		if (note2 > 119) note2 = 119;
+		uint8_t note = (uint8_t)(note2 % 12);
 		char octaChar = '0' + (note2 / 12);
 		
 		/* Use sharp note names - matches standalone when config.ptnAcc == 0 */
@@ -1029,15 +1031,22 @@ void updateInstEditor(ft2_instrument_editor_t *editor, const ft2_bmp_t *bmp)
 			case 2: rbID = RB_INST_WAVE_RAMPDN; break;
 			case 3: rbID = RB_INST_WAVE_RAMPUP; break;
 		}
-		widgets->radioButtonState[rbID] = RADIOBUTTON_CHECKED;
+		if (rbID < NUM_RADIOBUTTONS)
+			widgets->radioButtonState[rbID] = RADIOBUTTON_CHECKED;
 
 		/* Update checkboxes for envelope enable */
-		widgets->checkBoxChecked[CB_INST_VENV] = (ins->volEnvFlags & ENV_ENABLED) ? true : false;
-		widgets->checkBoxChecked[CB_INST_VENV_SUS] = (ins->volEnvFlags & ENV_SUSTAIN) ? true : false;
-		widgets->checkBoxChecked[CB_INST_VENV_LOOP] = (ins->volEnvFlags & ENV_LOOP) ? true : false;
-		widgets->checkBoxChecked[CB_INST_PENV] = (ins->panEnvFlags & ENV_ENABLED) ? true : false;
-		widgets->checkBoxChecked[CB_INST_PENV_SUS] = (ins->panEnvFlags & ENV_SUSTAIN) ? true : false;
-		widgets->checkBoxChecked[CB_INST_PENV_LOOP] = (ins->panEnvFlags & ENV_LOOP) ? true : false;
+		if (CB_INST_VENV < NUM_CHECKBOXES)
+			widgets->checkBoxChecked[CB_INST_VENV] = (ins->volEnvFlags & ENV_ENABLED) ? true : false;
+		if (CB_INST_VENV_SUS < NUM_CHECKBOXES)
+			widgets->checkBoxChecked[CB_INST_VENV_SUS] = (ins->volEnvFlags & ENV_SUSTAIN) ? true : false;
+		if (CB_INST_VENV_LOOP < NUM_CHECKBOXES)
+			widgets->checkBoxChecked[CB_INST_VENV_LOOP] = (ins->volEnvFlags & ENV_LOOP) ? true : false;
+		if (CB_INST_PENV < NUM_CHECKBOXES)
+			widgets->checkBoxChecked[CB_INST_PENV] = (ins->panEnvFlags & ENV_ENABLED) ? true : false;
+		if (CB_INST_PENV_SUS < NUM_CHECKBOXES)
+			widgets->checkBoxChecked[CB_INST_PENV_SUS] = (ins->panEnvFlags & ENV_SUSTAIN) ? true : false;
+		if (CB_INST_PENV_LOOP < NUM_CHECKBOXES)
+			widgets->checkBoxChecked[CB_INST_PENV_LOOP] = (ins->panEnvFlags & ENV_LOOP) ? true : false;
 	}
 }
 
