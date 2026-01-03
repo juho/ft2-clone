@@ -10,7 +10,11 @@
 #include <stdbool.h>
 #include <string.h>
 #include <stdio.h>
+#include <stddef.h>
 #include <math.h>
+#ifdef _WIN32
+#include <windows.h>
+#endif
 #include "ft2_plugin_video.h"
 #include "ft2_plugin_bmp.h"
 #include "ft2_plugin_instr_ed.h"
@@ -544,6 +548,22 @@ static void envelopeVertLine(ft2_video_t *video, int32_t envNum, int32_t x, int3
 
 void ft2_instr_ed_draw_envelope(ft2_instance_t *inst, int envNum)
 {
+#ifdef _WIN32
+	{
+		char buf[512];
+		ft2_video_t *v = (inst && inst->ui) ? &((ft2_ui_t*)inst->ui)->video : NULL;
+		snprintf(buf, sizeof(buf),
+			"[FT2 InstrEd] inst=%p inst->ui=%p video=%p frameBuffer=%p offsetof(ui)=%zu sizeof(ft2_instance_t)=%zu\n",
+			(void*)inst,
+			(void*)(inst ? inst->ui : NULL),
+			(void*)v,
+			(void*)(v ? v->frameBuffer : NULL),
+			offsetof(ft2_instance_t, ui),
+			sizeof(ft2_instance_t));
+		OutputDebugStringA(buf);
+	}
+#endif
+
 	if (inst == NULL || inst->ui == NULL)
 		return;
 

@@ -1,6 +1,9 @@
 #include "PluginEditor.h"
 
+#include <cstdio>
+#include <cstddef>
 #if defined(_WIN32)
+#include <windows.h>
 #pragma pack(push, 8)
 #endif
 extern "C" {
@@ -29,7 +32,23 @@ FT2PluginEditor::FT2PluginEditor (FT2PluginProcessor& p)
     // Link the UI to the instance for multi-instance support
     auto* inst = audioProcessor.getInstance();
     if (inst != nullptr)
+    {
         inst->ui = ui;
+#if defined(_WIN32)
+        {
+            char buf[512];
+            snprintf(buf, sizeof(buf),
+                "[FT2 C++] sizeof(ft2_instance_t)=%zu offsetof(ui)=%zu inst=%p ui=%p inst->ui=%p\n",
+                sizeof(ft2_instance_t),
+                offsetof(ft2_instance_t, ui),
+                (void*)inst,
+                (void*)ui,
+                (void*)inst->ui);
+            OutputDebugStringA(buf);
+        }
+        ft2_debug_abi_info(inst, "after C++ set ui");
+#endif
+    }
     
     // Set the window size (2x upscale by default)
     setSize (FT2_SCREEN_W * upscaleFactor, FT2_SCREEN_H * upscaleFactor);
