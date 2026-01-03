@@ -1596,68 +1596,60 @@ void pbSampPlayDisplay(ft2_instance_t *inst)
 
 void pbSampShowRange(ft2_instance_t *inst)
 {
-	(void)inst;
 	ft2_sample_editor_t *ed = ft2_sample_ed_get_current();
 	if (ed != NULL)
-		ft2_sample_ed_show_range(ed);
+		ft2_sample_ed_show_range(ed, inst);
 }
 
 void pbSampRangeAll(ft2_instance_t *inst)
 {
-	(void)inst;
 	ft2_sample_editor_t *ed = ft2_sample_ed_get_current();
 	if (ed != NULL)
-		ft2_sample_ed_range_all(ed);
+		ft2_sample_ed_range_all(ed, inst);
 }
 
 void pbSampClrRange(ft2_instance_t *inst)
 {
-	(void)inst;
 	ft2_sample_editor_t *ed = ft2_sample_ed_get_current();
 	if (ed != NULL)
-		ft2_sample_ed_clear_selection(ed);
+		ft2_sample_ed_clear_selection(ed, inst);
 }
 
 void pbSampZoomOut(ft2_instance_t *inst)
 {
-	(void)inst;
 	ft2_sample_editor_t *ed = ft2_sample_ed_get_current();
 	if (ed != NULL)
-		ft2_sample_ed_zoom_out(ed, SAMPLE_AREA_WIDTH / 2); /* Center zoom for button press */
+		ft2_sample_ed_zoom_out(ed, SAMPLE_AREA_WIDTH / 2, inst); /* Center zoom for button press */
 }
 
 void pbSampShowAll(ft2_instance_t *inst)
 {
-	(void)inst;
 	ft2_sample_editor_t *ed = ft2_sample_ed_get_current();
 	if (ed != NULL)
-		ft2_sample_ed_show_all(ed);
+		ft2_sample_ed_show_all(ed, inst);
 }
 
 void pbSampSaveRng(ft2_instance_t *inst) { (void)inst; }
 
 void pbSampCut(ft2_instance_t *inst)
 {
-	(void)inst;
 	ft2_sample_editor_t *ed = ft2_sample_ed_get_current();
 	if (ed != NULL)
-		ft2_sample_ed_cut(ed);
+		ft2_sample_ed_cut(ed, inst);
 }
 
 void pbSampCopy(ft2_instance_t *inst)
 {
-	(void)inst;
 	ft2_sample_editor_t *ed = ft2_sample_ed_get_current();
 	if (ed != NULL)
-		ft2_sample_ed_copy(ed);
+		ft2_sample_ed_copy(ed, inst);
 }
 
 void pbSampPaste(ft2_instance_t *inst)
 {
-	(void)inst;
 	ft2_sample_editor_t *ed = ft2_sample_ed_get_current();
 	if (ed != NULL)
-		ft2_sample_ed_paste(ed);
+		ft2_sample_ed_paste(ed, inst);
 }
 
 void pbSampCrop(ft2_instance_t *inst)
@@ -1710,7 +1702,7 @@ void pbSampFxAddBass(ft2_instance_t *inst) { pbSfxAddBass(inst); }
 void pbSampFxAddTreble(ft2_instance_t *inst) { pbSfxAddTreble(inst); }
 void pbSampFxSetAmp(ft2_instance_t *inst) { pbSfxSetAmp(inst); }
 void pbSampFxUndo(ft2_instance_t *inst) { pbSfxUndo(inst); }
-void pbSampFxXFade(ft2_instance_t *inst) { (void)inst; ft2_sample_ed_crossfade_loop(ft2_sample_ed_get_current()); }
+void pbSampFxXFade(ft2_instance_t *inst) { ft2_sample_ed_crossfade_loop(ft2_sample_ed_get_current(), inst); }
 void pbSampFxBack(ft2_instance_t *inst) { hideSampleEffectsScreen(inst); }
 void cbSampFxNorm(ft2_instance_t *inst) { cbSfxNormalization(inst); }
 

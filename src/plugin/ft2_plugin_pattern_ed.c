@@ -841,7 +841,6 @@ void ft2_pattern_ed_init(ft2_pattern_editor_t *editor, ft2_video_t *video)
 
 	memset(editor, 0, sizeof(ft2_pattern_editor_t));
 	editor->video = video;
-	editor->instance = NULL;
 	editor->currRow = 0;
 	editor->currPattern = 0;
 	editor->channelOffset = 0;
@@ -869,13 +868,6 @@ void ft2_pattern_ed_init(ft2_pattern_editor_t *editor, ft2_video_t *video)
 	editor->pattMark.markX2 = 0;
 	editor->pattMark.markY1 = 0;
 	editor->pattMark.markY2 = 0;
-}
-
-void ft2_pattern_ed_set_instance(ft2_pattern_editor_t *editor, ft2_instance_t *inst)
-{
-	if (editor == NULL)
-		return;
-	editor->instance = inst;
 }
 
 void ft2_pattern_ed_update_font_ptrs(ft2_pattern_editor_t *editor, const ft2_bmp_t *bmp)
@@ -1008,13 +1000,12 @@ void ft2_pattern_ed_draw_borders(ft2_pattern_editor_t *ed, const ft2_bmp_t *bmp)
 	(void)bmp; /* May be used for additional graphics in future */
 }
 
-void ft2_pattern_ed_write_pattern(ft2_pattern_editor_t *ed, const ft2_bmp_t *bmp)
+void ft2_pattern_ed_write_pattern(ft2_pattern_editor_t *ed, const ft2_bmp_t *bmp, ft2_instance_t *inst)
 {
-	if (ed == NULL || ed->video == NULL || ed->instance == NULL)
+	if (ed == NULL || ed->video == NULL || inst == NULL)
 		return;
 
 	ft2_video_t *video = ed->video;
-	ft2_instance_t *inst = ed->instance;
 	int32_t currRow = ed->currRow;
 	int32_t currPattern = ed->currPattern;
 
@@ -1343,8 +1334,6 @@ void ft2_pattern_ed_draw(ft2_pattern_editor_t *editor, const ft2_bmp_t *bmp, ft2
 	if (editor == NULL || editor->video == NULL)
 		return;
 
-	editor->instance = instance;
-
 	/* Update font pointers */
 	ft2_pattern_ed_update_font_ptrs(editor, bmp);
 
@@ -1426,7 +1415,7 @@ void ft2_pattern_ed_draw(ft2_pattern_editor_t *editor, const ft2_bmp_t *bmp, ft2
 	ft2_pattern_ed_draw_borders(editor, bmp);
 
 	/* Draw the pattern data */
-	ft2_pattern_ed_write_pattern(editor, bmp);
+	ft2_pattern_ed_write_pattern(editor, bmp, instance);
 	
 	/* Show or hide channel scrollbar and buttons based on ptnChanScrollShown */
 	if (editor->ptnChanScrollShown && instance != NULL && instance->ui != NULL)

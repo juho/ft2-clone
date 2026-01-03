@@ -142,13 +142,10 @@ void ft2_ui_draw(ft2_ui_t *ui, void *inst)
 		clearRect(video, 0, 0, SCREEN_W, SCREEN_H);
 	}
 
-	/* Set instance pointers on sub-components */
+	/* Set current editor pointers so callbacks can retrieve them */
 	if (ft2inst != NULL)
 	{
-		ft2_pattern_ed_set_instance(&ui->patternEditor, ft2inst);
-		ft2_sample_ed_set_instance(&ui->sampleEditor, ft2inst);
 		ft2_sample_ed_set_current(&ui->sampleEditor);
-		ft2_instr_ed_set_instance(&ui->instrEditor, ft2inst);
 		ft2_instr_ed_set_current(&ui->instrEditor);
 	}
 
@@ -213,11 +210,11 @@ void ft2_ui_draw(ft2_ui_t *ui, void *inst)
 			}
 			else if (ft2inst->uiState.sampleEditorShown)
 			{
-				ft2_sample_ed_draw(&ui->sampleEditor, bmp);
+				ft2_sample_ed_draw(&ui->sampleEditor, bmp, ft2inst);
 			}
 			else if (ft2inst->uiState.instEditorShown)
 			{
-				ft2_instr_ed_draw(&ui->instrEditor, bmp);
+				ft2_instr_ed_draw(&ui->instrEditor, bmp, ft2inst);
 			}
 
 			/* Always draw visible widgets - widget visibility handles what gets drawn */
@@ -415,9 +412,8 @@ static void handleRedrawing(ft2_ui_t *ui, ft2_instance_t *inst)
 		{
 			inst->uiState.updateSampleEditor = false;
 			/* Sync sample editor with current instrument/sample */
-			ft2_sample_ed_set_instance(&ui->sampleEditor, inst);
-			ft2_sample_ed_set_sample(&ui->sampleEditor, inst->editor.curInstr, inst->editor.curSmp);
-			ft2_sample_ed_draw(&ui->sampleEditor, bmp);
+			ft2_sample_ed_set_sample(&ui->sampleEditor, inst->editor.curInstr, inst->editor.curSmp, inst);
+			ft2_sample_ed_draw(&ui->sampleEditor, bmp, inst);
 		}
 	}
 	
@@ -427,8 +423,7 @@ static void handleRedrawing(ft2_ui_t *ui, ft2_instance_t *inst)
 		if (inst->uiState.updateInstEditor)
 		{
 			inst->uiState.updateInstEditor = false;
-			ft2_instr_ed_set_instance(&ui->instrEditor, inst);
-			ft2_instr_ed_draw(&ui->instrEditor, bmp);
+			ft2_instr_ed_draw(&ui->instrEditor, bmp, inst);
 		}
 	}
 	
@@ -620,7 +615,7 @@ void ft2_ui_mouse_press(ft2_ui_t *ui, void *inst, int x, int y, bool leftButton,
 		if (y >= 174 && y <= 328)
 		{
 			/* Click inside sample data area */
-			ft2_sample_ed_mouse_click(&ui->sampleEditor, x, y, button);
+			ft2_sample_ed_mouse_click(&ui->sampleEditor, x, y, button, ft2inst);
 			ui->input.mouseDragging = true;
 		}
 	}
@@ -631,7 +626,7 @@ void ft2_ui_mouse_press(ft2_ui_t *ui, void *inst, int x, int y, bool leftButton,
 		/* Instrument editor covers y >= 173 to y <= 399 */
 		if (y >= 173)
 		{
-			ft2_instr_ed_mouse_click(&ui->instrEditor, x, y, button);
+			ft2_instr_ed_mouse_click(&ui->instrEditor, x, y, button, ft2inst);
 			ui->input.mouseDragging = true;
 		}
 	}
@@ -670,13 +665,13 @@ void ft2_ui_mouse_release(ft2_ui_t *ui, void *inst, int x, int y, int button)
 	/* Handle sample editor mouse up */
 	if (ft2inst != NULL && ft2inst->uiState.sampleEditorShown)
 	{
-		ft2_sample_ed_mouse_up(&ui->sampleEditor);
+		ft2_sample_ed_mouse_up(&ui->sampleEditor, ft2inst);
 	}
 	
 	/* Handle instrument editor mouse up */
 	if (ft2inst != NULL && ft2inst->uiState.instEditorShown)
 	{
-		ft2_instr_ed_mouse_up(&ui->instrEditor);
+		ft2_instr_ed_mouse_up(&ui->instrEditor, ft2inst);
 	}
 }
 
@@ -700,13 +695,13 @@ void ft2_ui_mouse_move(ft2_ui_t *ui, void *inst, int x, int y)
 	if (ft2inst != NULL && ft2inst->uiState.sampleEditorShown && ui->input.mouseDragging)
 	{
 		bool shiftPressed = (ui->input.modifiers & FT2_MOD_SHIFT) != 0;
-		ft2_sample_ed_mouse_drag(&ui->sampleEditor, x, y, shiftPressed);
+		ft2_sample_ed_mouse_drag(&ui->sampleEditor, x, y, shiftPressed, ft2inst);
 	}
 	
 	/* Handle instrument editor mouse drag */
 	if (ft2inst != NULL && ft2inst->uiState.instEditorShown && ui->input.mouseDragging)
 	{
-		ft2_instr_ed_mouse_drag(&ui->instrEditor, x, y);
+		ft2_instr_ed_mouse_drag(&ui->instrEditor, x, y, ft2inst);
 	}
 }
 
@@ -862,9 +857,9 @@ void ft2_ui_mouse_wheel(ft2_ui_t *ui, void *inst, int x, int y, int delta)
 			if (y >= 174 && y <= 328)
 			{
 				if (directionUp)
-					ft2_sample_ed_zoom_in(&ui->sampleEditor, x);
+					ft2_sample_ed_zoom_in(&ui->sampleEditor, x, ft2inst);
 				else
-					ft2_sample_ed_zoom_out(&ui->sampleEditor, x);
+					ft2_sample_ed_zoom_out(&ui->sampleEditor, x, ft2inst);
 				
 				ft2inst->uiState.updateSampleEditor = true;
 			}

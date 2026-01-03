@@ -384,12 +384,11 @@ static void pianoNumberOut(ft2_video_t *video, const ft2_bmp_t *bmp, uint16_t xP
 }
 
 /* Write sample number on piano key - exact match to standalone writePianoNumber() */
-static void writePianoNumber(ft2_instrument_editor_t *ed, const ft2_bmp_t *bmp, uint8_t note, uint8_t key, uint8_t octave)
+static void writePianoNumber(ft2_instrument_editor_t *ed, const ft2_bmp_t *bmp, uint8_t note, uint8_t key, uint8_t octave, ft2_instance_t *inst)
 {
-	if (ed == NULL || ed->video == NULL || ed->instance == NULL)
+	if (ed == NULL || ed->video == NULL || inst == NULL)
 		return;
 
-	ft2_instance_t *inst = ed->instance;
 	int16_t curInstr = inst->editor.curInstr;
 
 	uint8_t number = 0;
@@ -524,17 +523,9 @@ void ft2_instr_ed_init(ft2_instrument_editor_t *editor, ft2_video_t *video)
 
 	memset(editor, 0, sizeof(ft2_instrument_editor_t));
 	editor->video = video;
-	editor->instance = NULL;
 	editor->draggingVolEnv = false;
 	editor->draggingPanEnv = false;
 	memset(editor->pianoKeyStatus, 0, sizeof(editor->pianoKeyStatus));
-}
-
-void ft2_instr_ed_set_instance(ft2_instrument_editor_t *editor, ft2_instance_t *inst)
-{
-	if (editor == NULL)
-		return;
-	editor->instance = inst;
 }
 
 
@@ -586,13 +577,12 @@ static void envelopeVertLine(ft2_video_t *video, int32_t envNum, int32_t x, int3
 	}
 }
 
-void ft2_instr_ed_draw_envelope(ft2_instrument_editor_t *ed, int envNum)
+void ft2_instr_ed_draw_envelope(ft2_instrument_editor_t *ed, int envNum, ft2_instance_t *inst)
 {
-	if (ed == NULL || ed->video == NULL || ed->instance == NULL)
+	if (ed == NULL || ed->video == NULL || inst == NULL)
 		return;
 
 	ft2_video_t *video = ed->video;
-	ft2_instance_t *inst = ed->instance;
 
 	/* Clear envelope area - exact match to standalone */
 	int32_t baseY = (envNum == 0) ? 189 : 276;
@@ -734,22 +724,20 @@ void ft2_instr_ed_draw_envelope(ft2_instrument_editor_t *ed, int envNum)
 	}
 }
 
-void ft2_instr_ed_draw_vol_env(ft2_instrument_editor_t *editor)
+void ft2_instr_ed_draw_vol_env(ft2_instrument_editor_t *editor, ft2_instance_t *inst)
 {
-	ft2_instr_ed_draw_envelope(editor, 0);
+	ft2_instr_ed_draw_envelope(editor, 0, inst);
 }
 
-void ft2_instr_ed_draw_pan_env(ft2_instrument_editor_t *editor)
+void ft2_instr_ed_draw_pan_env(ft2_instrument_editor_t *editor, ft2_instance_t *inst)
 {
-	ft2_instr_ed_draw_envelope(editor, 1);
+	ft2_instr_ed_draw_envelope(editor, 1, inst);
 }
 
-void ft2_instr_ed_draw_note_map(ft2_instrument_editor_t *ed, const ft2_bmp_t *bmp)
+void ft2_instr_ed_draw_note_map(ft2_instrument_editor_t *ed, const ft2_bmp_t *bmp, ft2_instance_t *inst)
 {
-	if (ed == NULL || ed->video == NULL || ed->instance == NULL)
+	if (ed == NULL || ed->video == NULL || inst == NULL)
 		return;
-
-	ft2_instance_t *inst = ed->instance;
 
 	/* Note-to-sample map is shown in the right side of the instrument editor */
 	/* For now, just draw a placeholder */
@@ -773,7 +761,7 @@ void ft2_instr_ed_draw_note_map(ft2_instrument_editor_t *ed, const ft2_bmp_t *bm
 	/* Real FT2 shows a bar graph of sample assignments */
 }
 
-void ft2_instr_ed_draw_piano(ft2_instrument_editor_t *ed, const ft2_bmp_t *bmp)
+void ft2_instr_ed_draw_piano(ft2_instrument_editor_t *ed, const ft2_bmp_t *bmp, ft2_instance_t *inst)
 {
 	if (ed == NULL || ed->video == NULL)
 		return;
@@ -792,18 +780,17 @@ void ft2_instr_ed_draw_piano(ft2_instrument_editor_t *ed, const ft2_bmp_t *bmp)
 		else
 			drawWhitePianoKey(ed, key, octave, false, bmp);
 
-		writePianoNumber(ed, bmp, i, key, octave);
+		writePianoNumber(ed, bmp, i, key, octave, inst);
 	}
 }
 
 /* Update instrument editor - draw values and set widget states */
-void updateInstEditor(ft2_instrument_editor_t *editor, const ft2_bmp_t *bmp)
+void updateInstEditor(ft2_instrument_editor_t *editor, const ft2_bmp_t *bmp, ft2_instance_t *inst)
 {
-	if (editor == NULL || editor->video == NULL || editor->instance == NULL)
+	if (editor == NULL || editor->video == NULL || inst == NULL)
 		return;
 
 	ft2_video_t *video = editor->video;
-	ft2_instance_t *inst = editor->instance;
 	ft2_widgets_t *widgets = (inst->ui != NULL) ? &((ft2_ui_t *)inst->ui)->widgets : NULL;
 	if (widgets == NULL)
 		return;
@@ -1053,15 +1040,12 @@ void updateInstEditor(ft2_instrument_editor_t *editor, const ft2_bmp_t *bmp)
 	}
 }
 
-void ft2_instr_ed_draw(ft2_instrument_editor_t *editor, const ft2_bmp_t *bmp)
+void ft2_instr_ed_draw(ft2_instrument_editor_t *editor, const ft2_bmp_t *bmp, ft2_instance_t *inst)
 {
-	if (editor == NULL || editor->video == NULL)
+	if (editor == NULL || editor->video == NULL || inst == NULL)
 		return;
 
 	ft2_video_t *video = editor->video;
-	ft2_instance_t *inst = editor->instance;
-	if (inst == NULL)
-		return;
 
 	/* Read current instrument/sample from instance editor state */
 	int16_t curInstr = inst->editor.curInstr;
@@ -1123,8 +1107,8 @@ void ft2_instr_ed_draw(ft2_instrument_editor_t *editor, const ft2_bmp_t *bmp)
 	}
 
 	/* Draw envelopes */
-	ft2_instr_ed_draw_vol_env(editor);
-	ft2_instr_ed_draw_pan_env(editor);
+	ft2_instr_ed_draw_vol_env(editor, inst);
+	ft2_instr_ed_draw_pan_env(editor, inst);
 
 	/* Draw envelope coordinates (tick/value display) */
 	{
@@ -1165,15 +1149,15 @@ void ft2_instr_ed_draw(ft2_instrument_editor_t *editor, const ft2_bmp_t *bmp)
 	}
 
 	/* Draw piano */
-	ft2_instr_ed_draw_piano(editor, bmp);
+	ft2_instr_ed_draw_piano(editor, bmp, inst);
 
 	/* Call update to draw value displays */
-	updateInstEditor(editor, bmp);
+	updateInstEditor(editor, bmp, inst);
 }
 
-void ft2_instr_ed_mouse_click(ft2_instrument_editor_t *editor, int x, int y, int button)
+void ft2_instr_ed_mouse_click(ft2_instrument_editor_t *editor, int x, int y, int button, ft2_instance_t *inst)
 {
-	if (editor == NULL)
+	if (editor == NULL || inst == NULL)
 		return;
 
 	editor->lastMouseX = x;
@@ -1182,8 +1166,7 @@ void ft2_instr_ed_mouse_click(ft2_instrument_editor_t *editor, int x, int y, int
 	/* Check if click is in volume envelope area - exact match to standalone */
 	if (y >= VOL_ENV_Y && y <= VOL_ENV_Y + ENV_HEIGHT && x >= 7 && x <= 334)
 	{
-		ft2_instance_t *inst = editor->instance;
-		if (inst == NULL || inst->editor.curInstr == 0)
+		if (inst->editor.curInstr == 0)
 			return;
 		
 		ft2_instr_t *ins = getInstrForInst(inst);
@@ -1216,8 +1199,7 @@ void ft2_instr_ed_mouse_click(ft2_instrument_editor_t *editor, int x, int y, int
 	/* Check if click is in panning envelope area - exact match to standalone */
 	if (y >= PAN_ENV_Y && y <= PAN_ENV_Y + ENV_HEIGHT && x >= 7 && x <= 334)
 	{
-		ft2_instance_t *inst = editor->instance;
-		if (inst == NULL || inst->editor.curInstr == 0)
+		if (inst->editor.curInstr == 0)
 			return;
 		
 		ft2_instr_t *ins = getInstrForInst(inst);
@@ -1250,8 +1232,7 @@ void ft2_instr_ed_mouse_click(ft2_instrument_editor_t *editor, int x, int y, int
 	/* Check if click is on piano - assign current sample to the clicked key */
 	if (y >= PIANO_Y && y < PIANO_Y + PIANOKEY_WHITE_H && x >= PIANO_X && x < PIANO_X + (77 * PIANO_OCTAVES))
 	{
-		ft2_instance_t *inst = editor->instance;
-		if (inst == NULL || inst->editor.curInstr == 0)
+		if (inst->editor.curInstr == 0)
 			return;
 		
 		ft2_instr_t *ins = getInstrForInst(inst);
@@ -1297,16 +1278,15 @@ void ft2_instr_ed_mouse_click(ft2_instrument_editor_t *editor, int x, int y, int
 	(void)button;
 }
 
-void ft2_instr_ed_mouse_drag(ft2_instrument_editor_t *editor, int x, int y)
+void ft2_instr_ed_mouse_drag(ft2_instrument_editor_t *editor, int x, int y, ft2_instance_t *inst)
 {
-	if (editor == NULL)
+	if (editor == NULL || inst == NULL)
 		return;
 
 	/* Handle piano dragging - assign samples to keys */
 	if (editor->draggingPiano)
 	{
-		ft2_instance_t *inst = editor->instance;
-		if (inst == NULL || inst->editor.curInstr == 0)
+		if (inst->editor.curInstr == 0)
 			return;
 		
 		ft2_instr_t *ins = getInstrForInst(inst);
@@ -1350,8 +1330,7 @@ void ft2_instr_ed_mouse_drag(ft2_instrument_editor_t *editor, int x, int y)
 	/* Handle volume envelope point dragging - exact match to standalone */
 	if (editor->draggingVolEnv)
 	{
-		ft2_instance_t *inst = editor->instance;
-		if (inst == NULL || inst->editor.curInstr == 0)
+		if (inst->editor.curInstr == 0)
 			return;
 		
 		ft2_instr_t *ins = getInstrForInst(inst);
@@ -1424,8 +1403,7 @@ void ft2_instr_ed_mouse_drag(ft2_instrument_editor_t *editor, int x, int y)
 	/* Handle panning envelope point dragging - exact match to standalone */
 	if (editor->draggingPanEnv)
 	{
-		ft2_instance_t *inst = editor->instance;
-		if (inst == NULL || inst->editor.curInstr == 0)
+		if (inst->editor.curInstr == 0)
 			return;
 		
 		ft2_instr_t *ins = getInstrForInst(inst);
@@ -1496,11 +1474,12 @@ void ft2_instr_ed_mouse_drag(ft2_instrument_editor_t *editor, int x, int y)
 	}
 }
 
-void ft2_instr_ed_mouse_up(ft2_instrument_editor_t *editor)
+void ft2_instr_ed_mouse_up(ft2_instrument_editor_t *editor, ft2_instance_t *inst)
 {
 	if (editor == NULL)
 		return;
 
+	(void)inst; /* Unused, but kept for API consistency */
 	editor->draggingVolEnv = false;
 	editor->draggingPanEnv = false;
 	editor->draggingPiano = false;

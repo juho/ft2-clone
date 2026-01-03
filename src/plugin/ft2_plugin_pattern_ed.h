@@ -77,7 +77,6 @@ typedef struct cursor_t
 typedef struct ft2_pattern_editor_t
 {
 	struct ft2_video_t *video;
-	struct ft2_instance_t *instance;
 	
 	/* Pattern state */
 	int16_t currRow;
@@ -125,12 +124,11 @@ enum
 
 /* Initialization */
 void ft2_pattern_ed_init(ft2_pattern_editor_t *editor, struct ft2_video_t *video);
-void ft2_pattern_ed_set_instance(ft2_pattern_editor_t *editor, struct ft2_instance_t *inst);
 void ft2_pattern_ed_update_font_ptrs(ft2_pattern_editor_t *editor, const struct ft2_bmp_t *bmp);
 
 /* Drawing */
 void ft2_pattern_ed_draw_borders(ft2_pattern_editor_t *editor, const struct ft2_bmp_t *bmp);
-void ft2_pattern_ed_write_pattern(ft2_pattern_editor_t *editor, const struct ft2_bmp_t *bmp);
+void ft2_pattern_ed_write_pattern(ft2_pattern_editor_t *editor, const struct ft2_bmp_t *bmp, struct ft2_instance_t *inst);
 void ft2_pattern_ed_draw(ft2_pattern_editor_t *editor, const struct ft2_bmp_t *bmp, struct ft2_instance_t *instance);
 
 /* Pattern editor visibility */

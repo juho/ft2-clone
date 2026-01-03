@@ -42,7 +42,6 @@ struct ft2_instance_t;
 typedef struct ft2_instrument_editor_t
 {
 	struct ft2_video_t *video;
-	struct ft2_instance_t *instance;
 	
 	/* Envelope dragging state (UI-specific, not in inst->editor) */
 	bool draggingVolEnv;
@@ -60,21 +59,20 @@ typedef struct ft2_instrument_editor_t
 } ft2_instrument_editor_t;
 
 void ft2_instr_ed_init(ft2_instrument_editor_t *editor, struct ft2_video_t *video);
-void ft2_instr_ed_set_instance(ft2_instrument_editor_t *editor, struct ft2_instance_t *inst);
 void ft2_instr_ed_set_current(ft2_instrument_editor_t *editor);
 ft2_instrument_editor_t *ft2_instr_ed_get_current(void);
-void ft2_instr_ed_draw(ft2_instrument_editor_t *editor, const struct ft2_bmp_t *bmp);
-void ft2_instr_ed_draw_vol_env(ft2_instrument_editor_t *editor);
-void ft2_instr_ed_draw_pan_env(ft2_instrument_editor_t *editor);
-void ft2_instr_ed_draw_envelope(ft2_instrument_editor_t *editor, int envNum);
-void ft2_instr_ed_draw_note_map(ft2_instrument_editor_t *editor, const struct ft2_bmp_t *bmp);
-void ft2_instr_ed_draw_piano(ft2_instrument_editor_t *editor, const struct ft2_bmp_t *bmp);
-void updateInstEditor(ft2_instrument_editor_t *editor, const struct ft2_bmp_t *bmp);
+void ft2_instr_ed_draw(ft2_instrument_editor_t *editor, const struct ft2_bmp_t *bmp, struct ft2_instance_t *inst);
+void ft2_instr_ed_draw_vol_env(ft2_instrument_editor_t *editor, struct ft2_instance_t *inst);
+void ft2_instr_ed_draw_pan_env(ft2_instrument_editor_t *editor, struct ft2_instance_t *inst);
+void ft2_instr_ed_draw_envelope(ft2_instrument_editor_t *editor, int envNum, struct ft2_instance_t *inst);
+void ft2_instr_ed_draw_note_map(ft2_instrument_editor_t *editor, const struct ft2_bmp_t *bmp, struct ft2_instance_t *inst);
+void ft2_instr_ed_draw_piano(ft2_instrument_editor_t *editor, const struct ft2_bmp_t *bmp, struct ft2_instance_t *inst);
+void updateInstEditor(ft2_instrument_editor_t *editor, const struct ft2_bmp_t *bmp, struct ft2_instance_t *inst);
 
 /* Mouse handling */
-void ft2_instr_ed_mouse_click(ft2_instrument_editor_t *editor, int x, int y, int button);
-void ft2_instr_ed_mouse_drag(ft2_instrument_editor_t *editor, int x, int y);
-void ft2_instr_ed_mouse_up(ft2_instrument_editor_t *editor);
+void ft2_instr_ed_mouse_click(ft2_instrument_editor_t *editor, int x, int y, int button, struct ft2_instance_t *inst);
+void ft2_instr_ed_mouse_drag(ft2_instrument_editor_t *editor, int x, int y, struct ft2_instance_t *inst);
+void ft2_instr_ed_mouse_up(ft2_instrument_editor_t *editor, struct ft2_instance_t *inst);
 
 /* Visibility */
 void showInstEditor(struct ft2_instance_t *inst, struct ft2_video_t *video, const struct ft2_bmp_t *bmp);
