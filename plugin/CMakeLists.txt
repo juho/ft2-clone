@@ -2,7 +2,7 @@
 # This builds the FT2 replayer as a VST3/AU/LV2 plugin using JUCE
 
 cmake_minimum_required(VERSION 3.22)
-project(FT2Plugin VERSION 1.0.23)
+project(FT2Plugin VERSION 1.0.24)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -125,7 +125,7 @@ target_compile_definitions(FT2Plugin
 if(MSVC)
     target_compile_options(ft2_core PRIVATE /Zi)
     target_compile_options(FT2Plugin PRIVATE /Zi)
-    target_link_options(FT2Plugin PRIVATE /MAP /DEBUG)
+    target_link_options(FT2Plugin_VST3 PRIVATE /MAP /DEBUG)
 endif()
 
 target_link_libraries(FT2Plugin

@@ -485,6 +485,10 @@ void charOut(ft2_video_t *video, const ft2_bmp_t *bmp, uint16_t xPos, uint16_t y
 	assert(video != NULL && video->frameBuffer != NULL);
 	assert(xPos < SCREEN_W && yPos < SCREEN_H);
 
+	VIDEO_CHECK(video);
+	if (xPos + FONT1_CHAR_W > SCREEN_W || yPos + FONT1_CHAR_H > SCREEN_H)
+		return;
+
 	if (bmp == NULL || bmp->font1 == NULL)
 		return;
 
@@ -516,6 +520,10 @@ void charOutBg(ft2_video_t *video, const ft2_bmp_t *bmp, uint16_t xPos, uint16_t
 {
 	assert(video != NULL && video->frameBuffer != NULL);
 	assert(xPos < SCREEN_W && yPos < SCREEN_H);
+
+	VIDEO_CHECK(video);
+	if (xPos + FONT1_CHAR_W > SCREEN_W || yPos + FONT1_CHAR_H > SCREEN_H)
+		return;
 
 	if (bmp == NULL || bmp->font1 == NULL)
 		return;
@@ -558,6 +566,10 @@ void charOutShadow(ft2_video_t *video, const ft2_bmp_t *bmp, uint16_t xPos, uint
 	assert(video != NULL && video->frameBuffer != NULL);
 	assert(xPos < SCREEN_W && yPos < SCREEN_H);
 
+	VIDEO_CHECK(video);
+	if (xPos + FONT1_CHAR_W >= SCREEN_W || yPos + FONT1_CHAR_H >= SCREEN_H)
+		return;
+
 	if (bmp == NULL || bmp->font1 == NULL)
 		return;
 
@@ -596,8 +608,15 @@ void charOutClipX(ft2_video_t *video, const ft2_bmp_t *bmp, uint16_t xPos, uint1
 	assert(video != NULL && video->frameBuffer != NULL);
 	assert(xPos < SCREEN_W && yPos < SCREEN_H);
 
+	VIDEO_CHECK(video);
+	if (xPos + FONT1_CHAR_W > SCREEN_W || yPos + FONT1_CHAR_H > SCREEN_H)
+		return;
+
 	if (bmp == NULL || bmp->font1 == NULL)
 		return;
+
+	if (clipX > SCREEN_W)
+		clipX = SCREEN_W;
 
 	if (xPos > clipX)
 		return;
@@ -635,6 +654,10 @@ void bigCharOut(ft2_video_t *video, const ft2_bmp_t *bmp, uint16_t xPos, uint16_
 	assert(video != NULL && video->frameBuffer != NULL);
 	assert(xPos < SCREEN_W && yPos < SCREEN_H);
 
+	VIDEO_CHECK(video);
+	if (xPos + FONT2_CHAR_W > SCREEN_W || yPos + FONT2_CHAR_H > SCREEN_H)
+		return;
+
 	if (bmp == NULL || bmp->font2 == NULL)
 		return;
 
@@ -666,6 +689,10 @@ static void bigCharOutShadow(ft2_video_t *video, const ft2_bmp_t *bmp, uint16_t 
 {
 	assert(video != NULL && video->frameBuffer != NULL);
 	assert(xPos < SCREEN_W && yPos < SCREEN_H);
+
+	VIDEO_CHECK(video);
+	if (xPos + FONT2_CHAR_W >= SCREEN_W || yPos + FONT2_CHAR_H >= SCREEN_H)
+		return;
 
 	if (bmp == NULL || bmp->font2 == NULL)
 		return;
@@ -817,7 +844,15 @@ void textOutTiny(ft2_video_t *video, const ft2_bmp_t *bmp, int32_t xPos, int32_t
 {
 	assert(video != NULL && video->frameBuffer != NULL);
 
-	if (bmp == NULL || bmp->font3 == NULL)
+	VIDEO_CHECK(video);
+	if (bmp == NULL || bmp->font3 == NULL || str == NULL)
+		return;
+
+	if (xPos < 0 || yPos < 0)
+		return;
+
+	const size_t strLen = strlen(str);
+	if (xPos + (int32_t)(strLen * FONT3_CHAR_W) > SCREEN_W || yPos + FONT3_CHAR_H > SCREEN_H)
 		return;
 
 	uint32_t *dstPtr = &video->frameBuffer[(yPos * SCREEN_W) + xPos];
@@ -882,6 +917,12 @@ void hexOut(ft2_video_t *video, const ft2_bmp_t *bmp, uint16_t xPos, uint16_t yP
 	assert(video != NULL && video->frameBuffer != NULL);
 	assert(xPos < SCREEN_W && yPos < SCREEN_H);
 
+	VIDEO_CHECK(video);
+	if (numDigits == 0)
+		return;
+	if ((uint32_t)xPos + ((uint32_t)numDigits * FONT6_CHAR_W) > SCREEN_W || yPos + FONT6_CHAR_H > SCREEN_H)
+		return;
+
 	if (bmp == NULL || bmp->font6 == NULL)
 		return;
 
@@ -913,6 +954,12 @@ void hexOutBg(ft2_video_t *video, const ft2_bmp_t *bmp, uint16_t xPos, uint16_t 
 {
 	assert(video != NULL && video->frameBuffer != NULL);
 	assert(xPos < SCREEN_W && yPos < SCREEN_H);
+
+	VIDEO_CHECK(video);
+	if (numDigits == 0)
+		return;
+	if ((uint32_t)xPos + ((uint32_t)numDigits * FONT6_CHAR_W) > SCREEN_W || yPos + FONT6_CHAR_H > SCREEN_H)
+		return;
 
 	if (bmp == NULL || bmp->font6 == NULL)
 		return;
@@ -950,6 +997,9 @@ void hexOutShadow(ft2_video_t *video, const ft2_bmp_t *bmp, uint16_t xPos, uint1
 void pattTwoHexOut(ft2_video_t *video, const ft2_bmp_t *bmp, uint32_t xPos, uint32_t yPos, uint8_t val, uint32_t color)
 {
 	if (video == NULL || video->frameBuffer == NULL || bmp == NULL || bmp->font4 == NULL)
+		return;
+
+	if (xPos + (FONT4_CHAR_W * 2) > SCREEN_W || yPos + FONT4_CHAR_H > SCREEN_H)
 		return;
 
 	const uint8_t *ch1Ptr = &bmp->font4[(val >> 4) * FONT4_CHAR_W];

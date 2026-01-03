@@ -362,6 +362,9 @@ static void pianoNumberOut(ft2_video_t *video, const ft2_bmp_t *bmp, uint16_t xP
 	if (video == NULL || video->frameBuffer == NULL || bmp == NULL || bmp->font8 == NULL)
 		return;
 
+	if (xPos + FONT8_CHAR_W > SCREEN_W || yPos + FONT8_CHAR_H > SCREEN_H)
+		return;
+
 	if (val > 0xF)
 		val = 0xF;
 
