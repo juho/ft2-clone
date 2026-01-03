@@ -1662,6 +1662,7 @@ bool ft2_load_instrument(ft2_instance_t *inst, int16_t instrNum,
 	ins->midiChannel = hdr.midiChannel;
 	ins->mute = (hdr.mute == 1);
 	ins->numSamples = hdr.numSamples;
+	ft2_sanitize_instrument(ins);
 
 	/* Read sample headers */
 	int32_t numSamplesToRead = hdr.numSamples;

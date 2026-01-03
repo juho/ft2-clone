@@ -1279,6 +1279,58 @@ void ft2_song_mark_modified(ft2_instance_t *inst)
 }
 
 /**
+ * @brief Validates and clamps instrument parameters.
+ * @param ins The instrument to sanitize.
+ */
+void ft2_sanitize_instrument(ft2_instr_t *ins)
+{
+	if (ins == NULL)
+		return;
+
+	if (ins->midiProgram < 0)
+		ins->midiProgram = 0;
+	else if (ins->midiProgram > 127)
+		ins->midiProgram = 127;
+
+	if (ins->midiBend < 0)
+		ins->midiBend = 0;
+	else if (ins->midiBend > 36)
+		ins->midiBend = 36;
+
+	if (ins->midiChannel > 15)
+		ins->midiChannel = 15;
+	if (ins->autoVibDepth > 0x0F)
+		ins->autoVibDepth = 0x0F;
+	if (ins->autoVibRate > 0x3F)
+		ins->autoVibRate = 0x3F;
+	if (ins->autoVibType > 3)
+		ins->autoVibType = 0;
+
+	for (int32_t i = 0; i < 96; i++)
+	{
+		if (ins->note2SampleLUT[i] >= FT2_MAX_SMP_PER_INST)
+			ins->note2SampleLUT[i] = FT2_MAX_SMP_PER_INST - 1;
+	}
+
+	if (ins->volEnvLength > 12) ins->volEnvLength = 12;
+	if (ins->volEnvLoopStart > 11) ins->volEnvLoopStart = 11;
+	if (ins->volEnvLoopEnd > 11) ins->volEnvLoopEnd = 11;
+	if (ins->volEnvSustain > 11) ins->volEnvSustain = 11;
+	if (ins->panEnvLength > 12) ins->panEnvLength = 12;
+	if (ins->panEnvLoopStart > 11) ins->panEnvLoopStart = 11;
+	if (ins->panEnvLoopEnd > 11) ins->panEnvLoopEnd = 11;
+	if (ins->panEnvSustain > 11) ins->panEnvSustain = 11;
+
+	for (int32_t i = 0; i < 12; i++)
+	{
+		if ((uint16_t)ins->volEnvPoints[i][0] > 32767) ins->volEnvPoints[i][0] = 32767;
+		if ((uint16_t)ins->panEnvPoints[i][0] > 32767) ins->panEnvPoints[i][0] = 32767;
+		if ((uint16_t)ins->volEnvPoints[i][1] > 64) ins->volEnvPoints[i][1] = 64;
+		if ((uint16_t)ins->panEnvPoints[i][1] > 63) ins->panEnvPoints[i][1] = 63;
+	}
+}
+
+/**
  * @brief Validates and clamps sample parameters.
  * @param s The sample to sanitize.
  */

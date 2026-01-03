@@ -397,6 +397,7 @@ static bool load_instr_header(xm_loader_state_t *state, uint16_t instrNum)
 		ins->midiBend = ih.midiBend;
 		ins->mute = (ih.mute == 1);
 		ins->numSamples = ih.numSamples;
+		ft2_sanitize_instrument(ins);
 
 		/* Read sample headers */
 		int32_t sampleHeadersToRead = ih.numSamples;

@@ -867,6 +867,12 @@ void ft2_instance_init_bpm_vars(ft2_instance_t *instance);
 void ft2_song_mark_modified(ft2_instance_t *inst);
 
 /**
+ * @brief Validates and clamps instrument parameters.
+ * @param ins The instrument to sanitize.
+ */
+void ft2_sanitize_instrument(ft2_instr_t *ins);
+
+/**
  * @brief Validates and clamps sample parameters.
  * @param s The sample to sanitize.
  */
