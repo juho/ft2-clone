@@ -409,7 +409,7 @@ static void writePianoNumber(ft2_instance_t *inst, uint8_t note, uint8_t key, ui
 /* Draw a white piano key - exact match to standalone using bitmap */
 static void drawWhitePianoKey(ft2_video_t *video, int key, int octave, bool keyDown, const ft2_bmp_t *bmp)
 {
-	if (video == NULL || video->frameBuffer == NULL)
+	if (video == NULL || video->frameBuffer == NULL || bmp == NULL || bmp->whitePianoKeys == NULL)
 		return;
 	const uint16_t x = keyXPos[key] + (octave * 77);
 	const uint8_t *src = &bmp->whitePianoKeys[(keyDown * (11*46*3)) + whiteKeysBmpOrder[key]];
@@ -419,7 +419,7 @@ static void drawWhitePianoKey(ft2_video_t *video, int key, int octave, bool keyD
 /* Draw a black piano key - exact match to standalone using bitmap */
 static void drawBlackPianoKey(ft2_video_t *video, int key, int octave, bool keyDown, const ft2_bmp_t *bmp)
 {
-	if (video == NULL || video->frameBuffer == NULL)
+	if (video == NULL || video->frameBuffer == NULL || bmp == NULL || bmp->blackPianoKeys == NULL)
 		return;
 	const uint16_t x = keyXPos[key] + (octave * 77);
 	const uint8_t *src = &bmp->blackPianoKeys[keyDown * (7*27)];
@@ -755,6 +755,19 @@ void ft2_instr_ed_draw_piano(ft2_instance_t *inst)
 	ft2_instrument_editor_t *ed = FT2_INSTR_ED(inst);
 	ft2_video_t *video = FT2_VIDEO(inst);
 	const ft2_bmp_t *bmp = FT2_BMP(inst);
+
+#ifdef _WIN32
+	{
+		char buf[256];
+		snprintf(buf, sizeof(buf), "[FT2 Piano] bmpLoaded=%d bmp=%p whitePianoKeys=%p blackPianoKeys=%p\n",
+			FT2_UI(inst)->bmpLoaded,
+			(void*)bmp,
+			(void*)(bmp ? bmp->whitePianoKeys : NULL),
+			(void*)(bmp ? bmp->blackPianoKeys : NULL));
+		OutputDebugStringA(buf);
+	}
+#endif
+
 	if (video == NULL || video->frameBuffer == NULL)
 		return;
 

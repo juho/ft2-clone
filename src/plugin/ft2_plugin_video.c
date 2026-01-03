@@ -8,7 +8,11 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 #include <assert.h>
+#ifdef _WIN32
+#include <windows.h>
+#endif
 #include "ft2_plugin_video.h"
 #include "ft2_plugin_bmp.h"
 
@@ -325,6 +329,15 @@ void blit32(ft2_video_t *video, uint16_t xPos, uint16_t yPos, const uint32_t *sr
 
 void blit(ft2_video_t *video, uint16_t xPos, uint16_t yPos, const uint8_t *srcPtr, uint16_t w, uint16_t h)
 {
+#ifdef _WIN32
+	{
+		char buf[256];
+		snprintf(buf, sizeof(buf), "[FT2 blit] xPos=%u yPos=%u w=%u h=%u srcPtr=%p\n",
+			xPos, yPos, w, h, (void*)srcPtr);
+		OutputDebugStringA(buf);
+	}
+#endif
+
 	assert(video != NULL && video->frameBuffer != NULL);
 	assert(srcPtr != NULL && xPos < SCREEN_W && yPos < SCREEN_H && (xPos + w) <= SCREEN_W && (yPos + h) <= SCREEN_H);
 
@@ -335,6 +348,19 @@ void blit(ft2_video_t *video, uint16_t xPos, uint16_t yPos, const uint8_t *srcPt
 	uint32_t *dstPtr = &video->frameBuffer[(yPos * SCREEN_W) + xPos];
 	for (int32_t y = 0; y < h; y++)
 	{
+#ifdef _WIN32
+		/* Safety check: detect if we're about to write out of bounds */
+		{
+			size_t offset = (size_t)(dstPtr - video->frameBuffer);
+			if (offset >= SCREEN_W * SCREEN_H) {
+				char buf[256];
+				snprintf(buf, sizeof(buf), "[FT2 blit OVERFLOW] y=%d h=%d offset=%zu max=%d\n",
+					y, h, offset, SCREEN_W * SCREEN_H);
+				OutputDebugStringA(buf);
+				return;
+			}
+		}
+#endif
 		for (int32_t x = 0; x < w; x++)
 		{
 			const uint32_t pixel = srcPtr[x];
@@ -376,6 +402,15 @@ void blitClipX(ft2_video_t *video, uint16_t xPos, uint16_t yPos, const uint8_t *
 
 void blitFast(ft2_video_t *video, uint16_t xPos, uint16_t yPos, const uint8_t *srcPtr, uint16_t w, uint16_t h)
 {
+#ifdef _WIN32
+	{
+		char buf[256];
+		snprintf(buf, sizeof(buf), "[FT2 blitFast] xPos=%u yPos=%u w=%u h=%u srcPtr=%p\n",
+			xPos, yPos, w, h, (void*)srcPtr);
+		OutputDebugStringA(buf);
+	}
+#endif
+
 	assert(video != NULL && video->frameBuffer != NULL);
 	assert(srcPtr != NULL && xPos < SCREEN_W && yPos < SCREEN_H && (xPos + w) <= SCREEN_W && (yPos + h) <= SCREEN_H);
 
@@ -386,6 +421,19 @@ void blitFast(ft2_video_t *video, uint16_t xPos, uint16_t yPos, const uint8_t *s
 	uint32_t *dstPtr = &video->frameBuffer[(yPos * SCREEN_W) + xPos];
 	for (int32_t y = 0; y < h; y++)
 	{
+#ifdef _WIN32
+		/* Safety check: detect if we're about to write out of bounds */
+		{
+			size_t offset = (size_t)(dstPtr - video->frameBuffer);
+			if (offset >= SCREEN_W * SCREEN_H) {
+				char buf[256];
+				snprintf(buf, sizeof(buf), "[FT2 blitFast OVERFLOW] y=%d h=%d offset=%zu max=%d\n",
+					y, h, offset, SCREEN_W * SCREEN_H);
+				OutputDebugStringA(buf);
+				return;
+			}
+		}
+#endif
 		for (int32_t x = 0; x < w; x++)
 			dstPtr[x] = video->palette[srcPtr[x]];
 
