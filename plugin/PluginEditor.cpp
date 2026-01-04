@@ -3,7 +3,6 @@
 #include <cstdio>
 #include <cstddef>
 #if defined(_WIN32)
-#include <windows.h>
 #pragma pack(push, 8)
 #endif
 extern "C" {
@@ -34,20 +33,11 @@ FT2PluginEditor::FT2PluginEditor (FT2PluginProcessor& p)
     if (inst != nullptr)
     {
         inst->ui = ui;
-#if defined(_WIN32)
-        {
-            char buf[512];
-            snprintf(buf, sizeof(buf),
-                "[FT2 C++] sizeof(ft2_instance_t)=%zu offsetof(ui)=%zu inst=%p ui=%p inst->ui=%p\n",
-                sizeof(ft2_instance_t),
-                offsetof(ft2_instance_t, ui),
-                (void*)inst,
-                (void*)ui,
-                (void*)inst->ui);
-            OutputDebugStringA(buf);
-        }
-        ft2_debug_abi_info(inst, "after C++ set ui");
-#endif
+        
+        // Restore widget visibility state from persisted uiState flags.
+        // This is needed because the UI is destroyed when the editor closes,
+        // but the uiState flags persist in the processor.
+        ft2_ui_restore_state(ui, inst);
     }
     
     // Set the window size (2x upscale by default)

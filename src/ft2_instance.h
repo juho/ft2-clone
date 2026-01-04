@@ -912,13 +912,6 @@ void ft2_unfix_sample(ft2_sample_t *s);
  */
 void ft2_instance_set_audio_amp(ft2_instance_t *inst, int16_t boostLevel, int16_t masterVol);
 
-/**
- * @brief Debug helper to log ABI info (struct sizes and offsets).
- * @param inst The instance.
- * @param context Description of where this is being called from.
- */
-void ft2_debug_abi_info(ft2_instance_t *inst, const char *context);
-
 #ifdef __cplusplus
 }
 #endif

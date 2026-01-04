@@ -8,9 +8,6 @@
 #include <math.h>
 #include <stdio.h>
 #include <stddef.h>
-#ifdef _WIN32
-#include <windows.h>
-#endif
 #include "ft2_instance.h"
 #include "ft2_plugin_replayer.h"
 #include "ft2_plugin_loader.h"
@@ -1639,22 +1636,4 @@ void ft2_unfix_sample(ft2_sample_t *s)
 	}
 
 	s->isFixed = false;
-}
-
-void ft2_debug_abi_info(ft2_instance_t *inst, const char *context)
-{
-#ifdef _WIN32
-	char buf[512];
-	snprintf(buf, sizeof(buf),
-		"[FT2 C] %s: sizeof(ft2_instance_t)=%zu offsetof(ui)=%zu inst=%p inst->ui=%p\n",
-		context,
-		sizeof(ft2_instance_t),
-		offsetof(ft2_instance_t, ui),
-		(void*)inst,
-		(void*)(inst ? inst->ui : NULL));
-	OutputDebugStringA(buf);
-#else
-	(void)inst;
-	(void)context;
-#endif
 }

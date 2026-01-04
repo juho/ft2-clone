@@ -12,9 +12,6 @@
 #include <stdio.h>
 #include <stddef.h>
 #include <math.h>
-#ifdef _WIN32
-#include <windows.h>
-#endif
 #include "ft2_plugin_video.h"
 #include "ft2_plugin_bmp.h"
 #include "ft2_plugin_instr_ed.h"
@@ -208,47 +205,18 @@ static const uint8_t noteTab2[96] =
 /* Draw a pixel in the envelope area - exact match to standalone */
 static void envelopePixel(ft2_video_t *video, int32_t envNum, int32_t x, int32_t y, uint8_t paletteIndex)
 {
-#ifdef _WIN32
-	static int callCount = 0;
-	if (callCount < 10) {
-		char buf[256];
-		snprintf(buf, sizeof(buf), "[FT2 envPixel] envNum=%d x=%d y=%d\n", envNum, x, y);
-		OutputDebugStringA(buf);
-		callCount++;
-	}
-#endif
 	if (video == NULL || video->frameBuffer == NULL)
 		return;
 
 	int32_t screenY = y + ((envNum == 0) ? VOL_ENV_Y : PAN_ENV_Y);
 
 	if (x >= 0 && x < SCREEN_W && screenY >= 0 && screenY < SCREEN_H)
-	{
-#ifdef _WIN32
-		size_t offset = (size_t)((screenY * SCREEN_W) + x);
-		if (offset >= SCREEN_W * SCREEN_H) {
-			char buf[256];
-			snprintf(buf, sizeof(buf), "[FT2 envPixel OVERFLOW] screenY=%d x=%d offset=%zu\n", screenY, x, offset);
-			OutputDebugStringA(buf);
-			return;
-		}
-#endif
 		video->frameBuffer[(screenY * SCREEN_W) + x] = video->palette[paletteIndex];
-	}
 }
 
 /* Draw a line in the envelope area - exact match to standalone envelopeLine() */
 static void envelopeLine(ft2_video_t *video, int32_t envNum, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint8_t pal)
 {
-#ifdef _WIN32
-	static int lineCallCount = 0;
-	if (lineCallCount < 5) {
-		char buf[256];
-		snprintf(buf, sizeof(buf), "[FT2 envLine] envNum=%d x1=%d y1=%d x2=%d y2=%d\n", envNum, x1, y1, x2, y2);
-		OutputDebugStringA(buf);
-		lineCallCount++;
-	}
-#endif
 	if (video == NULL || video->frameBuffer == NULL)
 		return;
 
@@ -284,21 +252,7 @@ static void envelopeLine(ft2_video_t *video, int32_t envNum, int16_t x1, int16_t
 	const int32_t pitch = sy * SCREEN_W;
 
 	uint32_t *dst32 = &video->frameBuffer[(y * SCREEN_W) + x];
-#ifdef _WIN32
-	uint32_t *fbStart = video->frameBuffer;
 	uint32_t *fbEnd = video->frameBuffer + (SCREEN_W * SCREEN_H);
-#define ENVLINE_CHECK_BOUNDS() do { \
-	if (dst32 < fbStart || dst32 >= fbEnd) { \
-		char buf[256]; \
-		snprintf(buf, sizeof(buf), "[FT2 envLine OVERFLOW] dst=%p start=%p end=%p x=%d y=%d\n", \
-			(void*)dst32, (void*)fbStart, (void*)fbEnd, x, y); \
-		OutputDebugStringA(buf); \
-		return; \
-	} \
-} while(0)
-#else
-#define ENVLINE_CHECK_BOUNDS() ((void)0)
-#endif
 
 	/* Draw line - exact match to standalone Bresenham implementation */
 	if (ax > ay)
@@ -306,7 +260,10 @@ static void envelopeLine(ft2_video_t *video, int32_t envNum, int16_t x1, int16_t
 		int16_t d = ay - (ax >> 1);
 		while (true)
 		{
-			ENVLINE_CHECK_BOUNDS();
+			/* Safety bounds check */
+			if (dst32 < video->frameBuffer || dst32 >= fbEnd)
+				return;
+
 			/* Invert certain colors - exact match to standalone */
 			if (*dst32 != pal2)
 			{
@@ -335,7 +292,10 @@ static void envelopeLine(ft2_video_t *video, int32_t envNum, int16_t x1, int16_t
 		int16_t d = ax - (ay >> 1);
 		while (true)
 		{
-			ENVLINE_CHECK_BOUNDS();
+			/* Safety bounds check */
+			if (dst32 < video->frameBuffer || dst32 >= fbEnd)
+				return;
+
 			/* Invert certain colors - exact match to standalone */
 			if (*dst32 != pal2)
 			{
@@ -359,7 +319,6 @@ static void envelopeLine(ft2_video_t *video, int32_t envNum, int16_t x1, int16_t
 			dst32 += pitch;
 		}
 	}
-#undef ENVLINE_CHECK_BOUNDS
 }
 
 /* Draw an envelope point marker */
@@ -595,22 +554,6 @@ static void envelopeVertLine(ft2_video_t *video, int32_t envNum, int32_t x, int3
 
 void ft2_instr_ed_draw_envelope(ft2_instance_t *inst, int envNum)
 {
-#ifdef _WIN32
-	{
-		char buf[512];
-		ft2_video_t *v = (inst && inst->ui) ? &((ft2_ui_t*)inst->ui)->video : NULL;
-		snprintf(buf, sizeof(buf),
-			"[FT2 InstrEd] inst=%p inst->ui=%p video=%p frameBuffer=%p offsetof(ui)=%zu sizeof(ft2_instance_t)=%zu\n",
-			(void*)inst,
-			(void*)(inst ? inst->ui : NULL),
-			(void*)v,
-			(void*)(v ? v->frameBuffer : NULL),
-			offsetof(ft2_instance_t, ui),
-			sizeof(ft2_instance_t));
-		OutputDebugStringA(buf);
-	}
-#endif
-
 	if (inst == NULL || inst->ui == NULL)
 		return;
 
@@ -802,18 +745,6 @@ void ft2_instr_ed_draw_piano(ft2_instance_t *inst)
 	ft2_instrument_editor_t *ed = FT2_INSTR_ED(inst);
 	ft2_video_t *video = FT2_VIDEO(inst);
 	const ft2_bmp_t *bmp = FT2_BMP(inst);
-
-#ifdef _WIN32
-	{
-		char buf[256];
-		snprintf(buf, sizeof(buf), "[FT2 Piano] bmpLoaded=%d bmp=%p whitePianoKeys=%p blackPianoKeys=%p\n",
-			FT2_UI(inst)->bmpLoaded,
-			(void*)bmp,
-			(void*)(bmp ? bmp->whitePianoKeys : NULL),
-			(void*)(bmp ? bmp->blackPianoKeys : NULL));
-		OutputDebugStringA(buf);
-	}
-#endif
 
 	if (video == NULL || video->frameBuffer == NULL)
 		return;
