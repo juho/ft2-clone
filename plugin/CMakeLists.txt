@@ -128,8 +128,8 @@ if(MSVC)
     target_link_options(FT2Plugin_VST3 PRIVATE /MAP /DEBUG)
     
     # Runtime checks: stack frame validation, uninitialized vars, buffer overruns
-    # This helps catch memory corruption at the source
-    target_compile_options(ft2_core PRIVATE /RTC1)
+    # This helps catch memory corruption at the source (Debug builds only - incompatible with /O2)
+    target_compile_options(ft2_core PRIVATE $<$<CONFIG:Debug>:/RTC1>)
     
     # Disable LTO for ft2_core to get accurate variable tracking in debugger
     set_target_properties(ft2_core PROPERTIES INTERPROCEDURAL_OPTIMIZATION OFF)
