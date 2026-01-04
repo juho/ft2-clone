@@ -2,7 +2,7 @@
 # This builds the FT2 replayer as a VST3/AU/LV2 plugin using JUCE
 
 cmake_minimum_required(VERSION 3.22)
-project(FT2Plugin VERSION 1.0.37)
+project(FT2Plugin VERSION 1.0.38)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -126,6 +126,13 @@ if(MSVC)
     target_compile_options(ft2_core PRIVATE /Zi)
     target_compile_options(FT2Plugin PRIVATE /Zi)
     target_link_options(FT2Plugin_VST3 PRIVATE /MAP /DEBUG)
+    
+    # Runtime checks: stack frame validation, uninitialized vars, buffer overruns
+    # This helps catch memory corruption at the source
+    target_compile_options(ft2_core PRIVATE /RTC1)
+    
+    # Disable LTO for ft2_core to get accurate variable tracking in debugger
+    set_target_properties(ft2_core PROPERTIES INTERPROCEDURAL_OPTIMIZATION OFF)
 endif()
 
 target_link_libraries(FT2Plugin

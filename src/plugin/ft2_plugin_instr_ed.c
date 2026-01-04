@@ -258,10 +258,10 @@ static void envelopeLine(ft2_video_t *video, int32_t envNum, int16_t x1, int16_t
 			{
 				uint32_t *pixel = &video->frameBuffer[(y * SCREEN_W) + x];
 				if (*pixel != pal2)
-				{
+			{
 					if (*pixel == pal1)
 						*pixel = pal2;
-					else
+				else
 						*pixel = pixVal;
 				}
 			}
@@ -289,10 +289,10 @@ static void envelopeLine(ft2_video_t *video, int32_t envNum, int16_t x1, int16_t
 			{
 				uint32_t *pixel = &video->frameBuffer[(y * SCREEN_W) + x];
 				if (*pixel != pal2)
-				{
+			{
 					if (*pixel == pal1)
 						*pixel = pal2;
-					else
+				else
 						*pixel = pixVal;
 				}
 			}
@@ -520,7 +520,7 @@ static void envelopeDot(ft2_video_t *video, int32_t envNum, int32_t x, int32_t y
 			continue;
 
 		for (int32_t dx = 0; dx < 3; dx++)
-		{
+	{
 			int32_t px = x + dx;
 			if (px >= 0 && px < SCREEN_W)
 				video->frameBuffer[(py * SCREEN_W) + px] = pixVal;
