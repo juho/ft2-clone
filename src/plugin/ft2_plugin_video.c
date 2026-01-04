@@ -229,6 +229,13 @@ void line(ft2_video_t *video, int16_t x1, int16_t x2, int16_t y1, int16_t y2, ui
 
 void clearRect(ft2_video_t *video, uint16_t xPos, uint16_t yPos, uint16_t w, uint16_t h)
 {
+#ifdef _WIN32
+	{
+		char buf[256];
+		snprintf(buf, sizeof(buf), "[FT2 clearRect] x=%u y=%u w=%u h=%u\n", xPos, yPos, w, h);
+		OutputDebugStringA(buf);
+	}
+#endif
 	assert(video != NULL && video->frameBuffer != NULL);
 	assert(xPos < SCREEN_W && yPos < SCREEN_H && (xPos + w) <= SCREEN_W && (yPos + h) <= SCREEN_H);
 

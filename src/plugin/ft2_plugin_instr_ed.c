@@ -208,18 +208,47 @@ static const uint8_t noteTab2[96] =
 /* Draw a pixel in the envelope area - exact match to standalone */
 static void envelopePixel(ft2_video_t *video, int32_t envNum, int32_t x, int32_t y, uint8_t paletteIndex)
 {
+#ifdef _WIN32
+	static int callCount = 0;
+	if (callCount < 10) {
+		char buf[256];
+		snprintf(buf, sizeof(buf), "[FT2 envPixel] envNum=%d x=%d y=%d\n", envNum, x, y);
+		OutputDebugStringA(buf);
+		callCount++;
+	}
+#endif
 	if (video == NULL || video->frameBuffer == NULL)
 		return;
 
 	int32_t screenY = y + ((envNum == 0) ? VOL_ENV_Y : PAN_ENV_Y);
 
 	if (x >= 0 && x < SCREEN_W && screenY >= 0 && screenY < SCREEN_H)
+	{
+#ifdef _WIN32
+		size_t offset = (size_t)((screenY * SCREEN_W) + x);
+		if (offset >= SCREEN_W * SCREEN_H) {
+			char buf[256];
+			snprintf(buf, sizeof(buf), "[FT2 envPixel OVERFLOW] screenY=%d x=%d offset=%zu\n", screenY, x, offset);
+			OutputDebugStringA(buf);
+			return;
+		}
+#endif
 		video->frameBuffer[(screenY * SCREEN_W) + x] = video->palette[paletteIndex];
+	}
 }
 
 /* Draw a line in the envelope area - exact match to standalone envelopeLine() */
 static void envelopeLine(ft2_video_t *video, int32_t envNum, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint8_t pal)
 {
+#ifdef _WIN32
+	static int lineCallCount = 0;
+	if (lineCallCount < 5) {
+		char buf[256];
+		snprintf(buf, sizeof(buf), "[FT2 envLine] envNum=%d x1=%d y1=%d x2=%d y2=%d\n", envNum, x1, y1, x2, y2);
+		OutputDebugStringA(buf);
+		lineCallCount++;
+	}
+#endif
 	if (video == NULL || video->frameBuffer == NULL)
 		return;
 
@@ -255,6 +284,21 @@ static void envelopeLine(ft2_video_t *video, int32_t envNum, int16_t x1, int16_t
 	const int32_t pitch = sy * SCREEN_W;
 
 	uint32_t *dst32 = &video->frameBuffer[(y * SCREEN_W) + x];
+#ifdef _WIN32
+	uint32_t *fbStart = video->frameBuffer;
+	uint32_t *fbEnd = video->frameBuffer + (SCREEN_W * SCREEN_H);
+#define ENVLINE_CHECK_BOUNDS() do { \
+	if (dst32 < fbStart || dst32 >= fbEnd) { \
+		char buf[256]; \
+		snprintf(buf, sizeof(buf), "[FT2 envLine OVERFLOW] dst=%p start=%p end=%p x=%d y=%d\n", \
+			(void*)dst32, (void*)fbStart, (void*)fbEnd, x, y); \
+		OutputDebugStringA(buf); \
+		return; \
+	} \
+} while(0)
+#else
+#define ENVLINE_CHECK_BOUNDS() ((void)0)
+#endif
 
 	/* Draw line - exact match to standalone Bresenham implementation */
 	if (ax > ay)
@@ -262,6 +306,7 @@ static void envelopeLine(ft2_video_t *video, int32_t envNum, int16_t x1, int16_t
 		int16_t d = ay - (ax >> 1);
 		while (true)
 		{
+			ENVLINE_CHECK_BOUNDS();
 			/* Invert certain colors - exact match to standalone */
 			if (*dst32 != pal2)
 			{
@@ -290,6 +335,7 @@ static void envelopeLine(ft2_video_t *video, int32_t envNum, int16_t x1, int16_t
 		int16_t d = ax - (ay >> 1);
 		while (true)
 		{
+			ENVLINE_CHECK_BOUNDS();
 			/* Invert certain colors - exact match to standalone */
 			if (*dst32 != pal2)
 			{
@@ -313,6 +359,7 @@ static void envelopeLine(ft2_video_t *video, int32_t envNum, int16_t x1, int16_t
 			dst32 += pitch;
 		}
 	}
+#undef ENVLINE_CHECK_BOUNDS
 }
 
 /* Draw an envelope point marker */
@@ -412,8 +459,8 @@ static void drawWhitePianoKey(ft2_video_t *video, int key, int octave, bool keyD
 	if (video == NULL || video->frameBuffer == NULL || bmp == NULL || bmp->whitePianoKeys == NULL)
 		return;
 	const uint16_t x = keyXPos[key] + (octave * 77);
-	const uint8_t *src = &bmp->whitePianoKeys[(keyDown * (11*46*3)) + whiteKeysBmpOrder[key]];
-	blit(video, x, 351, src, 11, 46);
+		const uint8_t *src = &bmp->whitePianoKeys[(keyDown * (11*46*3)) + whiteKeysBmpOrder[key]];
+		blit(video, x, 351, src, 11, 46);
 }
 
 /* Draw a black piano key - exact match to standalone using bitmap */
@@ -422,8 +469,8 @@ static void drawBlackPianoKey(ft2_video_t *video, int key, int octave, bool keyD
 	if (video == NULL || video->frameBuffer == NULL || bmp == NULL || bmp->blackPianoKeys == NULL)
 		return;
 	const uint16_t x = keyXPos[key] + (octave * 77);
-	const uint8_t *src = &bmp->blackPianoKeys[keyDown * (7*27)];
-	blit(video, x, 351, src, 7, 27);
+		const uint8_t *src = &bmp->blackPianoKeys[keyDown * (7*27)];
+		blit(video, x, 351, src, 7, 27);
 }
 
 /* ============ ENVELOPE COORDINATE DISPLAY ============ */
@@ -732,7 +779,7 @@ void ft2_instr_ed_draw_note_map(ft2_instance_t *inst)
 		return;
 	
 	drawFramework(video, 400, 189, 232, 67, FRAMEWORK_TYPE2);
-	textOutShadow(video, bmp, 404, 193, PAL_FORGRND, PAL_DSKTOP2, "Note-Sample Map");
+		textOutShadow(video, bmp, 404, 193, PAL_FORGRND, PAL_DSKTOP2, "Note-Sample Map");
 
 	/* Get instrument */
 	int16_t curInstr = inst->editor.curInstr;
@@ -1079,35 +1126,35 @@ void ft2_instr_ed_draw(ft2_instance_t *inst)
 	drawFramework(video, 593, 296,  36,  15, FRAMEWORK_TYPE2);
 
 	/* Draw text labels - exact match to standalone showInstEditor() */
-	textOutShadow(video, bmp, 20,  176, PAL_FORGRND, PAL_DSKTOP2, "Volume envelope:");
-	textOutShadow(video, bmp, 153, 176, PAL_FORGRND, PAL_DSKTOP2, "Predef.");
-	textOutShadow(video, bmp, 358, 194, PAL_FORGRND, PAL_DSKTOP2, "Sustain:");
-	textOutShadow(video, bmp, 342, 206, PAL_FORGRND, PAL_DSKTOP2, "Point");
-	textOutShadow(video, bmp, 358, 219, PAL_FORGRND, PAL_DSKTOP2, "Env.loop:");
-	textOutShadow(video, bmp, 342, 233, PAL_FORGRND, PAL_DSKTOP2, "Start");
-	textOutShadow(video, bmp, 342, 247, PAL_FORGRND, PAL_DSKTOP2, "End");
-	textOutShadow(video, bmp, 20,  263, PAL_FORGRND, PAL_DSKTOP2, "Panning envelope:");
-	textOutShadow(video, bmp, 152, 263, PAL_FORGRND, PAL_DSKTOP2, "Predef.");
-	textOutShadow(video, bmp, 358, 281, PAL_FORGRND, PAL_DSKTOP2, "Sustain:");
-	textOutShadow(video, bmp, 342, 293, PAL_FORGRND, PAL_DSKTOP2, "Point");
-	textOutShadow(video, bmp, 358, 306, PAL_FORGRND, PAL_DSKTOP2, "Env.loop:");
-	textOutShadow(video, bmp, 342, 320, PAL_FORGRND, PAL_DSKTOP2, "Start");
-	textOutShadow(video, bmp, 342, 334, PAL_FORGRND, PAL_DSKTOP2, "End");
-	textOutShadow(video, bmp, 443, 177, PAL_FORGRND, PAL_DSKTOP2, "Volume");
-	textOutShadow(video, bmp, 443, 191, PAL_FORGRND, PAL_DSKTOP2, "Panning");
-	textOutShadow(video, bmp, 443, 205, PAL_FORGRND, PAL_DSKTOP2, "F.tune");
-	textOutShadow(video, bmp, 442, 222, PAL_FORGRND, PAL_DSKTOP2, "Fadeout");
-	textOutShadow(video, bmp, 442, 236, PAL_FORGRND, PAL_DSKTOP2, "Vib.speed");
-	textOutShadow(video, bmp, 442, 250, PAL_FORGRND, PAL_DSKTOP2, "Vib.depth");
-	textOutShadow(video, bmp, 442, 264, PAL_FORGRND, PAL_DSKTOP2, "Vib.sweep");
-	textOutShadow(video, bmp, 442, 299, PAL_FORGRND, PAL_DSKTOP2, "C-4=");
-	textOutShadow(video, bmp, 537, 299, PAL_FORGRND, PAL_DSKTOP2, "Rel. note");
+		textOutShadow(video, bmp, 20,  176, PAL_FORGRND, PAL_DSKTOP2, "Volume envelope:");
+		textOutShadow(video, bmp, 153, 176, PAL_FORGRND, PAL_DSKTOP2, "Predef.");
+		textOutShadow(video, bmp, 358, 194, PAL_FORGRND, PAL_DSKTOP2, "Sustain:");
+		textOutShadow(video, bmp, 342, 206, PAL_FORGRND, PAL_DSKTOP2, "Point");
+		textOutShadow(video, bmp, 358, 219, PAL_FORGRND, PAL_DSKTOP2, "Env.loop:");
+		textOutShadow(video, bmp, 342, 233, PAL_FORGRND, PAL_DSKTOP2, "Start");
+		textOutShadow(video, bmp, 342, 247, PAL_FORGRND, PAL_DSKTOP2, "End");
+		textOutShadow(video, bmp, 20,  263, PAL_FORGRND, PAL_DSKTOP2, "Panning envelope:");
+		textOutShadow(video, bmp, 152, 263, PAL_FORGRND, PAL_DSKTOP2, "Predef.");
+		textOutShadow(video, bmp, 358, 281, PAL_FORGRND, PAL_DSKTOP2, "Sustain:");
+		textOutShadow(video, bmp, 342, 293, PAL_FORGRND, PAL_DSKTOP2, "Point");
+		textOutShadow(video, bmp, 358, 306, PAL_FORGRND, PAL_DSKTOP2, "Env.loop:");
+		textOutShadow(video, bmp, 342, 320, PAL_FORGRND, PAL_DSKTOP2, "Start");
+		textOutShadow(video, bmp, 342, 334, PAL_FORGRND, PAL_DSKTOP2, "End");
+		textOutShadow(video, bmp, 443, 177, PAL_FORGRND, PAL_DSKTOP2, "Volume");
+		textOutShadow(video, bmp, 443, 191, PAL_FORGRND, PAL_DSKTOP2, "Panning");
+		textOutShadow(video, bmp, 443, 205, PAL_FORGRND, PAL_DSKTOP2, "F.tune");
+		textOutShadow(video, bmp, 442, 222, PAL_FORGRND, PAL_DSKTOP2, "Fadeout");
+		textOutShadow(video, bmp, 442, 236, PAL_FORGRND, PAL_DSKTOP2, "Vib.speed");
+		textOutShadow(video, bmp, 442, 250, PAL_FORGRND, PAL_DSKTOP2, "Vib.depth");
+		textOutShadow(video, bmp, 442, 264, PAL_FORGRND, PAL_DSKTOP2, "Vib.sweep");
+		textOutShadow(video, bmp, 442, 299, PAL_FORGRND, PAL_DSKTOP2, "C-4=");
+		textOutShadow(video, bmp, 537, 299, PAL_FORGRND, PAL_DSKTOP2, "Rel. note");
 
-	/* Draw vibrato waveforms */
-	blitFast(video, 455, 279, &bmp->vibratoWaveforms[0*(12*10)], 12, 10);
-	blitFast(video, 485, 279, &bmp->vibratoWaveforms[1*(12*10)], 12, 10);
-	blitFast(video, 515, 279, &bmp->vibratoWaveforms[2*(12*10)], 12, 10);
-	blitFast(video, 545, 279, &bmp->vibratoWaveforms[3*(12*10)], 12, 10);
+		/* Draw vibrato waveforms */
+			blitFast(video, 455, 279, &bmp->vibratoWaveforms[0*(12*10)], 12, 10);
+			blitFast(video, 485, 279, &bmp->vibratoWaveforms[1*(12*10)], 12, 10);
+			blitFast(video, 515, 279, &bmp->vibratoWaveforms[2*(12*10)], 12, 10);
+			blitFast(video, 545, 279, &bmp->vibratoWaveforms[3*(12*10)], 12, 10);
 
 	/* Draw envelopes */
 	ft2_instr_ed_draw_vol_env(inst);
