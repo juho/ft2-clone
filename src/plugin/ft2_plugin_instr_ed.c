@@ -346,14 +346,11 @@ static void drawEnvPoint(ft2_video_t *video, int32_t envNum, int32_t x, int32_t 
 /* Key digit X positions for sample numbers - exact match to standalone */
 static const uint8_t keyDigitXPos[12] = { 11, 16, 22, 27, 33, 44, 49, 55, 60, 66, 71, 77 };
 
-/* Draw piano number (hex digit 0-F) - exact match to standalone pianoNumberOut() */
+/* Draw piano number (hex digit 0-F) using array indexing (safer than pointer arithmetic) */
 static void pianoNumberOut(ft2_video_t *video, const ft2_bmp_t *bmp, uint16_t xPos, uint16_t yPos, 
                            uint8_t fgPalette, uint8_t bgPalette, uint8_t val)
 {
 	if (video == NULL || video->frameBuffer == NULL || bmp == NULL || bmp->font8 == NULL)
-		return;
-
-	if (xPos + FONT8_CHAR_W > SCREEN_W || yPos + FONT8_CHAR_H > SCREEN_H)
 		return;
 
 	if (val > 0xF)
@@ -361,15 +358,25 @@ static void pianoNumberOut(ft2_video_t *video, const ft2_bmp_t *bmp, uint16_t xP
 
 	const uint32_t fg = video->palette[fgPalette];
 	const uint32_t bg = video->palette[bgPalette];
-	uint32_t *dstPtr = &video->frameBuffer[(yPos * SCREEN_W) + xPos];
 	const uint8_t *srcPtr = &bmp->font8[val * FONT8_CHAR_W];
 
-	for (int32_t y = 0; y < FONT8_CHAR_H; y++)
+	/* Draw using array indexing with per-pixel bounds check */
+	for (int32_t dy = 0; dy < FONT8_CHAR_H; dy++)
 	{
-		for (int32_t x = 0; x < FONT8_CHAR_W; x++)
-			dstPtr[x] = srcPtr[x] ? fg : bg;
+		int32_t py = yPos + dy;
+		if (py < 0 || py >= SCREEN_H)
+		{
+			srcPtr += FONT8_WIDTH;
+			continue;
+		}
 
-		dstPtr += SCREEN_W;
+		for (int32_t dx = 0; dx < FONT8_CHAR_W; dx++)
+		{
+			int32_t px = xPos + dx;
+			if (px >= 0 && px < SCREEN_W)
+				video->frameBuffer[(py * SCREEN_W) + px] = srcPtr[dx] ? fg : bg;
+		}
+
 		srcPtr += FONT8_WIDTH;
 	}
 }
@@ -495,7 +502,7 @@ void ft2_instr_ed_init(ft2_instrument_editor_t *editor)
 }
 
 
-/* Draw 3x3 envelope point dot - exact match to standalone envelopeDot() */
+/* Draw 3x3 envelope point dot using array indexing (safer than pointer arithmetic) */
 static void envelopeDot(ft2_video_t *video, int32_t envNum, int32_t x, int32_t y)
 {
 	if (video == NULL || video->frameBuffer == NULL)
@@ -503,23 +510,25 @@ static void envelopeDot(ft2_video_t *video, int32_t envNum, int32_t x, int32_t y
 
 	y += (envNum == 0) ? VOL_ENV_Y : PAN_ENV_Y;
 
-	/* Bounds check - dot is 3x3 pixels */
-	if (x < 0 || x > SCREEN_W - 3 || y < 0 || y > SCREEN_H - 3)
-		return;
-
 	const uint32_t pixVal = video->palette[PAL_BLCKTXT];
-	uint32_t *dstPtr = &video->frameBuffer[(y * SCREEN_W) + x];
 
-	for (int32_t i = 0; i < 3; i++)
+	/* Draw 3x3 dot using array indexing with per-pixel bounds check */
+	for (int32_t dy = 0; dy < 3; dy++)
 	{
-		*dstPtr++ = pixVal;
-		*dstPtr++ = pixVal;
-		*dstPtr++ = pixVal;
-		dstPtr += SCREEN_W - 3;
+		int32_t py = y + dy;
+		if (py < 0 || py >= SCREEN_H)
+			continue;
+
+		for (int32_t dx = 0; dx < 3; dx++)
+		{
+			int32_t px = x + dx;
+			if (px >= 0 && px < SCREEN_W)
+				video->frameBuffer[(py * SCREEN_W) + px] = pixVal;
+		}
 	}
 }
 
-/* Draw dotted vertical line in envelope area - exact match to standalone */
+/* Draw dotted vertical line in envelope area using array indexing (safer than pointer arithmetic) */
 static void envelopeVertLine(ft2_video_t *video, int32_t envNum, int32_t x, int32_t y, uint8_t pal)
 {
 	if (video == NULL || video->frameBuffer == NULL)
@@ -527,19 +536,24 @@ static void envelopeVertLine(ft2_video_t *video, int32_t envNum, int32_t x, int3
 
 	y += (envNum == 0) ? VOL_ENV_Y : PAN_ENV_Y;
 
-	/* Bounds check - line spans 66 pixels vertically (33 iterations * 2 stride) */
-	if (x < 0 || x >= SCREEN_W || y < 0 || y + 66 > SCREEN_H)
+	/* X bounds check */
+	if (x < 0 || x >= SCREEN_W)
 		return;
 
 	const uint32_t pixVal1 = video->palette[pal];
 	const uint32_t pixVal2 = video->palette[PAL_BLCKTXT];
 
-	uint32_t *dstPtr = &video->frameBuffer[(y * SCREEN_W) + x];
+	/* Draw 33 dots with stride of 2 using array indexing */
+	int32_t py = y;
 	for (int32_t i = 0; i < 33; i++)
 	{
-		if (*dstPtr != pixVal2)
-			*dstPtr = pixVal1;
-		dstPtr += SCREEN_W * 2;
+		if (py >= 0 && py < SCREEN_H)
+		{
+			uint32_t *pixel = &video->frameBuffer[(py * SCREEN_W) + x];
+			if (*pixel != pixVal2)
+				*pixel = pixVal1;
+		}
+		py += 2;
 	}
 }
 

@@ -164,60 +164,61 @@ void vLineDouble(ft2_video_t *video, uint16_t x, uint16_t y, uint16_t h, uint8_t
 
 void line(ft2_video_t *video, int16_t x1, int16_t x2, int16_t y1, int16_t y2, uint8_t paletteIndex)
 {
-	assert(video != NULL && video->frameBuffer != NULL);
+	VIDEO_CHECK(video);
 
-	const int16_t dx = x2 - x1;
-	const uint16_t ax = ABS(dx) * 2;
-	const int16_t sx = SGN(dx);
-	const int16_t dy = y2 - y1;
-	const uint16_t ay = ABS(dy) * 2;
-	const int16_t sy = SGN(dy);
-	int16_t x = x1;
-	int16_t y = y1;
+	/* Use int32_t to avoid overflow issues */
+	const int32_t dx = (int32_t)x2 - (int32_t)x1;
+	const int32_t ax = ABS(dx) * 2;
+	const int32_t sx = SGN(dx);
+	const int32_t dy = (int32_t)y2 - (int32_t)y1;
+	const int32_t ay = ABS(dy) * 2;
+	const int32_t sy = SGN(dy);
+	int32_t x = x1;
+	int32_t y = y1;
 
-	uint32_t pixVal = video->palette[paletteIndex];
-	const int32_t pitch = sy * SCREEN_W;
-	uint32_t *dst32 = &video->frameBuffer[(y * SCREEN_W) + x];
+	const uint32_t pixVal = video->palette[paletteIndex];
 
-	/* draw line */
+	/* Draw line using array indexing with per-pixel bounds check */
 	if (ax > ay)
 	{
-		int16_t d = ay - (ax >> 1);
+		int32_t d = ay - (ax / 2);
 		while (true)
 		{
-			*dst32 = pixVal;
+			if (x >= 0 && x < SCREEN_W && y >= 0 && y < SCREEN_H)
+				video->frameBuffer[(y * SCREEN_W) + x] = pixVal;
+
 			if (x == x2)
 				break;
 
 			if (d >= 0)
 			{
+				y += sy;
 				d -= ax;
-				dst32 += pitch;
 			}
 
 			x += sx;
 			d += ay;
-			dst32 += sx;
 		}
 	}
 	else
 	{
-		int16_t d = ax - (ay >> 1);
+		int32_t d = ax - (ay / 2);
 		while (true)
 		{
-			*dst32 = pixVal;
+			if (x >= 0 && x < SCREEN_W && y >= 0 && y < SCREEN_H)
+				video->frameBuffer[(y * SCREEN_W) + x] = pixVal;
+
 			if (y == y2)
 				break;
 
 			if (d >= 0)
 			{
+				x += sx;
 				d -= ay;
-				dst32 += sx;
 			}
 
 			y += sy;
 			d += ax;
-			dst32 += pitch;
 		}
 	}
 }
